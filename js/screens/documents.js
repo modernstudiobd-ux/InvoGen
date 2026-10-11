@@ -7,14 +7,15 @@ import { icon } from "../icons.js";
 import { t, tHtml, getLanguage } from "../i18n.js";
 import {
   getState, subscribe, getDoc, docView, deleteDoc, restoreDoc, duplicateDoc, markSent, markPaid, markUnpaid,
-  restorePaymentState, recordPayment, setDocFields, setEstimateStatus, convertToInvoice
+  restorePaymentState, setDocFields, setEstimateStatus, convertToInvoice
 } from "../state.js";
-import { outstandingOf, totals } from "../calc.js";
-import { formatMoney, formatShortDate, formatNumber, parseNumber, todayISO, decimalsOf } from "../format.js";
+import { outstandingOf } from "../calc.js";
+import { formatMoney, formatShortDate, todayISO } from "../format.js";
 import { toast } from "../toast.js";
 import { openSheet } from "../sheet.js";
 import { addSampleData, removeSampleData, hasSampleData } from "../sample.js";
 import { downloadBackup, backupDue, snoozeBackup } from "../backup.js";
+import { openPaymentSheet } from "../payments.js";
 
 const PAGE = 50;
 const TYPES = ["all", "invoice", "estimate", "receipt"];
@@ -22,7 +23,7 @@ const STATUSES = ["any", "draft", "sent", "partial", "overdue", "paid", "accepte
 const SORTS = ["newest", "oldest", "due", "amount", "client"];
 const PREFS_KEY = "invogen.docs.view";
 
-let root = null, unsub = null, limit = PAGE, dayTimer = 0;
+let root = null, unsub = null, limit = PAGE, dayTimer = 0, ac = null;
 let view = loadView();
 
 function loadView() {
@@ -100,7 +101,8 @@ export function mount(el) {
 }
 export function unmount() {
   if (unsub) unsub();
-  unsub = null;
+  if (ac) ac.abort();
+  unsub = null; ac = null;
   clearTimeout(dayTimer);
   root = null;
 }
@@ -229,7 +231,8 @@ function wire() {
   search.addEventListener("keydown", e => { if (e.key === "Escape" && search.value) { e.stopPropagation(); search.value = ""; view.q = ""; renderList(); } });
   root.querySelector("#docsStatus").addEventListener("change", e => { view.status = e.target.value; limit = PAGE; saveView(); renderList(); });
   root.querySelector("#docsSort").addEventListener("change", e => { view.sort = e.target.value; saveView(); renderList(); });
-  root.addEventListener("click", onClick);
+  ac = new AbortController();
+  root.addEventListener("click", onClick, { signal: ac.signal });
 }
 
 function onClick(e) {
@@ -346,55 +349,4 @@ function runAction(act, id) {
       break;
     }
   }
-}
-
-const METHODS = ["bank", "card", "cash", "cheque", "mobile", "online", "other"];
-
-function openPaymentSheet(id) {
-  const d = getDoc(id);
-  if (!d) return;
-  const tt = totals(d), dec = decimalsOf(d.currency);
-  const s = getState().settings;
-  const owed = tt.balance;
-  const dlg = openSheet({
-    title: t("pay.title"),
-    body: `<form id="payForm" class="pay-form" novalidate>
-      <div class="sheet-summary"><strong>${esc(`${typeName(d.type)} ${d.no}`)} · ${esc(d.client.name || t("docs.noClient"))}</strong>
-        <span>${esc(t("pay.owed"))}: <bdi class="ltr num">${esc(money(owed, d.currency))}</bdi></span></div>
-      <div class="field">
-        <label for="payAmount">${esc(t("pay.amount"))} (${esc(d.currency)})</label>
-        <input class="input num" id="payAmount" name="amount" inputmode="decimal" autocomplete="off" required
-          value="${esc(formatNumber(owed, dec, s.numberFormat === "native" ? "auto" : s.numberFormat, getLanguage()))}" aria-describedby="payAmountErr">
-        <p class="err" id="payAmountErr" hidden></p>
-      </div>
-      <div class="row2">
-        <div class="field"><label for="payDate">${esc(t("pay.date"))}</label><input class="input" type="date" id="payDate" name="date" value="${todayISO()}" required></div>
-        <div class="field"><label for="payMethod">${esc(t("pay.method"))}</label>
-          <select class="select" id="payMethod" name="method">${METHODS.map(m => `<option value="${m}">${esc(t(`pay.m.${m}`))}</option>`).join("")}</select></div>
-      </div>
-      <div class="field"><label for="payNote">${esc(t("pay.note"))}</label><input class="input" id="payNote" name="note" maxlength="200" autocomplete="off"></div>
-    </form>`,
-    foot: `<button type="button" class="btn btn-outline" data-close="">${esc(t("common.cancel"))}</button>
-           <button type="submit" form="payForm" class="btn btn-primary">${esc(t("pay.save"))}</button>`,
-    onOpen: dlgEl => {
-      const amt = dlgEl.querySelector("#payAmount");
-      amt.focus(); amt.select();
-      dlgEl.querySelector("#payForm").addEventListener("submit", e => {
-        e.preventDefault();
-        const err = dlgEl.querySelector("#payAmountErr");
-        const value = Math.round(parseNumber(amt.value) * 10 ** dec) / 10 ** dec;
-        let msg = "";
-        if (!(value > 0)) msg = t("pay.errPositive");
-        else if (value > owed + 1e-9) msg = t("pay.errTooMuch", { amount: money(owed, d.currency) });
-        if (msg) { err.textContent = msg; err.hidden = false; amt.setAttribute("aria-invalid", "true"); amt.focus(); return; }
-        const p = recordPayment(id, { amount: value, date: dlgEl.querySelector("#payDate").value || todayISO(), method: dlgEl.querySelector("#payMethod").value, note: dlgEl.querySelector("#payNote").value.trim() });
-        dlgEl.close();
-        if (p) toast(t("pay.recorded", { amount: money(value, d.currency) }), {
-          action: t("common.undo"),
-          onAction: () => { const x = getDoc(id); if (x) setDocFields(id, { payments: x.payments.filter(q => q.id !== p.id), status: d.status }); }
-        });
-      });
-    }
-  });
-  return dlg;
 }

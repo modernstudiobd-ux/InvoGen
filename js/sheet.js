@@ -8,11 +8,11 @@ import { t } from "./i18n.js";
 
 // openSheet({ title, body, foot, wide, onOpen(dlg), onClose(value) }) → <dialog>
 // Buttons inside with data-close="value" close the sheet and pass that value to onClose.
-export function openSheet({ title, body = "", foot = "", wide = false, onOpen, onClose, label } = {}) {
+export function openSheet({ title, body = "", foot = "", wide = false, side = false, onOpen, onClose, label } = {}) {
   const opener = document.activeElement;
   const id = "sh-" + uid().slice(0, 8);
   const dlg = document.createElement("dialog");
-  dlg.className = "sheet" + (wide ? " wide" : "");
+  dlg.className = "sheet" + (wide ? " wide" : "") + (side ? " side" : "");
   dlg.setAttribute("aria-labelledby", id);
   dlg.innerHTML = `
     <div class="sheet-head">

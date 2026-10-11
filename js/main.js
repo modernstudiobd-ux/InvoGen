@@ -3,7 +3,7 @@
 // #/templates, #/settings, #/guide), keyboard shortcuts and the service worker.
 
 import { $, isTyping } from "./dom.js";
-import { initState, getState, subscribe, lastSaveFailed, runRecurring } from "./state.js";
+import { initState, getState, subscribe, lastSaveFailed, runRecurring, setSettings } from "./state.js";
 import { migrateLegacy } from "./migrate.js";
 import { setLanguage, detectLanguage, t, onLanguageChange } from "./i18n.js";
 import { renderShell, setActive, openLanguageSheet, setOfflineReady } from "./layout.js";
@@ -104,6 +104,7 @@ async function boot() {
   // First visit: follow the device language; afterwards, the language chosen in the app.
   const lang = s.langChosen || s.onboarded || getState().docs.length ? s.appLang || "en" : detectLanguage();
   await setLanguage(lang);
+  if (!s.langChosen && !getState().docs.length && lang !== "en" && s.docLang === "en") setSettings({ appLang: lang, docLang: lang }, "ui");
   renderShell();
   onLanguageChange(() => { renderShell(); setActive(current.route); remount(); });
   subscribe((st, reason) => {

@@ -1,0 +1,26 @@
+/* print.css — Print and "Save as PDF" output. Only the document (#printHost) is printed;
+   the app around it is hidden. Page size comes from js/print.js (@page in #pageSizeCSS),
+   with margin 0: the top/bottom page margins are real rows of the document's frame table
+   (repeating <thead>/<tfoot>), so they repeat on every page and keep the template's
+   background colour (approach carried over from v3.41). */
+
+#printHost { display: none; }
+
+@media print {
+  html, body {
+    background: var(--print-bg, #fff) !important;
+    margin: 0 !important; padding: 0 !important;
+    min-height: 0 !important; height: auto !important; overflow: visible !important;
+  }
+  body > *:not(#printHost) { display: none !important; }
+  #printHost { display: block !important; }
+  #printHost .doc { width: auto; overflow: visible; box-shadow: none; border: 0; border-radius: 0; }
+  #printHost .doc-wm { position: fixed; }
+  #printHost a { color: inherit; }
+  #printHost .doc-items thead { display: table-header-group; }
+  #printHost .doc-frame > thead { display: table-header-group; }
+  #printHost .doc-frame > tfoot { display: table-footer-group; }
+
+  /* POS receipt mode */
+  body.pos-print #printHost .pr { margin: 0 auto; }
+}

@@ -14,7 +14,7 @@ export function addSampleData() {
     { name: "Hollis Ceramics", contact: "Ana Hollis", email: "studio@hollis.example", address: "8 Rua das Flores\n1200-195 Lisboa\nPortugal" },
     { name: "Kestrel Outdoor", contact: "Sam Okafor", email: "orders@kestrel.example", address: "41 Marina Avenue\nLagos 101241\nNigeria" }
   ].map(x => normalizeClient({ ...x, id: uid(), sample: true }));
-  const client = i => ({ id: c[i].id, name: c[i].name, email: c[i].email, address: c[i].address, phone: "", taxId: "" });
+  const client = i => ({ id: c[i].id, name: c[i].name, contact: c[i].contact, email: c[i].email, address: c[i].address, phone: c[i].phone, taxId: c[i].taxId });
   const biz = { ...s.business, name: s.business.name || "Your Business" };
   const base = { currency: cur, lang: s.docLang, dateFormat: s.dateFormat, numberFormat: s.numberFormat, business: biz, template: s.template, sample: true, tax: { name: s.taxName || "Tax", rate: 0 } };
 

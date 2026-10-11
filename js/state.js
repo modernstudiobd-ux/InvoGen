@@ -71,7 +71,7 @@ export function normalizeDoc(d = {}) {
     dateFormat: str(d.dateFormat, 20) || DEFAULT_DATE_FORMAT,
     numberFormat: str(d.numberFormat, 20) || "auto",
     business: { name: "", email: "", phone: "", address: "", website: "", taxId: "", logo: "", ...(d.business || {}) },
-    client: { id: "", name: "", email: "", phone: "", address: "", taxId: "", ...(d.client || {}) },
+    client: { id: "", name: "", contact: "", email: "", phone: "", address: "", taxId: "", ...(d.client || {}) },
     items: (Array.isArray(d.items) ? d.items : []).map(it => ({
       id: str(it.id, 100) || uid(), desc: str(it.desc, 2000), details: str(it.details, 4000), sku: str(it.sku, 100),
       qty: it.qty === "" ? "" : numv(it.qty ?? 1), unit: str(it.unit, 30), rate: numv(it.rate)
@@ -83,6 +83,12 @@ export function normalizeDoc(d = {}) {
     deposit: { on: !!d.deposit?.on, type: d.deposit?.type === "amount" ? "amount" : "percent", value: numv(d.deposit?.value) },
     lateFee: { on: !!d.lateFee?.on, type: d.lateFee?.type === "amount" ? "amount" : "percent", value: numv(d.lateFee?.value), graceDays: numv(d.lateFee?.graceDays), repeat: d.lateFee?.repeat === "monthly" ? "monthly" : "once" },
     payLink: str(d.payLink, 2000),
+    payProvider: str(d.payProvider, 40),
+    payMethod: str(d.payMethod, 40),
+    cols: { qty: d.cols?.qty !== false, rate: d.cols?.rate !== false, unit: !!d.cols?.unit, sku: !!d.cols?.sku },
+    show: { qr: d.show?.qr !== false, words: !!d.show?.words, billTo: d.show?.billTo !== false, dueDate: d.show?.dueDate !== false },
+    logoSize: Math.max(24, Math.min(140, numv(d.logoSize) || 56)),
+    font: str(d.font, 60),
     notes: str(d.notes, 8000),
     terms: str(d.terms, 8000),
     footer: str(d.footer, 1000),
@@ -226,12 +232,9 @@ export function saveDoc(doc) {
   return update(s => {
     const d = normalizeDoc({ ...doc, updatedAt: Date.now() });
     const i = s.docs.findIndex(x => x.id === d.id);
-    if (i >= 0) s.docs[i] = d;
-    else {
-      s.docs.unshift(d);
-      const m = /(\d+)\s*$/.exec(d.no);
-      if (m && d.no === formatDocNo(d.type, +m[1])) consumeNumber(s, d.type, +m[1]);
-    }
+    if (i >= 0) s.docs[i] = d; else s.docs.unshift(d);
+    const m = /(\d+)\s*$/.exec(d.no);
+    if (m && d.no === formatDocNo(d.type, +m[1])) consumeNumber(s, d.type, +m[1]);
     return d;
   }, "docs");
 }
@@ -367,6 +370,17 @@ export function saveClient(c) {
     if (i >= 0) s.clients[i] = x; else s.clients.unshift(x);
     return x;
   }, "clients");
+}
+
+export function saveProducts(list) {
+  return update(s => {
+    list.forEach(p => {
+      const x = normalizeProduct(p);
+      const i = s.products.findIndex(y => y.desc.trim().toLowerCase() === x.desc.trim().toLowerCase());
+      if (i >= 0) s.products[i] = { ...s.products[i], rate: x.rate, unit: x.unit || s.products[i].unit, sku: x.sku || s.products[i].sku };
+      else s.products.unshift(x);
+    });
+  }, "products");
 }
 
 /* ---------------- Settings ---------------- */

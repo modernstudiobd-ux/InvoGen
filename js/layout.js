@@ -4,7 +4,9 @@
 import { $, esc } from "./dom.js";
 import { icon } from "./icons.js";
 import { t, LANGS, getLanguage, setLanguage } from "./i18n.js";
-import { setSettings } from "./state.js";
+import { setSettings, getState } from "./state.js";
+import { DOC_LANGS } from "./docLabels.js";
+const DOC_LANG_CODES = new Set(DOC_LANGS.map(l => l[0]));
 import { openSheet } from "./sheet.js";
 
 const NAV = [
@@ -78,5 +80,10 @@ export function openLanguageSheet() {
 
 export async function changeLanguage(code) {
   const applied = await setLanguage(code);
-  setSettings({ appLang: applied, langChosen: true }, "ui");
+  const st = getState();
+  // Before the first document exists, new documents follow the app language too
+  // (each document can still use its own language).
+  const patch = { appLang: applied, langChosen: true };
+  if (!st.docs.some(d => !d.sample) && DOC_LANG_CODES.has(applied)) patch.docLang = applied;
+  setSettings(patch, "ui");
 }

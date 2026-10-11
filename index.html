@@ -23,7 +23,10 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/invoice.css">
   <link rel="stylesheet" href="css/phone.css">
+  <link rel="stylesheet" href="css/print.css">
+  <style id="pageSizeCSS">@page{size:A4;margin:0}</style>
   <link rel="modulepreload" href="js/main.js">
   <link rel="modulepreload" href="js/state.js">
   <link rel="modulepreload" href="js/screens/documents.js">
@@ -38,6 +41,7 @@
     <nav class="tabbar" id="tabbar" aria-label="Main"></nav>
   </div>
   <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+  <div id="printHost" aria-hidden="true"></div>
   <noscript><p style="padding:24px">InvoGen needs JavaScript to run. Please turn it on and reload.</p></noscript>
   <script type="module" src="js/main.js"></script>
 </body>

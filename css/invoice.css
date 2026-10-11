@@ -1,0 +1,166 @@
+/* invoice.css — the printed document (shared by preview, Print and PDF).
+   Base look = "Modern Professional". Other templates override these variables and
+   rules in templates.css. Sizes are tuned for a 210 mm wide page. */
+
+.doc {
+  --accent: #292524;
+  --doc-ink: #0c0a09;
+  --doc-text: #292524;
+  --doc-muted: #6f6a62;
+  --doc-hair: #e7e5e4;
+  --doc-fill: #f5f5f4;
+  --doc-bg: #ffffff;
+  --doc-font: "Inter";
+  --doc-fallback: "Noto Sans Arabic", "Noto Sans Bengali", "Noto Sans Devanagari", system-ui, sans-serif;
+  --pad-x: 16mm;
+  --pad-top: 14mm;
+  --pad-bottom: 12mm;
+  position: relative;
+  width: var(--paper-w, 210mm);
+  max-width: none;
+  background: var(--doc-bg);
+  color: var(--doc-text);
+  font: 400 13px/1.5 "InvCurSym", var(--doc-font), var(--doc-fallback);
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  overflow: hidden;
+}
+.doc *, .doc *::before, .doc *::after { box-sizing: border-box; }
+.doc .ltr { direction: ltr; unicode-bidi: isolate; }
+.doc-frame { width: 100%; border-collapse: collapse; position: relative; z-index: 1; }
+.doc-frame > thead > tr > td, .doc-frame > tfoot > tr > td, .doc-frame > tbody > tr > td { padding: 0 var(--pad-x); vertical-align: top; }
+.doc-pad-top { height: var(--pad-top); }
+.doc-pad-bottom { min-height: var(--pad-bottom); display: flex; align-items: flex-end; padding-bottom: 7mm; }
+.doc-foot { width: 100%; display: flex; justify-content: space-between; gap: 12px; padding-top: 10px; border-top: 1px solid var(--doc-hair); font-size: 10.5px; color: var(--doc-muted); }
+.doc-foot-no { white-space: nowrap; }
+
+/* Header */
+.doc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 24px; }
+.doc-from { min-width: 0; flex: 1 1 55%; display: flex; flex-direction: column; gap: 4px; }
+.doc-logo { display: block; max-width: 220px; width: auto; object-fit: contain; object-position: left center; margin-bottom: 8px; }
+.doc.is-rtl .doc-logo { object-position: right center; }
+.doc-biz { font-size: 17px; font-weight: 600; color: var(--doc-ink); line-height: 1.3; }
+.doc-small { font-size: 11.5px; color: var(--doc-muted); line-height: 1.55; }
+.doc-titleblock { flex: 0 1 auto; min-width: 0; text-align: end; }
+.doc-title { margin: 0; font-size: 32px; font-weight: 300; line-height: 1.05; letter-spacing: -.6px; color: var(--doc-ink); }
+.doc.is-rtl .doc-title, .doc:lang(bn) .doc-title, .doc:lang(hi) .doc-title { letter-spacing: 0; }
+.doc-no { margin-top: 6px; font-size: 12px; color: var(--doc-muted); }
+.doc-ph { color: var(--doc-muted); }
+
+/* Bill to + dates */
+.doc-parties { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 24px; }
+.doc-billto { min-width: 0; flex: 1 1 55%; }
+.doc-label { font-size: 10.5px; font-weight: 600; letter-spacing: .9px; text-transform: uppercase; color: var(--doc-muted); margin-bottom: 6px; }
+.doc.is-rtl .doc-label, .doc:lang(bn) .doc-label, .doc:lang(hi) .doc-label, .doc:lang(zh) .doc-label, .doc:lang(ja) .doc-label, .doc:lang(ko) .doc-label, .doc:lang(th) .doc-label { letter-spacing: 0; font-size: 11.5px; }
+.doc-client { font-size: 14px; font-weight: 600; color: var(--doc-ink); }
+.doc-dates { margin: 0; flex: 0 1 auto; min-width: 0; display: grid; gap: 4px; text-align: end; }
+.doc-dates > div { display: flex; justify-content: flex-end; gap: 12px; }
+.doc-dates dt { color: var(--doc-muted); font-size: 11.5px; }
+.doc-dates dd { margin: 0; color: var(--doc-ink); font-size: 12.5px; white-space: nowrap; }
+
+/* Items */
+.doc-items { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.doc-items th {
+  padding: 8px 10px; background: var(--doc-fill); color: var(--doc-muted);
+  font-size: 10.5px; font-weight: 600; letter-spacing: .9px; text-transform: uppercase; text-align: start; white-space: nowrap;
+}
+.doc.is-rtl .doc-items th, .doc:lang(bn) .doc-items th, .doc:lang(hi) .doc-items th { letter-spacing: 0; font-size: 11.5px; }
+.doc-items td { padding: 10px; border-bottom: 1px solid var(--doc-hair); vertical-align: top; color: var(--doc-ink); }
+.doc-items tr { break-inside: avoid; page-break-inside: avoid; }
+.doc-items .c-desc { width: 100%; }
+.doc-items .c-num { text-align: end; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.doc-items .c-sku, .doc-items .c-unit { white-space: nowrap; color: var(--doc-muted); }
+.doc-details { margin-top: 2px; font-size: 11.5px; color: var(--doc-muted); }
+
+/* Totals */
+.doc-summary { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 20px; break-inside: avoid; page-break-inside: avoid; }
+.doc-words { flex: 1 1 40%; min-width: 0; font-size: 11.5px; color: var(--doc-text); padding-top: 4px; }
+.doc-sum { flex: 0 1 300px; min-width: 240px; }
+.doc-totals { width: 100%; border-collapse: collapse; }
+.doc-totals th, .doc-totals td { padding: 4px 0; font-weight: 400; font-size: 12.5px; }
+.doc-totals th { text-align: start; color: var(--doc-text); padding-inline-end: 16px; }
+.doc-totals td { text-align: end; white-space: nowrap; color: var(--doc-ink); font-variant-numeric: tabular-nums; }
+.doc-totals .is-total th, .doc-totals .is-total td { font-weight: 600; border-top: 1px solid var(--doc-hair); padding-top: 8px; }
+.doc-totals .is-incl th, .doc-totals .is-incl td { color: var(--doc-muted); }
+.doc-balance {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap;
+  margin-top: 8px; padding: 12px 14px; background: var(--doc-fill); border-radius: 8px;
+}
+.doc-balance-label { font-size: 10.5px; font-weight: 600; letter-spacing: .9px; text-transform: uppercase; color: var(--doc-muted); }
+.doc-balance-amt { margin-inline-start: auto; font-size: 24px; font-weight: 400; color: var(--doc-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.doc-deposit { display: flex; justify-content: space-between; gap: 16px; padding: 8px 14px 0; font-size: 12.5px; font-weight: 600; color: var(--doc-ink); }
+.doc-deposit span:last-child { white-space: nowrap; }
+
+/* Notes, payment, signature */
+.doc-extra { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding-top: 16px; border-top: 1px solid var(--doc-hair); break-inside: avoid; page-break-inside: avoid; }
+.doc-blocks { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.doc-text { font-size: 12px; color: var(--doc-text); white-space: normal; }
+.doc-pay-row { display: flex; align-items: center; gap: 12px; }
+.doc-qr { flex: none; width: 76px; height: 76px; }
+.doc-qr-img { width: 100%; height: 100%; display: block; }
+.doc-link { color: var(--accent); font-size: 12px; text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
+.doc-sig { flex: 0 0 auto; min-width: 180px; max-width: 45%; text-align: center; }
+.doc-sig-type { font-size: 30px; line-height: 1.15; color: var(--doc-ink); padding: 0 4px 2px; overflow-wrap: anywhere; }
+.doc-sig-img { display: block; max-height: 64px; max-width: 220px; margin: 0 auto 2px; object-fit: contain; }
+.doc-sig-line { border-top: 1px solid var(--doc-ink); padding-top: 4px; font-size: 10.5px; color: var(--doc-muted); }
+
+/* Watermark */
+.doc-wm { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; z-index: 2; overflow: hidden; }
+.doc-wm span {
+  transform: rotate(-28deg); font-size: 96px; font-weight: 700; letter-spacing: 6px; white-space: nowrap;
+  color: var(--accent); opacity: .08; text-transform: uppercase;
+}
+
+/* Inline editing on the preview (Edit mode) */
+.doc [data-edit] { border-radius: 3px; outline: 1px dashed transparent; outline-offset: 2px; cursor: text; min-width: 2ch; display: inline-block; }
+.doc div[data-edit] { display: block; }
+.doc [data-edit]:hover { outline-color: #a8a29e; }
+.doc [data-edit]:focus { outline: 2px solid var(--ink, #0c0a09); background: #fffbe6; }
+.doc [data-edit]:empty::before { content: "…"; color: #a8a29e; }
+
+/* Receipt (POS) */
+.pr { width: 72mm; padding: 4mm 3mm; font: 12px/1.35 "InvCurSym", "Inter", var(--doc-fallback, sans-serif); color: #000; background: #fff; }
+.pr.pr-58 { width: 52mm; font-size: 11px; }
+.pr-logo { display: block; max-width: 60%; max-height: 18mm; margin: 0 auto 2mm; object-fit: contain; }
+.pr-co { text-align: center; font-weight: 700; font-size: 1.15em; }
+.pr-c { text-align: center; }
+.pr-title { text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 1mm 0; }
+.pr-rule { border-top: 1px dashed #000; margin: 2mm 0; }
+.pr-row { display: flex; justify-content: space-between; gap: 2mm; }
+.pr-row b { white-space: nowrap; font-weight: 600; }
+.pr-item { margin-bottom: 1.5mm; }
+.pr-name { overflow-wrap: anywhere; }
+.pr-total { font-size: 1.25em; font-weight: 700; border-top: 1px solid #000; margin-top: 1mm; padding-top: 1mm; }
+.pr-strong b { font-weight: 800; }
+.pr-qr { width: 30mm; margin: 2mm auto; }
+.pr-qr svg { width: 100%; height: auto; display: block; }
+.pr-thanks { margin-top: 2mm; font-weight: 600; }
+
+/* On-screen preview in a narrow space (phones): tighter margins, stacked header. Print is unaffected. */
+@container (max-width: 560px) {
+  .doc { --pad-x: 16px; --pad-top: 18px; --pad-bottom: 8px; font-size: 12.5px; }
+  .doc-pad-bottom { padding-bottom: 12px; }
+  .doc-head, .doc-parties { flex-direction: column; gap: 14px; padding-bottom: 18px; }
+  .doc-titleblock, .doc-dates { text-align: start; }
+  .doc-dates > div { justify-content: flex-start; }
+  .doc-title { font-size: 26px; }
+  /* Items become stacked rows: description on top, then quantity × price and the amount. */
+  .doc-items thead { display: none; }
+  .doc-items tr { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: baseline; column-gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--doc-hair); }
+  .doc-items td { padding: 0; border: 0; }
+  .doc-items .c-desc { grid-column: 1 / -1; width: auto; padding-bottom: 2px; }
+  .doc-items .c-num:not(.c-amt) { color: var(--doc-muted); font-size: 11.5px; }
+  .doc-items .c-num:not(.c-amt) + .c-num:not(.c-amt)::before { content: "× "; }
+  .doc-items .c-amt { justify-self: end; grid-column: -2 / -1; white-space: normal; overflow-wrap: anywhere; text-align: end; }
+  .doc-items .c-sku, .doc-items .c-unit { display: none; }
+  .doc-summary { flex-direction: column-reverse; gap: 12px; }
+  .doc-sum { flex: 1 1 auto; width: 100%; min-width: 0; }
+  .doc-balance-amt { font-size: 20px; white-space: normal; overflow-wrap: anywhere; text-align: end; min-width: 0; }
+  .doc-totals td, .doc-dates dd, .doc-deposit span:last-child { white-space: normal; overflow-wrap: anywhere; }
+  .doc-frame { table-layout: fixed; }
+  .doc-extra { flex-direction: column; align-items: stretch; }
+  .doc-sig { max-width: none; align-self: flex-end; }
+  .doc-wm span { font-size: 56px; }
+}
