@@ -9,6 +9,7 @@ import { formatMoney, formatDate, formatNumber } from "./format.js";
 import { dl, colLabel, isRtlLang, netTerms } from "./docLabels.js";
 import { amountInWords } from "./words.js";
 import qrcode from "./vendor/qrcode.js";
+import { DOC_FONTS, templateVars, TEMPLATE_IDS } from "./templates.js";
 
 // Paper sizes in millimetres [width, height]
 export const PAPERS = {
@@ -19,13 +20,10 @@ export const paperOf = name => PAPERS[name] || PAPERS.A4;
 
 export const SIGNATURE_FONTS = ["Caveat", "Dancing Script", "Great Vibes", "Homemade Apple", "Kristi"];
 
-// Document fonts you can pick in Design ("" = the template's own font). More arrive with the templates.
-export const DOC_FONTS = {
-  "Inter": "'Inter'",
-  "Space Grotesk": "'Space Grotesk'",
-  "Georgia": "Georgia,'Times New Roman',serif",
-  "System": "system-ui,-apple-system,'Segoe UI',Roboto"
-};
+export { DOC_FONTS };
+
+// Scripts without capital letters (or where spaced capitals look wrong) get plain labels.
+const PLAIN_SCRIPT = new Set(["zh", "hi", "ar", "bn", "ja", "ur", "ko", "fa", "th"]);
 
 // Only plain web links are ever turned into a clickable link or QR code.
 export function normalizeUrl(v) {
@@ -59,9 +57,10 @@ export function renderDocument(doc, { editable = false, today, placeholders = nu
   const m = n => `<bdi class="ltr">${esc(formatMoney(n, doc.currency, nf))}</bdi>`;
   const d = iso => esc(formatDate(iso, doc.dateFormat, L, doc.numberFormat));
   const [pw, ph] = paperOf(doc.paper);
-  const accent = /^#[0-9a-f]{6}$/i.test(doc.accent) ? doc.accent : "";
-  const font = DOC_FONTS[doc.font] ? `--doc-font:${DOC_FONTS[doc.font]};` : "";
-  const style = `--paper-w:${pw}mm;--paper-h:${ph}mm;${accent ? `--accent:${accent};` : ""}${font}`;
+  const tpl = TEMPLATE_IDS.includes(doc.template) ? doc.template : "modern";
+  const vars = templateVars(tpl, doc.accent);
+  if (DOC_FONTS[doc.font]) vars["--doc-font"] = DOC_FONTS[doc.font];
+  const style = `--paper-w:${pw}mm;--paper-h:${ph}mm;` + Object.entries(vars).map(([k, v]) => `${k}:${v};`).join("");
 
   /* ---- header ---- */
   const b = doc.business || {};
@@ -171,7 +170,7 @@ export function renderDocument(doc, { editable = false, today, placeholders = nu
   const wmText = doc.watermark.on ? (doc.watermark.text.trim() || dl(L, "wmDraft")) : "";
   const wm = wmText ? `<div class="doc-wm" aria-hidden="true"><span>${esc(wmText)}</span></div>` : "";
 
-  return `<article class="doc tpl-${esc(doc.template || "modern")}${rtl ? " is-rtl" : ""}" dir="${rtl ? "rtl" : "ltr"}" lang="${esc(L)}" style="${style}">
+  return `<article class="doc tpl-${tpl}${rtl ? " is-rtl" : ""}${PLAIN_SCRIPT.has(L) ? " plain" : ""}" dir="${rtl ? "rtl" : "ltr"}" lang="${esc(L)}" style="${style}">
     ${wm}
     <table class="doc-frame" role="presentation">
       <thead><tr><td><div class="doc-pad-top"></div></td></tr></thead>

@@ -41,3 +41,33 @@ All fonts above: SIL Open Font License 1.1 — https://openfontlicense.org
 Copyright 2010 The Great Vibes Pro Project Authors (https://github.com/googlefonts/great-vibes)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
+
+== plus-jakarta-sans
+Copyright 2020 The Plus Jakarta Sans Project Authors (https://github.com/tokotype/PlusJakartaSans) PlusJakartaSans-Italic[wght].ttf: Copyright 2020 The Plus Jakarta Sans Project Authors (https://github.com/tokotype/PlusJakartaSans)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+
+== manrope
+Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+
+== sora
+Copyright 2019 The Sora Project Authors (https://github.com/sora-xor/sora-font)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+
+== outfit
+Copyright 2021 The Outfit Project Authors (https://github.com/Outfitio/Outfit-Fonts)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+
+== dm-sans
+Copyright 2014 The DM Sans Project Authors (https://github.com/googlefonts/dm-fonts) DMSans-Italic[opsz,wght].ttf: Copyright 2014 The DM Sans Project Authors (https://github.com/googlefonts/dm-fonts)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+
+== pt-serif
+Copyright © 2010 ParaType Ltd. All rights reserved. PT_Serif-Web-Italic.ttf: Copyright © 2010 ParaType Ltd. All rights reserved. PT_Serif-Web-Bold.ttf: Copyright © 2010 ParaType Ltd. All rights reserved. PT_Serif-Web-BoldItalic.ttf: Copyright © 2010 ParaType Ltd. All rights reserved.
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.

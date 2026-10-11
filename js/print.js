@@ -5,6 +5,8 @@
 
 import { renderDocument, paperOf } from "./preview.js";
 import { pdfFileName } from "./pdfExport.js";
+import { printBackground } from "./templates.js";
+import { isRtlLang } from "./docLabels.js";
 
 function host() {
   let h = document.getElementById("printHost");
@@ -60,6 +62,7 @@ export function printDocument(doc) {
   return runPrint({
     html,
     pageCss: `@page{size:${w}mm ${hgt}mm;margin:0}`,
-    title: pdfFileName(doc)
+    title: pdfFileName(doc),
+    bg: printBackground(doc.template, doc.accent, isRtlLang(doc.lang))   // tinted, dark, striped and grid templates fill every page
   });
 }

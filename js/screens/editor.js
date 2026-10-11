@@ -15,6 +15,8 @@ import { formatMoney, formatNumber, formatDate, parseNumber, addDays, daysBetwee
 import { CURRENCIES, COMMON_CURRENCIES } from "../currencies.js";
 import { DOC_LANGS, dl } from "../docLabels.js";
 import { renderDocument, PAPERS, paperOf, SIGNATURE_FONTS, DOC_FONTS, normalizeUrl } from "../preview.js";
+import { TEMPLATES, templateOf, validHex } from "../templates.js";
+import { sampleDoc, thumbHtml, fitThumbs } from "../tplThumbs.js";
 import { printDocument } from "../print.js";
 import { withPdfGuide, pdfFileName } from "../pdfExport.js";
 import { openPosSheet } from "../pos.js";
@@ -842,34 +844,62 @@ async function onSigFile(input) {
 function exportPdf() { flushNow(); withPdfGuide(doc, () => printDocument(doc)); }
 
 function openDesign() {
-  const cur = doc.accent || "#292524";
-  const sw = COLORS.map(c => `<button type="button" class="swatch" role="radio" aria-checked="${cur.toLowerCase() === c}" data-color="${c}" style="--c:${c}" aria-label="${esc(c)}"></button>`).join("");
-  const fonts = [["", t("ed.templateFont")], ...Object.keys(DOC_FONTS).map(f => [f, f])];
+  const effAccent = () => (validHex(doc.accent) ? doc.accent : templateOf(doc.template).accent).toLowerCase();
+  const swatches = () => [...new Set([templateOf(doc.template).accent, ...COLORS])].map(c => `<button type="button" class="swatch" role="radio" aria-checked="${effAccent() === c}" data-color="${c}" style="--c:${c}" aria-label="${esc(c)}"></button>`).join("");
+  const fontsHtml = () => [["", `${t("ed.templateFont")} · ${templateOf(doc.template).font}`], ...Object.keys(DOC_FONTS).map(f => [f, f])].map(([k, l]) =>
+    `<button type="button" class="font-opt" role="radio" aria-checked="${(doc.font || "") === k}" data-font="${esc(k)}" style="font-family:${k ? DOC_FONTS[k] : DOC_FONTS[templateOf(doc.template).font] || "'Inter'"}">${esc(l)}</button>`).join("");
+  const tplHtml = () => TEMPLATES.map(tp => {
+    const on = doc.template === tp.id;
+    return `<button type="button" class="tpl-card${on ? " is-on" : ""}" role="radio" aria-checked="${on}" data-tpl="${tp.id}">${thumbHtml(sampleDoc(tp.id, { lang: doc.lang, currency: doc.currency, business: { ...doc.business, logo: "" } }))}<span class="tpl-meta"><span class="tpl-name">${esc(t(`tpl.name.${tp.id}`))}</span></span></button>`;
+  }).join("");
+  let stopFit = null;
   openSheet({
     title: t("ed.design"),
     side: true,
     body: `<div class="design-sheet">
-      <div class="field"><span class="label" id="dsColL">${esc(t("ed.brandColor"))}</span><div class="swatches" role="radiogroup" aria-labelledby="dsColL">${sw}</div>
-        <label class="hint" for="dsHex">${esc(t("ed.hex"))}</label><input class="input" id="dsHex" value="${esc(cur)}" maxlength="7" autocomplete="off" spellcheck="false" dir="ltr"></div>
-      <div class="field"><span class="label" id="dsFontL">${esc(t("ed.font"))}</span><div class="font-grid" role="radiogroup" aria-labelledby="dsFontL">${fonts.map(([k, l]) => `<button type="button" class="font-opt" role="radio" aria-checked="${(doc.font || "") === k}" data-font="${esc(k)}" style="${k && DOC_FONTS[k] ? `font-family:${DOC_FONTS[k]}` : ""}">${esc(l)}</button>`).join("")}</div></div>
+      <div class="field"><span class="label" id="dsTplL">${esc(t("ed.template"))}</span><div class="tpl-pick" role="radiogroup" aria-labelledby="dsTplL" id="dsTpl">${tplHtml()}</div></div>
+      <div class="field"><span class="label" id="dsColL">${esc(t("ed.brandColor"))}</span><div class="swatches" role="radiogroup" aria-labelledby="dsColL" id="dsSw">${swatches()}</div>
+        <label class="hint" for="dsHex">${esc(t("ed.hex"))}</label><input class="input" id="dsHex" value="${esc(effAccent())}" maxlength="7" autocomplete="off" spellcheck="false" dir="ltr"></div>
+      <div class="field"><span class="label" id="dsFontL">${esc(t("ed.font"))}</span><p class="hint">${esc(t("ed.fontHint"))}</p><div class="font-grid" role="radiogroup" aria-labelledby="dsFontL" id="dsFonts">${fontsHtml()}</div></div>
       <div class="field"><label for="dsPaper">${esc(t("ed.paper"))}</label><select class="select" id="dsPaper">${Object.keys(PAPERS).map(p => `<option value="${esc(p)}"${doc.paper === p ? " selected" : ""}>${esc(p)} · ${paperOf(p).join(" × ")} mm</option>`).join("")}</select></div>
-      <p class="hint">${esc(t("ed.templatesLater"))}</p>
     </div>`,
     onOpen: dlg => {
+      stopFit = fitThumbs(dlg);
       const setColor = c => {
         doc.accent = c;
         dlg.querySelectorAll("[data-color]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.color === c.toLowerCase())));
         changed({ path: "accent" });
       };
       dlg.addEventListener("click", e => {
+        const tb = e.target.closest("[data-tpl]");
+        if (tb) {
+          // A new template brings its own colour and heading font (as in the design).
+          doc.template = tb.dataset.tpl; doc.accent = ""; doc.font = "";
+          dlg.querySelectorAll("[data-tpl]").forEach(b => { const on = b === tb; b.setAttribute("aria-checked", String(on)); b.classList.toggle("is-on", on); });
+          dlg.querySelector("#dsSw").innerHTML = swatches();
+          dlg.querySelector("#dsHex").value = effAccent();
+          dlg.querySelector("#dsFonts").innerHTML = fontsHtml();
+          changed({ path: "template" });
+          return;
+        }
         const s = e.target.closest("[data-color]");
         if (s) { setColor(s.dataset.color); dlg.querySelector("#dsHex").value = s.dataset.color; return; }
         const f = e.target.closest("[data-font]");
         if (f) { doc.font = f.dataset.font; dlg.querySelectorAll("[data-font]").forEach(b => b.setAttribute("aria-checked", String(b === f))); changed({ path: "font" }); }
       });
+      dlg.addEventListener("keydown", e => {
+        // Arrow keys move between options inside each radio group.
+        const r = e.target.closest("[role=radio]");
+        if (!r || !["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp"].includes(e.key)) return;
+        const all = [...r.parentElement.querySelectorAll("[role=radio]")];
+        const fwd = e.key === "ArrowDown" || e.key === (document.dir === "rtl" ? "ArrowLeft" : "ArrowRight");
+        const n = all[(all.indexOf(r) + (fwd ? 1 : -1) + all.length) % all.length];
+        e.preventDefault(); n.focus(); n.click();
+      });
       dlg.querySelector("#dsHex").addEventListener("input", e => { const v = e.target.value.trim(); if (/^#[0-9a-f]{6}$/i.test(v)) setColor(v.toLowerCase()); });
       dlg.querySelector("#dsPaper").addEventListener("change", e => { doc.paper = e.target.value; const p = root.querySelector("#f-paper"); if (p) p.value = doc.paper; changed({ path: "paper" }); });
-    }
+    },
+    onClose: () => { if (stopFit) stopFit(); }
   });
 }
 
