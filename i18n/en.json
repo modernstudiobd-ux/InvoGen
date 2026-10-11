@@ -394,5 +394,122 @@
  "set.editMode": "Edit on the preview",
  "set.editModeHint": "Lets you click text on the document preview to change it. Off by default.",
  "ed.bizPh": "Your business name",
- "ed.clientPh": "Client name"
+ "ed.clientPh": "Client name",
+ "cl.sub": "Saved once, filled in for you on every new document.",
+ "cl.searchLabel": "Search and sort",
+ "cl.tabsLabel": "Show",
+ "cl.tab.items": "Items",
+ "cl.sortLabel": "Sort clients",
+ "cl.sort.name": "Name A–Z",
+ "cl.sort.owed": "Most outstanding",
+ "cl.sort.recent": "Recent activity",
+ "cl.add": "Add client",
+ "cl.addItem": "Add item",
+ "cl.import": "Import",
+ "cl.export": "Export CSV",
+ "cl.exported": "Downloaded {file}",
+ "cl.importClients": "Import clients",
+ "cl.importItems": "Import items",
+ "cl.importIntro": "Paste rows copied from Excel or Google Sheets, or choose a CSV or Excel file. The first row can hold column names such as Name, Email, Phone and Address.",
+ "cl.importItemsIntro": "Paste rows copied from Excel or Google Sheets, or choose a CSV or Excel file. Use columns such as Description, Unit and Price.",
+ "cl.importFound": {
+  "one": "{n} client found",
+  "other": "{n} clients found"
+ },
+ "cl.importNone": "No clients found. Make sure one column holds the client or company name.",
+ "cl.importDo": "Import",
+ "cl.imported": "Clients imported: {added} new, {updated} updated",
+ "cl.itemsImported": {
+  "one": "{n} item imported",
+  "other": "{n} items imported"
+ },
+ "cl.colName": "Name",
+ "cl.clientCount": {
+  "one": "{n} client",
+  "other": "{n} clients"
+ },
+ "cl.itemCount": {
+  "one": "{n} item",
+  "other": "{n} items"
+ },
+ "cl.emptyTitle": "No clients yet",
+ "cl.emptyBody": "Add a client once and their details are filled in on every new document. You can also import a list from a spreadsheet.",
+ "cl.itemsEmptyTitle": "No saved items yet",
+ "cl.itemsEmptyBody": "Save the products and services you bill often, with their price, and add them to any document in one tap.",
+ "cl.noMatch": "No clients match “{q}”.",
+ "cl.noMatchItems": "No items match “{q}”.",
+ "cl.clearSearch": "Clear search",
+ "cl.docCount": {
+  "one": "{n} document",
+  "other": "{n} documents"
+ },
+ "cl.noDocs": "No documents yet",
+ "cl.overdue": {
+  "one": "{n} overdue",
+  "other": "{n} overdue"
+ },
+ "cl.unsavedBanner": {
+  "one": "{n} client from your documents is not saved yet.",
+  "other": "{n} clients from your documents are not saved yet."
+ },
+ "cl.saveThem": "Save them",
+ "cl.savedFromDocs": {
+  "one": "{n} client saved",
+  "other": "{n} clients saved"
+ },
+ "cl.actionsFor": "Actions for {name}",
+ "cl.act.open": "Open client",
+ "cl.act.newInvoice": "New invoice",
+ "cl.act.newEstimate": "New estimate",
+ "cl.act.newReceipt": "New receipt",
+ "cl.act.edit": "Edit details",
+ "cl.act.delete": "Delete client",
+ "cl.act.editItem": "Edit item",
+ "cl.act.deleteItem": "Delete item",
+ "cl.deleted": "Deleted {name}",
+ "cl.deletedKept": {
+  "one": "Deleted {name}. Their {n} document is kept.",
+  "other": "Deleted {name}. Their {n} documents are kept."
+ },
+ "cl.addTitle": "New client",
+ "cl.editTitle": "Edit client",
+ "cl.taxId": "Tax number",
+ "cl.notes": "Private notes",
+ "cl.notesHint": "Only you see these. They are not printed.",
+ "cl.draftsHint": "Drafts for this client are updated too. Documents already sent keep the details they were sent with.",
+ "cl.save": "Save",
+ "cl.errName": "Add a name.",
+ "cl.errDup": "A client called “{name}” already exists.",
+ "cl.errEmail": "This email address does not look right.",
+ "cl.added": "{name} added",
+ "cl.updated": "{name} updated",
+ "cl.updatedDrafts": {
+  "one": "{name} updated, and {n} draft too",
+  "other": "{name} updated, and {n} drafts too"
+ },
+ "cl.allClients": "All clients",
+ "cl.summary": "Summary",
+ "cl.stat.owed": "Outstanding",
+ "cl.stat.paid": "Paid to date",
+ "cl.stat.billed": "Billed",
+ "cl.nothingOverdue": "Nothing overdue",
+ "cl.lastPayment": "Last payment {date}",
+ "cl.noPayments": "No payments yet",
+ "cl.across": {
+  "one": "Across {n} document",
+  "other": "Across {n} documents"
+ },
+ "cl.details": "Details",
+ "cl.noDetails": "No contact details yet. Choose Edit details to add them.",
+ "cl.history": "History",
+ "cl.historyEmpty": "No documents for this client yet.",
+ "cl.notFound": "Client not found",
+ "cl.notFoundBody": "It may have been deleted, or it was added on another device.",
+ "cl.itemAddTitle": "New item",
+ "cl.itemEditTitle": "Edit item",
+ "cl.price": "Price",
+ "cl.errDesc": "Add a description.",
+ "cl.errPrice": "Enter a price of 0 or more.",
+ "cl.itemSaved": "Saved “{item}”",
+ "cl.itemDeleted": "Deleted “{item}”"
 }

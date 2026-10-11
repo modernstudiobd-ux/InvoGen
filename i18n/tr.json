@@ -394,5 +394,122 @@
  "set.editMode": "Önizlemede düzenle",
  "set.editModeHint": "Belge önizlemesindeki metne tıklayarak değiştirmenizi sağlar. Varsayılan olarak kapalı.",
  "ed.bizPh": "İşletmenizin adı",
- "ed.clientPh": "Müşteri adı"
+ "ed.clientPh": "Müşteri adı",
+ "cl.sub": "Bir kez kaydedin, her yeni belgede sizin için doldurulsun.",
+ "cl.searchLabel": "Ara ve sırala",
+ "cl.tabsLabel": "Göster",
+ "cl.tab.items": "Ürünler",
+ "cl.sortLabel": "Müşterileri sırala",
+ "cl.sort.name": "Ad A–Z",
+ "cl.sort.owed": "En çok açık bakiye",
+ "cl.sort.recent": "Son işlemler",
+ "cl.add": "Müşteri ekle",
+ "cl.addItem": "Ürün ekle",
+ "cl.import": "İçe aktar",
+ "cl.export": "CSV olarak dışa aktar",
+ "cl.exported": "{file} indirildi",
+ "cl.importClients": "Müşterileri içe aktar",
+ "cl.importItems": "Ürünleri içe aktar",
+ "cl.importIntro": "Excel veya Google E-Tablolar'dan kopyaladığınız satırları yapıştırın ya da bir CSV veya Excel dosyası seçin. İlk satırda Ad, E-posta, Telefon ve Adres gibi sütun adları olabilir.",
+ "cl.importItemsIntro": "Excel veya Google E-Tablolar'dan kopyaladığınız satırları yapıştırın ya da bir CSV veya Excel dosyası seçin. Açıklama, Birim ve Fiyat gibi sütunlar kullanın.",
+ "cl.importFound": {
+  "one": "{n} müşteri bulundu",
+  "other": "{n} müşteri bulundu"
+ },
+ "cl.importNone": "Müşteri bulunamadı. Bir sütunda müşteri ya da şirket adı olduğundan emin olun.",
+ "cl.importDo": "İçe aktar",
+ "cl.imported": "Müşteriler içe aktarıldı: {added} yeni, {updated} güncellendi",
+ "cl.itemsImported": {
+  "one": "{n} ürün içe aktarıldı",
+  "other": "{n} ürün içe aktarıldı"
+ },
+ "cl.colName": "Ad",
+ "cl.clientCount": {
+  "one": "{n} müşteri",
+  "other": "{n} müşteri"
+ },
+ "cl.itemCount": {
+  "one": "{n} ürün",
+  "other": "{n} ürün"
+ },
+ "cl.emptyTitle": "Henüz müşteri yok",
+ "cl.emptyBody": "Bir müşteriyi bir kez ekleyin, bilgileri her yeni belgede doldurulsun. Bir tablodan liste de içe aktarabilirsiniz.",
+ "cl.itemsEmptyTitle": "Henüz kayıtlı ürün yok",
+ "cl.itemsEmptyBody": "Sık faturaladığınız ürün ve hizmetleri fiyatlarıyla kaydedin, tek dokunuşla herhangi bir belgeye ekleyin.",
+ "cl.noMatch": "“{q}” ile eşleşen müşteri yok.",
+ "cl.noMatchItems": "“{q}” ile eşleşen ürün yok.",
+ "cl.clearSearch": "Aramayı temizle",
+ "cl.docCount": {
+  "one": "{n} belge",
+  "other": "{n} belge"
+ },
+ "cl.noDocs": "Henüz belge yok",
+ "cl.overdue": {
+  "one": "{n} gecikmiş",
+  "other": "{n} gecikmiş"
+ },
+ "cl.unsavedBanner": {
+  "one": "Belgelerinizdeki {n} müşteri henüz kaydedilmedi.",
+  "other": "Belgelerinizdeki {n} müşteri henüz kaydedilmedi."
+ },
+ "cl.saveThem": "Kaydet",
+ "cl.savedFromDocs": {
+  "one": "{n} müşteri kaydedildi",
+  "other": "{n} müşteri kaydedildi"
+ },
+ "cl.actionsFor": "{name} için işlemler",
+ "cl.act.open": "Müşteriyi aç",
+ "cl.act.newInvoice": "Yeni fatura",
+ "cl.act.newEstimate": "Yeni teklif",
+ "cl.act.newReceipt": "Yeni makbuz",
+ "cl.act.edit": "Bilgileri düzenle",
+ "cl.act.delete": "Müşteriyi sil",
+ "cl.act.editItem": "Ürünü düzenle",
+ "cl.act.deleteItem": "Ürünü sil",
+ "cl.deleted": "{name} silindi",
+ "cl.deletedKept": {
+  "one": "{name} silindi. {n} belgesi saklanıyor.",
+  "other": "{name} silindi. {n} belgesi saklanıyor."
+ },
+ "cl.addTitle": "Yeni müşteri",
+ "cl.editTitle": "Müşteriyi düzenle",
+ "cl.taxId": "Vergi numarası",
+ "cl.notes": "Özel notlar",
+ "cl.notesHint": "Bunları yalnızca siz görürsünüz. Yazdırılmaz.",
+ "cl.draftsHint": "Bu müşterinin taslakları da güncellenir. Gönderilmiş belgeler gönderildikleri bilgileri korur.",
+ "cl.save": "Kaydet",
+ "cl.errName": "Bir ad girin.",
+ "cl.errDup": "“{name}” adlı bir müşteri zaten var.",
+ "cl.errEmail": "Bu e-posta adresi doğru görünmüyor.",
+ "cl.added": "{name} eklendi",
+ "cl.updated": "{name} güncellendi",
+ "cl.updatedDrafts": {
+  "one": "{name} ve {n} taslak güncellendi",
+  "other": "{name} ve {n} taslak güncellendi"
+ },
+ "cl.allClients": "Tüm müşteriler",
+ "cl.summary": "Özet",
+ "cl.stat.owed": "Açık bakiye",
+ "cl.stat.paid": "Bugüne kadar ödenen",
+ "cl.stat.billed": "Faturalanan",
+ "cl.nothingOverdue": "Gecikmiş bir şey yok",
+ "cl.lastPayment": "Son ödeme {date}",
+ "cl.noPayments": "Henüz ödeme yok",
+ "cl.across": {
+  "one": "{n} belgede",
+  "other": "{n} belgede"
+ },
+ "cl.details": "Bilgiler",
+ "cl.noDetails": "Henüz iletişim bilgisi yok. Eklemek için Bilgileri düzenle'yi seçin.",
+ "cl.history": "Geçmiş",
+ "cl.historyEmpty": "Bu müşteri için henüz belge yok.",
+ "cl.notFound": "Müşteri bulunamadı",
+ "cl.notFoundBody": "Silinmiş ya da başka bir cihazda eklenmiş olabilir.",
+ "cl.itemAddTitle": "Yeni ürün",
+ "cl.itemEditTitle": "Ürünü düzenle",
+ "cl.price": "Fiyat",
+ "cl.errDesc": "Bir açıklama girin.",
+ "cl.errPrice": "0 veya daha yüksek bir fiyat girin.",
+ "cl.itemSaved": "“{item}” kaydedildi",
+ "cl.itemDeleted": "“{item}” silindi"
 }

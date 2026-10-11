@@ -394,5 +394,122 @@
  "set.editMode": "Editar en la vista previa",
  "set.editModeHint": "Permite hacer clic en el texto de la vista previa del documento para cambiarlo. Desactivado de forma predeterminada.",
  "ed.bizPh": "Nombre de tu negocio",
- "ed.clientPh": "Nombre del cliente"
+ "ed.clientPh": "Nombre del cliente",
+ "cl.sub": "Se guardan una vez y se rellenan solos en cada documento nuevo.",
+ "cl.searchLabel": "Buscar y ordenar",
+ "cl.tabsLabel": "Mostrar",
+ "cl.tab.items": "Artículos",
+ "cl.sortLabel": "Ordenar clientes",
+ "cl.sort.name": "Nombre A–Z",
+ "cl.sort.owed": "Más pendiente",
+ "cl.sort.recent": "Actividad reciente",
+ "cl.add": "Añadir cliente",
+ "cl.addItem": "Añadir artículo",
+ "cl.import": "Importar",
+ "cl.export": "Exportar CSV",
+ "cl.exported": "Descargado {file}",
+ "cl.importClients": "Importar clientes",
+ "cl.importItems": "Importar artículos",
+ "cl.importIntro": "Pega filas copiadas de Excel o Google Sheets, o elige un archivo CSV o Excel. La primera fila puede tener nombres de columna como Nombre, Email, Teléfono y Dirección.",
+ "cl.importItemsIntro": "Pega filas copiadas de Excel o Google Sheets, o elige un archivo CSV o Excel. Usa columnas como Descripción, Unidad y Precio.",
+ "cl.importFound": {
+  "one": "{n} cliente encontrado",
+  "other": "{n} clientes encontrados"
+ },
+ "cl.importNone": "No se encontraron clientes. Asegúrate de que una columna tenga el nombre del cliente o de la empresa.",
+ "cl.importDo": "Importar",
+ "cl.imported": "Clientes importados: {added} nuevos, {updated} actualizados",
+ "cl.itemsImported": {
+  "one": "{n} artículo importado",
+  "other": "{n} artículos importados"
+ },
+ "cl.colName": "Nombre",
+ "cl.clientCount": {
+  "one": "{n} cliente",
+  "other": "{n} clientes"
+ },
+ "cl.itemCount": {
+  "one": "{n} artículo",
+  "other": "{n} artículos"
+ },
+ "cl.emptyTitle": "Aún no hay clientes",
+ "cl.emptyBody": "Añade un cliente una vez y sus datos se rellenarán en cada documento nuevo. También puedes importar una lista desde una hoja de cálculo.",
+ "cl.itemsEmptyTitle": "Aún no hay artículos guardados",
+ "cl.itemsEmptyBody": "Guarda los productos y servicios que facturas a menudo, con su precio, y añádelos a cualquier documento con un toque.",
+ "cl.noMatch": "Ningún cliente coincide con «{q}».",
+ "cl.noMatchItems": "Ningún artículo coincide con «{q}».",
+ "cl.clearSearch": "Borrar búsqueda",
+ "cl.docCount": {
+  "one": "{n} documento",
+  "other": "{n} documentos"
+ },
+ "cl.noDocs": "Aún sin documentos",
+ "cl.overdue": {
+  "one": "{n} vencido",
+  "other": "{n} vencidos"
+ },
+ "cl.unsavedBanner": {
+  "one": "{n} cliente de tus documentos aún no está guardado.",
+  "other": "{n} clientes de tus documentos aún no están guardados."
+ },
+ "cl.saveThem": "Guardarlos",
+ "cl.savedFromDocs": {
+  "one": "{n} cliente guardado",
+  "other": "{n} clientes guardados"
+ },
+ "cl.actionsFor": "Acciones para {name}",
+ "cl.act.open": "Abrir cliente",
+ "cl.act.newInvoice": "Nueva factura",
+ "cl.act.newEstimate": "Nuevo presupuesto",
+ "cl.act.newReceipt": "Nuevo recibo",
+ "cl.act.edit": "Editar datos",
+ "cl.act.delete": "Eliminar cliente",
+ "cl.act.editItem": "Editar artículo",
+ "cl.act.deleteItem": "Eliminar artículo",
+ "cl.deleted": "{name} eliminado",
+ "cl.deletedKept": {
+  "one": "{name} eliminado. Su {n} documento se conserva.",
+  "other": "{name} eliminado. Sus {n} documentos se conservan."
+ },
+ "cl.addTitle": "Nuevo cliente",
+ "cl.editTitle": "Editar cliente",
+ "cl.taxId": "Número fiscal",
+ "cl.notes": "Notas privadas",
+ "cl.notesHint": "Solo tú las ves. No se imprimen.",
+ "cl.draftsHint": "Los borradores de este cliente también se actualizan. Los documentos ya enviados conservan los datos con los que se enviaron.",
+ "cl.save": "Guardar",
+ "cl.errName": "Añade un nombre.",
+ "cl.errDup": "Ya existe un cliente llamado «{name}».",
+ "cl.errEmail": "Este correo electrónico no parece correcto.",
+ "cl.added": "{name} añadido",
+ "cl.updated": "{name} actualizado",
+ "cl.updatedDrafts": {
+  "one": "{name} actualizado, y también {n} borrador",
+  "other": "{name} actualizado, y también {n} borradores"
+ },
+ "cl.allClients": "Todos los clientes",
+ "cl.summary": "Resumen",
+ "cl.stat.owed": "Pendiente",
+ "cl.stat.paid": "Pagado hasta hoy",
+ "cl.stat.billed": "Facturado",
+ "cl.nothingOverdue": "Nada vencido",
+ "cl.lastPayment": "Último pago {date}",
+ "cl.noPayments": "Aún sin pagos",
+ "cl.across": {
+  "one": "En {n} documento",
+  "other": "En {n} documentos"
+ },
+ "cl.details": "Datos",
+ "cl.noDetails": "Aún no hay datos de contacto. Elige Editar datos para añadirlos.",
+ "cl.history": "Historial",
+ "cl.historyEmpty": "Aún no hay documentos para este cliente.",
+ "cl.notFound": "Cliente no encontrado",
+ "cl.notFoundBody": "Puede que se haya eliminado o que se añadiera en otro dispositivo.",
+ "cl.itemAddTitle": "Nuevo artículo",
+ "cl.itemEditTitle": "Editar artículo",
+ "cl.price": "Precio",
+ "cl.errDesc": "Añade una descripción.",
+ "cl.errPrice": "Introduce un precio de 0 o más.",
+ "cl.itemSaved": "«{item}» guardado",
+ "cl.itemDeleted": "«{item}» eliminado"
 }

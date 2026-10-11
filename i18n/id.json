@@ -384,5 +384,111 @@
  "set.editMode": "Edit di pratinjau",
  "set.editModeHint": "Memungkinkan Anda mengklik teks di pratinjau dokumen untuk mengubahnya. Nonaktif secara default.",
  "ed.bizPh": "Nama bisnis Anda",
- "ed.clientPh": "Nama klien"
+ "ed.clientPh": "Nama klien",
+ "cl.sub": "Simpan sekali, otomatis terisi di setiap dokumen baru.",
+ "cl.searchLabel": "Cari dan urutkan",
+ "cl.tabsLabel": "Tampilkan",
+ "cl.tab.items": "Item",
+ "cl.sortLabel": "Urutkan klien",
+ "cl.sort.name": "Nama A–Z",
+ "cl.sort.owed": "Tagihan terbanyak",
+ "cl.sort.recent": "Aktivitas terbaru",
+ "cl.add": "Tambah klien",
+ "cl.addItem": "Tambah item",
+ "cl.import": "Impor",
+ "cl.export": "Ekspor CSV",
+ "cl.exported": "{file} diunduh",
+ "cl.importClients": "Impor klien",
+ "cl.importItems": "Impor item",
+ "cl.importIntro": "Tempel baris yang disalin dari Excel atau Google Sheets, atau pilih file CSV atau Excel. Baris pertama boleh berisi nama kolom seperti Nama, Email, Telepon, dan Alamat.",
+ "cl.importItemsIntro": "Tempel baris yang disalin dari Excel atau Google Sheets, atau pilih file CSV atau Excel. Gunakan kolom seperti Deskripsi, Satuan, dan Harga.",
+ "cl.importFound": {
+  "other": "{n} klien ditemukan"
+ },
+ "cl.importNone": "Tidak ada klien ditemukan. Pastikan ada satu kolom berisi nama klien atau perusahaan.",
+ "cl.importDo": "Impor",
+ "cl.imported": "Klien diimpor: {added} baru, {updated} diperbarui",
+ "cl.itemsImported": {
+  "other": "{n} item diimpor"
+ },
+ "cl.colName": "Nama",
+ "cl.clientCount": {
+  "other": "{n} klien"
+ },
+ "cl.itemCount": {
+  "other": "{n} item"
+ },
+ "cl.emptyTitle": "Belum ada klien",
+ "cl.emptyBody": "Tambahkan klien sekali dan datanya terisi di setiap dokumen baru. Anda juga bisa mengimpor daftar dari spreadsheet.",
+ "cl.itemsEmptyTitle": "Belum ada item tersimpan",
+ "cl.itemsEmptyBody": "Simpan produk dan jasa yang sering Anda tagih beserta harganya, lalu tambahkan ke dokumen mana pun dengan sekali ketuk.",
+ "cl.noMatch": "Tidak ada klien yang cocok dengan “{q}”.",
+ "cl.noMatchItems": "Tidak ada item yang cocok dengan “{q}”.",
+ "cl.clearSearch": "Hapus pencarian",
+ "cl.docCount": {
+  "other": "{n} dokumen"
+ },
+ "cl.noDocs": "Belum ada dokumen",
+ "cl.overdue": {
+  "other": "{n} terlambat"
+ },
+ "cl.unsavedBanner": {
+  "other": "{n} klien dari dokumen Anda belum disimpan."
+ },
+ "cl.saveThem": "Simpan semua",
+ "cl.savedFromDocs": {
+  "other": "{n} klien disimpan"
+ },
+ "cl.actionsFor": "Tindakan untuk {name}",
+ "cl.act.open": "Buka klien",
+ "cl.act.newInvoice": "Faktur baru",
+ "cl.act.newEstimate": "Penawaran baru",
+ "cl.act.newReceipt": "Kuitansi baru",
+ "cl.act.edit": "Ubah data",
+ "cl.act.delete": "Hapus klien",
+ "cl.act.editItem": "Ubah item",
+ "cl.act.deleteItem": "Hapus item",
+ "cl.deleted": "{name} dihapus",
+ "cl.deletedKept": {
+  "other": "{name} dihapus. {n} dokumennya tetap disimpan."
+ },
+ "cl.addTitle": "Klien baru",
+ "cl.editTitle": "Ubah klien",
+ "cl.taxId": "NPWP atau nomor pajak",
+ "cl.notes": "Catatan pribadi",
+ "cl.notesHint": "Hanya Anda yang bisa melihatnya. Tidak ikut dicetak.",
+ "cl.draftsHint": "Draf untuk klien ini juga diperbarui. Dokumen yang sudah dikirim tetap memakai data saat dikirim.",
+ "cl.save": "Simpan",
+ "cl.errName": "Isi nama.",
+ "cl.errDup": "Klien bernama “{name}” sudah ada.",
+ "cl.errEmail": "Alamat email ini sepertinya tidak benar.",
+ "cl.added": "{name} ditambahkan",
+ "cl.updated": "{name} diperbarui",
+ "cl.updatedDrafts": {
+  "other": "{name} diperbarui, begitu juga {n} draf"
+ },
+ "cl.allClients": "Semua klien",
+ "cl.summary": "Ringkasan",
+ "cl.stat.owed": "Belum dibayar",
+ "cl.stat.paid": "Sudah dibayar",
+ "cl.stat.billed": "Ditagihkan",
+ "cl.nothingOverdue": "Tidak ada yang terlambat",
+ "cl.lastPayment": "Pembayaran terakhir {date}",
+ "cl.noPayments": "Belum ada pembayaran",
+ "cl.across": {
+  "other": "Dari {n} dokumen"
+ },
+ "cl.details": "Data",
+ "cl.noDetails": "Belum ada data kontak. Pilih Ubah data untuk menambahkannya.",
+ "cl.history": "Riwayat",
+ "cl.historyEmpty": "Belum ada dokumen untuk klien ini.",
+ "cl.notFound": "Klien tidak ditemukan",
+ "cl.notFoundBody": "Mungkin sudah dihapus, atau ditambahkan di perangkat lain.",
+ "cl.itemAddTitle": "Item baru",
+ "cl.itemEditTitle": "Ubah item",
+ "cl.price": "Harga",
+ "cl.errDesc": "Isi deskripsi.",
+ "cl.errPrice": "Masukkan harga 0 atau lebih.",
+ "cl.itemSaved": "“{item}” disimpan",
+ "cl.itemDeleted": "“{item}” dihapus"
 }

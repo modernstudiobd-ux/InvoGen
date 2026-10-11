@@ -384,5 +384,111 @@
  "set.editMode": "미리보기에서 편집",
  "set.editModeHint": "문서 미리보기의 글자를 눌러 바로 바꿀 수 있습니다. 기본값은 꺼짐입니다.",
  "ed.bizPh": "내 상호",
- "ed.clientPh": "고객 이름"
+ "ed.clientPh": "고객 이름",
+ "cl.sub": "한 번 저장하면 새 문서마다 자동으로 채워집니다.",
+ "cl.searchLabel": "검색 및 정렬",
+ "cl.tabsLabel": "보기",
+ "cl.tab.items": "품목",
+ "cl.sortLabel": "고객 정렬",
+ "cl.sort.name": "이름순 A–Z",
+ "cl.sort.owed": "미수금 많은 순",
+ "cl.sort.recent": "최근 활동순",
+ "cl.add": "고객 추가",
+ "cl.addItem": "품목 추가",
+ "cl.import": "가져오기",
+ "cl.export": "CSV 내보내기",
+ "cl.exported": "{file} 다운로드됨",
+ "cl.importClients": "고객 가져오기",
+ "cl.importItems": "품목 가져오기",
+ "cl.importIntro": "Excel 또는 Google 스프레드시트에서 복사한 행을 붙여넣거나 CSV 또는 Excel 파일을 선택하세요. 첫 행에 이름, 이메일, 전화, 주소 같은 열 이름을 넣을 수 있습니다.",
+ "cl.importItemsIntro": "Excel 또는 Google 스프레드시트에서 복사한 행을 붙여넣거나 CSV 또는 Excel 파일을 선택하세요. 설명, 단위, 가격 같은 열을 사용하세요.",
+ "cl.importFound": {
+  "other": "고객 {n}명을 찾았습니다"
+ },
+ "cl.importNone": "고객을 찾지 못했습니다. 고객 또는 회사 이름이 담긴 열이 있는지 확인하세요.",
+ "cl.importDo": "가져오기",
+ "cl.imported": "고객 가져오기 완료: 새 고객 {added}명, 업데이트 {updated}명",
+ "cl.itemsImported": {
+  "other": "품목 {n}개를 가져왔습니다"
+ },
+ "cl.colName": "이름",
+ "cl.clientCount": {
+  "other": "고객 {n}명"
+ },
+ "cl.itemCount": {
+  "other": "품목 {n}개"
+ },
+ "cl.emptyTitle": "아직 고객이 없습니다",
+ "cl.emptyBody": "고객을 한 번 추가하면 새 문서마다 정보가 자동으로 채워집니다. 스프레드시트에서 목록을 가져올 수도 있습니다.",
+ "cl.itemsEmptyTitle": "저장된 품목이 없습니다",
+ "cl.itemsEmptyBody": "자주 청구하는 상품과 서비스를 가격과 함께 저장하고, 한 번 탭으로 어떤 문서에든 추가하세요.",
+ "cl.noMatch": "‘{q}’와(과) 일치하는 고객이 없습니다.",
+ "cl.noMatchItems": "‘{q}’와(과) 일치하는 품목이 없습니다.",
+ "cl.clearSearch": "검색 지우기",
+ "cl.docCount": {
+  "other": "문서 {n}개"
+ },
+ "cl.noDocs": "아직 문서 없음",
+ "cl.overdue": {
+  "other": "{n}건 기한 초과"
+ },
+ "cl.unsavedBanner": {
+  "other": "문서에 있는 고객 {n}명이 아직 저장되지 않았습니다."
+ },
+ "cl.saveThem": "저장하기",
+ "cl.savedFromDocs": {
+  "other": "고객 {n}명 저장됨"
+ },
+ "cl.actionsFor": "{name} 작업",
+ "cl.act.open": "고객 열기",
+ "cl.act.newInvoice": "새 청구서",
+ "cl.act.newEstimate": "새 견적서",
+ "cl.act.newReceipt": "새 영수증",
+ "cl.act.edit": "정보 수정",
+ "cl.act.delete": "고객 삭제",
+ "cl.act.editItem": "품목 수정",
+ "cl.act.deleteItem": "품목 삭제",
+ "cl.deleted": "{name} 삭제됨",
+ "cl.deletedKept": {
+  "other": "{name} 삭제됨. 문서 {n}개는 그대로 유지됩니다."
+ },
+ "cl.addTitle": "새 고객",
+ "cl.editTitle": "고객 수정",
+ "cl.taxId": "사업자·세금 번호",
+ "cl.notes": "개인 메모",
+ "cl.notesHint": "나만 볼 수 있으며 인쇄되지 않습니다.",
+ "cl.draftsHint": "이 고객의 임시 문서도 함께 업데이트됩니다. 이미 보낸 문서는 보낼 때의 정보를 유지합니다.",
+ "cl.save": "저장",
+ "cl.errName": "이름을 입력하세요.",
+ "cl.errDup": "‘{name}’ 고객이 이미 있습니다.",
+ "cl.errEmail": "이메일 주소가 올바르지 않은 것 같습니다.",
+ "cl.added": "{name} 추가됨",
+ "cl.updated": "{name} 업데이트됨",
+ "cl.updatedDrafts": {
+  "other": "{name} 및 임시 문서 {n}개 업데이트됨"
+ },
+ "cl.allClients": "모든 고객",
+ "cl.summary": "요약",
+ "cl.stat.owed": "미수금",
+ "cl.stat.paid": "지금까지 받은 금액",
+ "cl.stat.billed": "청구 금액",
+ "cl.nothingOverdue": "기한 초과 없음",
+ "cl.lastPayment": "마지막 결제 {date}",
+ "cl.noPayments": "아직 결제 없음",
+ "cl.across": {
+  "other": "문서 {n}개 기준"
+ },
+ "cl.details": "정보",
+ "cl.noDetails": "아직 연락처 정보가 없습니다. ‘정보 수정’을 눌러 추가하세요.",
+ "cl.history": "기록",
+ "cl.historyEmpty": "이 고객의 문서가 아직 없습니다.",
+ "cl.notFound": "고객을 찾을 수 없습니다",
+ "cl.notFoundBody": "삭제되었거나 다른 기기에서 추가되었을 수 있습니다.",
+ "cl.itemAddTitle": "새 품목",
+ "cl.itemEditTitle": "품목 수정",
+ "cl.price": "가격",
+ "cl.errDesc": "설명을 입력하세요.",
+ "cl.errPrice": "0 이상의 가격을 입력하세요.",
+ "cl.itemSaved": "‘{item}’ 저장됨",
+ "cl.itemDeleted": "‘{item}’ 삭제됨"
 }

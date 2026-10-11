@@ -394,5 +394,122 @@
  "set.editMode": "Editar na visualização",
  "set.editModeHint": "Permite clicar no texto da visualização do documento para alterá-lo. Desativado por padrão.",
  "ed.bizPh": "Nome da sua empresa",
- "ed.clientPh": "Nome do cliente"
+ "ed.clientPh": "Nome do cliente",
+ "cl.sub": "Salvos uma vez e preenchidos para você em cada novo documento.",
+ "cl.searchLabel": "Pesquisar e ordenar",
+ "cl.tabsLabel": "Mostrar",
+ "cl.tab.items": "Itens",
+ "cl.sortLabel": "Ordenar clientes",
+ "cl.sort.name": "Nome A–Z",
+ "cl.sort.owed": "Maior valor em aberto",
+ "cl.sort.recent": "Atividade recente",
+ "cl.add": "Adicionar cliente",
+ "cl.addItem": "Adicionar item",
+ "cl.import": "Importar",
+ "cl.export": "Exportar CSV",
+ "cl.exported": "{file} baixado",
+ "cl.importClients": "Importar clientes",
+ "cl.importItems": "Importar itens",
+ "cl.importIntro": "Cole linhas copiadas do Excel ou do Google Sheets, ou escolha um arquivo CSV ou Excel. A primeira linha pode ter nomes de colunas como Nome, E-mail, Telefone e Endereço.",
+ "cl.importItemsIntro": "Cole linhas copiadas do Excel ou do Google Sheets, ou escolha um arquivo CSV ou Excel. Use colunas como Descrição, Unidade e Preço.",
+ "cl.importFound": {
+  "one": "{n} cliente encontrado",
+  "other": "{n} clientes encontrados"
+ },
+ "cl.importNone": "Nenhum cliente encontrado. Verifique se uma coluna tem o nome do cliente ou da empresa.",
+ "cl.importDo": "Importar",
+ "cl.imported": "Clientes importados: {added} novos, {updated} atualizados",
+ "cl.itemsImported": {
+  "one": "{n} item importado",
+  "other": "{n} itens importados"
+ },
+ "cl.colName": "Nome",
+ "cl.clientCount": {
+  "one": "{n} cliente",
+  "other": "{n} clientes"
+ },
+ "cl.itemCount": {
+  "one": "{n} item",
+  "other": "{n} itens"
+ },
+ "cl.emptyTitle": "Ainda não há clientes",
+ "cl.emptyBody": "Adicione um cliente uma vez e os dados dele serão preenchidos em cada novo documento. Você também pode importar uma lista de uma planilha.",
+ "cl.itemsEmptyTitle": "Ainda não há itens salvos",
+ "cl.itemsEmptyBody": "Salve os produtos e serviços que você cobra com frequência, com o preço, e adicione-os a qualquer documento com um toque.",
+ "cl.noMatch": "Nenhum cliente corresponde a “{q}”.",
+ "cl.noMatchItems": "Nenhum item corresponde a “{q}”.",
+ "cl.clearSearch": "Limpar pesquisa",
+ "cl.docCount": {
+  "one": "{n} documento",
+  "other": "{n} documentos"
+ },
+ "cl.noDocs": "Ainda sem documentos",
+ "cl.overdue": {
+  "one": "{n} vencido",
+  "other": "{n} vencidos"
+ },
+ "cl.unsavedBanner": {
+  "one": "{n} cliente dos seus documentos ainda não está salvo.",
+  "other": "{n} clientes dos seus documentos ainda não estão salvos."
+ },
+ "cl.saveThem": "Salvar",
+ "cl.savedFromDocs": {
+  "one": "{n} cliente salvo",
+  "other": "{n} clientes salvos"
+ },
+ "cl.actionsFor": "Ações para {name}",
+ "cl.act.open": "Abrir cliente",
+ "cl.act.newInvoice": "Nova fatura",
+ "cl.act.newEstimate": "Novo orçamento",
+ "cl.act.newReceipt": "Novo recibo",
+ "cl.act.edit": "Editar dados",
+ "cl.act.delete": "Excluir cliente",
+ "cl.act.editItem": "Editar item",
+ "cl.act.deleteItem": "Excluir item",
+ "cl.deleted": "{name} excluído",
+ "cl.deletedKept": {
+  "one": "{name} excluído. O {n} documento dele foi mantido.",
+  "other": "{name} excluído. Os {n} documentos dele foram mantidos."
+ },
+ "cl.addTitle": "Novo cliente",
+ "cl.editTitle": "Editar cliente",
+ "cl.taxId": "Número fiscal",
+ "cl.notes": "Notas privadas",
+ "cl.notesHint": "Só você vê. Não são impressas.",
+ "cl.draftsHint": "Os rascunhos deste cliente também são atualizados. Documentos já enviados mantêm os dados com que foram enviados.",
+ "cl.save": "Salvar",
+ "cl.errName": "Adicione um nome.",
+ "cl.errDup": "Já existe um cliente chamado “{name}”.",
+ "cl.errEmail": "Este e-mail não parece correto.",
+ "cl.added": "{name} adicionado",
+ "cl.updated": "{name} atualizado",
+ "cl.updatedDrafts": {
+  "one": "{name} atualizado, e também {n} rascunho",
+  "other": "{name} atualizado, e também {n} rascunhos"
+ },
+ "cl.allClients": "Todos os clientes",
+ "cl.summary": "Resumo",
+ "cl.stat.owed": "Em aberto",
+ "cl.stat.paid": "Pago até hoje",
+ "cl.stat.billed": "Faturado",
+ "cl.nothingOverdue": "Nada vencido",
+ "cl.lastPayment": "Último pagamento em {date}",
+ "cl.noPayments": "Ainda sem pagamentos",
+ "cl.across": {
+  "one": "Em {n} documento",
+  "other": "Em {n} documentos"
+ },
+ "cl.details": "Dados",
+ "cl.noDetails": "Ainda não há dados de contato. Escolha Editar dados para adicioná-los.",
+ "cl.history": "Histórico",
+ "cl.historyEmpty": "Ainda não há documentos para este cliente.",
+ "cl.notFound": "Cliente não encontrado",
+ "cl.notFoundBody": "Talvez tenha sido excluído ou adicionado em outro dispositivo.",
+ "cl.itemAddTitle": "Novo item",
+ "cl.itemEditTitle": "Editar item",
+ "cl.price": "Preço",
+ "cl.errDesc": "Adicione uma descrição.",
+ "cl.errPrice": "Digite um preço de 0 ou mais.",
+ "cl.itemSaved": "“{item}” salvo",
+ "cl.itemDeleted": "“{item}” excluído"
 }

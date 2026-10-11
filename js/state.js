@@ -99,6 +99,7 @@ export function normalizeDoc(d = {}) {
     paper: str(d.paper, 30) || "A4",
     recurring: { on: !!d.recurring?.on, every: Math.max(1, numv(d.recurring?.every) || 1), unit: ["week", "month", "year"].includes(d.recurring?.unit) ? d.recurring.unit : "month", next: isoOr(d.recurring?.next), end: isoOr(d.recurring?.end) },
     recurringFrom: str(d.recurringFrom, 100),
+    sourceId: str(d.sourceId, 100),
     payments: (Array.isArray(d.payments) ? d.payments : []).map(p => ({ id: str(p.id, 100) || uid(), date: isoOr(p.date, todayISO()), amount: Math.max(0, numv(p.amount)), method: str(p.method, 40), note: str(p.note, 500) })),
     sentAt: numv(d.sentAt), createdAt: numv(d.createdAt) || Date.now(), updatedAt: numv(d.updatedAt) || Date.now(),
     sample: !!d.sample
@@ -266,6 +267,7 @@ export function duplicateDoc(id, asType) {
       ...structuredClone(src), id: uid(), type, no, status: type === "receipt" ? "paid" : "draft",
       issued: today, due: type === "receipt" ? "" : addDays(today, span), payments: [], sentAt: 0,
       createdAt: Date.now(), updatedAt: Date.now(), sample: false, recurringFrom: "",
+      sourceId: type !== src.type ? src.id : "",
       items: src.items.map(it => ({ ...it, id: uid() }))
     });
     s.docs.unshift(copy);
@@ -370,6 +372,123 @@ export function saveClient(c) {
     if (i >= 0) s.clients[i] = x; else s.clients.unshift(x);
     return x;
   }, "clients");
+}
+
+// Removes a client. Their documents keep the details they were made with.
+export function deleteClient(id) {
+  return update(s => {
+    const index = s.clients.findIndex(c => c.id === id);
+    if (index < 0) return null;
+    const [client] = s.clients.splice(index, 1);
+    return { client, index };
+  }, "clients");
+}
+export function restoreClient(client, index) {
+  update(s => {
+    if (s.clients.some(c => c.id === client.id)) return;
+    s.clients.splice(Math.min(Math.max(0, index), s.clients.length), 0, client);
+  }, "clients");
+}
+// Replaces the whole client or item list (used by Undo after an import).
+export function setClients(list) { update(s => { s.clients = list.map(normalizeClient); }, "clients"); }
+export function setProducts(list) { update(s => { s.products = list.map(normalizeProduct); }, "products"); }
+
+const sameText = (a, b) => String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+
+// Adds clients from an import. A row with the same email (or, without an email, the
+// same name) as a saved client updates that client instead of adding a duplicate.
+export function importClients(rows) {
+  return update(s => {
+    let added = 0, updated = 0;
+    rows.forEach(r => {
+      const name = String(r.name || "").trim();
+      if (!name) return;
+      const m = s.clients.find(c => (r.email && c.email && sameText(c.email, r.email)) || (!(r.email && c.email) && sameText(c.name, name)));
+      if (m) {
+        Object.entries(r).forEach(([k, v]) => { if (v != null && String(v).trim() !== "" && k !== "id") m[k] = String(v).trim(); });
+        Object.assign(m, normalizeClient({ ...m, updatedAt: Date.now() }));
+        updated++;
+      } else { s.clients.push(normalizeClient({ ...r, id: undefined, name })); added++; }
+    });
+    return { added, updated };
+  }, "clients");
+}
+
+// Saves clients that only exist inside documents (e.g. from v3, or typed in without
+// pressing Save) and links those documents to them.
+export function clientsFromDocs() {
+  const known = state.clients;
+  const found = new Map();
+  [...state.docs].sort((a, b) => b.updatedAt - a.updatedAt).forEach(d => {
+    const c = d.client, key = c.name.trim().toLowerCase();
+    if (!key || (c.id && known.some(k => k.id === c.id)) || known.some(k => sameText(k.name, c.name)) || found.has(key)) return;
+    found.set(key, c);
+  });
+  return [...found.values()];
+}
+export function saveClientsFromDocs() {
+  const list = clientsFromDocs();
+  if (!list.length) return null;
+  const before = { clients: structuredClone(state.clients), links: state.docs.map(d => [d.id, d.client.id]) };
+  update(s => {
+    list.forEach(c => {
+      const x = normalizeClient({ ...c, id: undefined });
+      s.clients.push(x);
+      s.docs.forEach(d => { if (sameText(d.client.name, x.name) && !s.clients.some(k => k.id === d.client.id && k !== x)) d.client.id = x.id; });
+    });
+  }, "clients");
+  return { count: list.length, undo: () => update(s => {
+    s.clients = before.clients;
+    const m = new Map(before.links);
+    s.docs.forEach(d => { if (m.has(d.id)) d.client.id = m.get(d.id); });
+  }, "clients") };
+}
+
+// After a client's details change, drafts for that client follow. Documents that were
+// already sent keep the details they were sent with.
+export function updateClientDrafts(client, prevName) {
+  let n = 0;
+  update(s => {
+    s.docs.forEach(d => {
+      if (d.status !== "draft" || d.type === "receipt" || !isClientDoc(d, client, s.clients, prevName)) return;
+      d.client = { ...d.client, id: client.id, name: client.name, contact: client.contact, email: client.email, phone: client.phone, address: client.address, taxId: client.taxId };
+      d.updatedAt = Date.now();
+      n++;
+    });
+  }, "docs");
+  return n;
+}
+
+// Is this document for this client? Linked by id; documents without a (valid) link
+// fall back to the client name.
+export function isClientDoc(d, c, clients = state.clients, altName) {
+  if (d.client.id && d.client.id === c.id) return true;
+  if (d.client.id && clients.some(k => k.id === d.client.id)) return false;
+  return !!d.client.name.trim() && (sameText(d.client.name, c.name) || (altName && sameText(d.client.name, altName)));
+}
+export const docsForClient = c => state.docs.filter(d => isClientDoc(d, c));
+
+export function saveProduct(p) {
+  return update(s => {
+    const x = normalizeProduct(p);
+    const i = s.products.findIndex(y => y.id === x.id);
+    if (i >= 0) s.products[i] = x; else s.products.unshift(x);
+    return x;
+  }, "products");
+}
+export function deleteProduct(id) {
+  return update(s => {
+    const index = s.products.findIndex(p => p.id === id);
+    if (index < 0) return null;
+    const [product] = s.products.splice(index, 1);
+    return { product, index };
+  }, "products");
+}
+export function restoreProduct(product, index) {
+  update(s => {
+    if (s.products.some(p => p.id === product.id)) return;
+    s.products.splice(Math.min(Math.max(0, index), s.products.length), 0, product);
+  }, "products");
 }
 
 export function saveProducts(list) {

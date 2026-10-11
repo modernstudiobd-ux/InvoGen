@@ -8,8 +8,22 @@ import { t } from "./i18n.js";
 
 // openSheet({ title, body, foot, wide, onOpen(dlg), onClose(value) }) → <dialog>
 // Buttons inside with data-close="value" close the sheet and pass that value to onClose.
+// If the page re-draws while a sheet is open, the button that opened it is replaced;
+// focus then returns to the matching new button (same id, or same action in the same row).
+function locator(el) {
+  if (!el || el === document.body) return null;
+  if (el.id) return "#" + CSS.escape(el.id);
+  const act = el.getAttribute("data-act");
+  if (!act) return null;
+  const row = el.closest("[data-id]");
+  return (row ? `[data-id="${CSS.escape(row.dataset.id)}"] ` : "") + `[data-act="${CSS.escape(act)}"]`;
+}
+let inheritedOpener = null;   // a sheet opened from another sheet's onClose returns focus to the first opener
+
 export function openSheet({ title, body = "", foot = "", wide = false, side = false, onOpen, onClose, label } = {}) {
-  const opener = document.activeElement;
+  const active = document.activeElement;
+  const opener = (!active || active === document.body) && inheritedOpener ? inheritedOpener.el : active;
+  const where = (!active || active === document.body) && inheritedOpener ? inheritedOpener.where : locator(active);
   const id = "sh-" + uid().slice(0, 8);
   const dlg = document.createElement("dialog");
   dlg.className = "sheet" + (wide ? " wide" : "") + (side ? " side" : "");
@@ -30,8 +44,11 @@ export function openSheet({ title, body = "", foot = "", wide = false, side = fa
   });
   dlg.addEventListener("close", () => {
     dlg.remove();
-    if (onClose) onClose(result);
-    if (opener && opener.isConnected && typeof opener.focus === "function") opener.focus();
+    inheritedOpener = { el: opener, where };
+    try { if (onClose) onClose(result); } finally { inheritedOpener = null; }
+    if (document.querySelector("dialog[open]")) return;   // another sheet took over
+    const target = opener && opener.isConnected ? opener : (where && document.querySelector(where));
+    if (target && typeof target.focus === "function") target.focus();
   });
   dlg.tabIndex = -1;
   dlg.showModal();

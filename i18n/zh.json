@@ -384,5 +384,111 @@
  "set.editMode": "在预览中编辑",
  "set.editModeHint": "可直接点击文档预览中的文字进行修改。默认关闭。",
  "ed.bizPh": "您的公司名称",
- "ed.clientPh": "客户名称"
+ "ed.clientPh": "客户名称",
+ "cl.sub": "保存一次，之后每份新单据都会自动填写。",
+ "cl.searchLabel": "搜索和排序",
+ "cl.tabsLabel": "显示",
+ "cl.tab.items": "商品",
+ "cl.sortLabel": "客户排序",
+ "cl.sort.name": "名称 A–Z",
+ "cl.sort.owed": "未付金额最多",
+ "cl.sort.recent": "最近活动",
+ "cl.add": "添加客户",
+ "cl.addItem": "添加商品",
+ "cl.import": "导入",
+ "cl.export": "导出 CSV",
+ "cl.exported": "已下载 {file}",
+ "cl.importClients": "导入客户",
+ "cl.importItems": "导入商品",
+ "cl.importIntro": "粘贴从 Excel 或 Google 表格复制的行，或选择 CSV 或 Excel 文件。第一行可以是列名，例如名称、邮箱、电话和地址。",
+ "cl.importItemsIntro": "粘贴从 Excel 或 Google 表格复制的行，或选择 CSV 或 Excel 文件。可使用描述、单位和价格等列。",
+ "cl.importFound": {
+  "other": "找到 {n} 位客户"
+ },
+ "cl.importNone": "未找到客户。请确保有一列是客户或公司名称。",
+ "cl.importDo": "导入",
+ "cl.imported": "客户已导入：新增 {added} 位，更新 {updated} 位",
+ "cl.itemsImported": {
+  "other": "已导入 {n} 个商品"
+ },
+ "cl.colName": "名称",
+ "cl.clientCount": {
+  "other": "{n} 位客户"
+ },
+ "cl.itemCount": {
+  "other": "{n} 个商品"
+ },
+ "cl.emptyTitle": "还没有客户",
+ "cl.emptyBody": "添加一次客户，之后每份新单据都会自动填入其信息。也可以从表格导入名单。",
+ "cl.itemsEmptyTitle": "还没有保存的商品",
+ "cl.itemsEmptyBody": "保存常用的商品和服务及其价格，一键添加到任何单据。",
+ "cl.noMatch": "没有与“{q}”匹配的客户。",
+ "cl.noMatchItems": "没有与“{q}”匹配的商品。",
+ "cl.clearSearch": "清除搜索",
+ "cl.docCount": {
+  "other": "{n} 份单据"
+ },
+ "cl.noDocs": "暂无单据",
+ "cl.overdue": {
+  "other": "{n} 份逾期"
+ },
+ "cl.unsavedBanner": {
+  "other": "单据中有 {n} 位客户尚未保存。"
+ },
+ "cl.saveThem": "保存他们",
+ "cl.savedFromDocs": {
+  "other": "已保存 {n} 位客户"
+ },
+ "cl.actionsFor": "{name} 的操作",
+ "cl.act.open": "打开客户",
+ "cl.act.newInvoice": "新建发票",
+ "cl.act.newEstimate": "新建报价单",
+ "cl.act.newReceipt": "新建收据",
+ "cl.act.edit": "编辑信息",
+ "cl.act.delete": "删除客户",
+ "cl.act.editItem": "编辑商品",
+ "cl.act.deleteItem": "删除商品",
+ "cl.deleted": "已删除 {name}",
+ "cl.deletedKept": {
+  "other": "已删除 {name}。其 {n} 份单据仍保留。"
+ },
+ "cl.addTitle": "新客户",
+ "cl.editTitle": "编辑客户",
+ "cl.taxId": "税号",
+ "cl.notes": "私人备注",
+ "cl.notesHint": "仅你可见，不会打印。",
+ "cl.draftsHint": "该客户的草稿也会同步更新。已发送的单据保留发送时的信息。",
+ "cl.save": "保存",
+ "cl.errName": "请填写名称。",
+ "cl.errDup": "已有名为“{name}”的客户。",
+ "cl.errEmail": "该邮箱地址似乎不正确。",
+ "cl.added": "已添加 {name}",
+ "cl.updated": "已更新 {name}",
+ "cl.updatedDrafts": {
+  "other": "已更新 {name}，以及 {n} 份草稿"
+ },
+ "cl.allClients": "所有客户",
+ "cl.summary": "概览",
+ "cl.stat.owed": "未付",
+ "cl.stat.paid": "累计已付",
+ "cl.stat.billed": "已开票",
+ "cl.nothingOverdue": "没有逾期",
+ "cl.lastPayment": "最近付款 {date}",
+ "cl.noPayments": "暂无付款",
+ "cl.across": {
+  "other": "共 {n} 份单据"
+ },
+ "cl.details": "信息",
+ "cl.noDetails": "还没有联系信息。选择“编辑信息”来添加。",
+ "cl.history": "历史记录",
+ "cl.historyEmpty": "该客户还没有单据。",
+ "cl.notFound": "找不到客户",
+ "cl.notFoundBody": "可能已被删除，或是在其他设备上添加的。",
+ "cl.itemAddTitle": "新商品",
+ "cl.itemEditTitle": "编辑商品",
+ "cl.price": "价格",
+ "cl.errDesc": "请填写描述。",
+ "cl.errPrice": "请输入 0 或更高的价格。",
+ "cl.itemSaved": "已保存“{item}”",
+ "cl.itemDeleted": "已删除“{item}”"
 }

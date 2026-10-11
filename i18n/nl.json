@@ -394,5 +394,122 @@
  "set.editMode": "Bewerken in het voorbeeld",
  "set.editModeHint": "Hiermee klik je op tekst in het documentvoorbeeld om die te wijzigen. Standaard uit.",
  "ed.bizPh": "Naam van je bedrijf",
- "ed.clientPh": "Naam klant"
+ "ed.clientPh": "Naam klant",
+ "cl.sub": "Eén keer opgeslagen, automatisch ingevuld op elk nieuw document.",
+ "cl.searchLabel": "Zoeken en sorteren",
+ "cl.tabsLabel": "Tonen",
+ "cl.tab.items": "Artikelen",
+ "cl.sortLabel": "Klanten sorteren",
+ "cl.sort.name": "Naam A–Z",
+ "cl.sort.owed": "Meeste openstaand",
+ "cl.sort.recent": "Recente activiteit",
+ "cl.add": "Klant toevoegen",
+ "cl.addItem": "Artikel toevoegen",
+ "cl.import": "Importeren",
+ "cl.export": "CSV exporteren",
+ "cl.exported": "{file} gedownload",
+ "cl.importClients": "Klanten importeren",
+ "cl.importItems": "Artikelen importeren",
+ "cl.importIntro": "Plak rijen uit Excel of Google Sheets, of kies een CSV- of Excel-bestand. De eerste rij mag kolomnamen bevatten, zoals Naam, E-mail, Telefoon en Adres.",
+ "cl.importItemsIntro": "Plak rijen uit Excel of Google Sheets, of kies een CSV- of Excel-bestand. Gebruik kolommen zoals Omschrijving, Eenheid en Prijs.",
+ "cl.importFound": {
+  "one": "{n} klant gevonden",
+  "other": "{n} klanten gevonden"
+ },
+ "cl.importNone": "Geen klanten gevonden. Zorg dat één kolom de naam van de klant of het bedrijf bevat.",
+ "cl.importDo": "Importeren",
+ "cl.imported": "Klanten geïmporteerd: {added} nieuw, {updated} bijgewerkt",
+ "cl.itemsImported": {
+  "one": "{n} artikel geïmporteerd",
+  "other": "{n} artikelen geïmporteerd"
+ },
+ "cl.colName": "Naam",
+ "cl.clientCount": {
+  "one": "{n} klant",
+  "other": "{n} klanten"
+ },
+ "cl.itemCount": {
+  "one": "{n} artikel",
+  "other": "{n} artikelen"
+ },
+ "cl.emptyTitle": "Nog geen klanten",
+ "cl.emptyBody": "Voeg een klant één keer toe en de gegevens worden op elk nieuw document ingevuld. Je kunt ook een lijst uit een spreadsheet importeren.",
+ "cl.itemsEmptyTitle": "Nog geen opgeslagen artikelen",
+ "cl.itemsEmptyBody": "Sla producten en diensten die je vaak factureert op met hun prijs, en voeg ze met één tik toe aan elk document.",
+ "cl.noMatch": "Geen klanten gevonden voor ‘{q}’.",
+ "cl.noMatchItems": "Geen artikelen gevonden voor ‘{q}’.",
+ "cl.clearSearch": "Zoekopdracht wissen",
+ "cl.docCount": {
+  "one": "{n} document",
+  "other": "{n} documenten"
+ },
+ "cl.noDocs": "Nog geen documenten",
+ "cl.overdue": {
+  "one": "{n} achterstallig",
+  "other": "{n} achterstallig"
+ },
+ "cl.unsavedBanner": {
+  "one": "{n} klant uit je documenten is nog niet opgeslagen.",
+  "other": "{n} klanten uit je documenten zijn nog niet opgeslagen."
+ },
+ "cl.saveThem": "Opslaan",
+ "cl.savedFromDocs": {
+  "one": "{n} klant opgeslagen",
+  "other": "{n} klanten opgeslagen"
+ },
+ "cl.actionsFor": "Acties voor {name}",
+ "cl.act.open": "Klant openen",
+ "cl.act.newInvoice": "Nieuwe factuur",
+ "cl.act.newEstimate": "Nieuwe offerte",
+ "cl.act.newReceipt": "Nieuwe bon",
+ "cl.act.edit": "Gegevens bewerken",
+ "cl.act.delete": "Klant verwijderen",
+ "cl.act.editItem": "Artikel bewerken",
+ "cl.act.deleteItem": "Artikel verwijderen",
+ "cl.deleted": "{name} verwijderd",
+ "cl.deletedKept": {
+  "one": "{name} verwijderd. Het {n} document blijft bewaard.",
+  "other": "{name} verwijderd. De {n} documenten blijven bewaard."
+ },
+ "cl.addTitle": "Nieuwe klant",
+ "cl.editTitle": "Klant bewerken",
+ "cl.taxId": "Btw- of belastingnummer",
+ "cl.notes": "Privénotities",
+ "cl.notesHint": "Alleen jij ziet ze. Ze worden niet afgedrukt.",
+ "cl.draftsHint": "Concepten voor deze klant worden ook bijgewerkt. Verzonden documenten behouden de gegevens waarmee ze zijn verzonden.",
+ "cl.save": "Opslaan",
+ "cl.errName": "Voeg een naam toe.",
+ "cl.errDup": "Er bestaat al een klant met de naam ‘{name}’.",
+ "cl.errEmail": "Dit e-mailadres lijkt niet te kloppen.",
+ "cl.added": "{name} toegevoegd",
+ "cl.updated": "{name} bijgewerkt",
+ "cl.updatedDrafts": {
+  "one": "{name} bijgewerkt, en ook {n} concept",
+  "other": "{name} bijgewerkt, en ook {n} concepten"
+ },
+ "cl.allClients": "Alle klanten",
+ "cl.summary": "Overzicht",
+ "cl.stat.owed": "Openstaand",
+ "cl.stat.paid": "Tot nu toe betaald",
+ "cl.stat.billed": "Gefactureerd",
+ "cl.nothingOverdue": "Niets achterstallig",
+ "cl.lastPayment": "Laatste betaling {date}",
+ "cl.noPayments": "Nog geen betalingen",
+ "cl.across": {
+  "one": "Over {n} document",
+  "other": "Over {n} documenten"
+ },
+ "cl.details": "Gegevens",
+ "cl.noDetails": "Nog geen contactgegevens. Kies Gegevens bewerken om ze toe te voegen.",
+ "cl.history": "Geschiedenis",
+ "cl.historyEmpty": "Nog geen documenten voor deze klant.",
+ "cl.notFound": "Klant niet gevonden",
+ "cl.notFoundBody": "Misschien is deze verwijderd, of toegevoegd op een ander apparaat.",
+ "cl.itemAddTitle": "Nieuw artikel",
+ "cl.itemEditTitle": "Artikel bewerken",
+ "cl.price": "Prijs",
+ "cl.errDesc": "Voeg een omschrijving toe.",
+ "cl.errPrice": "Vul een prijs van 0 of meer in.",
+ "cl.itemSaved": "‘{item}’ opgeslagen",
+ "cl.itemDeleted": "‘{item}’ verwijderd"
 }

@@ -394,5 +394,122 @@
  "set.editMode": "In der Vorschau bearbeiten",
  "set.editModeHint": "Damit können Sie Text in der Dokumentvorschau anklicken und ändern. Standardmäßig aus.",
  "ed.bizPh": "Ihr Firmenname",
- "ed.clientPh": "Kundenname"
+ "ed.clientPh": "Kundenname",
+ "cl.sub": "Einmal gespeichert, bei jedem neuen Dokument automatisch eingetragen.",
+ "cl.searchLabel": "Suchen und sortieren",
+ "cl.tabsLabel": "Anzeigen",
+ "cl.tab.items": "Artikel",
+ "cl.sortLabel": "Kunden sortieren",
+ "cl.sort.name": "Name A–Z",
+ "cl.sort.owed": "Höchster offener Betrag",
+ "cl.sort.recent": "Letzte Aktivität",
+ "cl.add": "Kunde hinzufügen",
+ "cl.addItem": "Artikel hinzufügen",
+ "cl.import": "Importieren",
+ "cl.export": "CSV exportieren",
+ "cl.exported": "{file} heruntergeladen",
+ "cl.importClients": "Kunden importieren",
+ "cl.importItems": "Artikel importieren",
+ "cl.importIntro": "Füge aus Excel oder Google Sheets kopierte Zeilen ein oder wähle eine CSV- oder Excel-Datei. Die erste Zeile kann Spaltennamen wie Name, E-Mail, Telefon und Adresse enthalten.",
+ "cl.importItemsIntro": "Füge aus Excel oder Google Sheets kopierte Zeilen ein oder wähle eine CSV- oder Excel-Datei. Verwende Spalten wie Beschreibung, Einheit und Preis.",
+ "cl.importFound": {
+  "one": "{n} Kunde gefunden",
+  "other": "{n} Kunden gefunden"
+ },
+ "cl.importNone": "Keine Kunden gefunden. Achte darauf, dass eine Spalte den Kunden- oder Firmennamen enthält.",
+ "cl.importDo": "Importieren",
+ "cl.imported": "Kunden importiert: {added} neu, {updated} aktualisiert",
+ "cl.itemsImported": {
+  "one": "{n} Artikel importiert",
+  "other": "{n} Artikel importiert"
+ },
+ "cl.colName": "Name",
+ "cl.clientCount": {
+  "one": "{n} Kunde",
+  "other": "{n} Kunden"
+ },
+ "cl.itemCount": {
+  "one": "{n} Artikel",
+  "other": "{n} Artikel"
+ },
+ "cl.emptyTitle": "Noch keine Kunden",
+ "cl.emptyBody": "Lege einen Kunden einmal an, und seine Daten werden in jedes neue Dokument eingetragen. Du kannst auch eine Liste aus einer Tabelle importieren.",
+ "cl.itemsEmptyTitle": "Noch keine gespeicherten Artikel",
+ "cl.itemsEmptyBody": "Speichere Produkte und Leistungen, die du oft berechnest, mit Preis und füge sie mit einem Tipp in jedes Dokument ein.",
+ "cl.noMatch": "Kein Kunde passt zu „{q}“.",
+ "cl.noMatchItems": "Kein Artikel passt zu „{q}“.",
+ "cl.clearSearch": "Suche löschen",
+ "cl.docCount": {
+  "one": "{n} Dokument",
+  "other": "{n} Dokumente"
+ },
+ "cl.noDocs": "Noch keine Dokumente",
+ "cl.overdue": {
+  "one": "{n} überfällig",
+  "other": "{n} überfällig"
+ },
+ "cl.unsavedBanner": {
+  "one": "{n} Kunde aus deinen Dokumenten ist noch nicht gespeichert.",
+  "other": "{n} Kunden aus deinen Dokumenten sind noch nicht gespeichert."
+ },
+ "cl.saveThem": "Speichern",
+ "cl.savedFromDocs": {
+  "one": "{n} Kunde gespeichert",
+  "other": "{n} Kunden gespeichert"
+ },
+ "cl.actionsFor": "Aktionen für {name}",
+ "cl.act.open": "Kunde öffnen",
+ "cl.act.newInvoice": "Neue Rechnung",
+ "cl.act.newEstimate": "Neues Angebot",
+ "cl.act.newReceipt": "Neue Quittung",
+ "cl.act.edit": "Daten bearbeiten",
+ "cl.act.delete": "Kunde löschen",
+ "cl.act.editItem": "Artikel bearbeiten",
+ "cl.act.deleteItem": "Artikel löschen",
+ "cl.deleted": "{name} gelöscht",
+ "cl.deletedKept": {
+  "one": "{name} gelöscht. Das {n} Dokument bleibt erhalten.",
+  "other": "{name} gelöscht. Die {n} Dokumente bleiben erhalten."
+ },
+ "cl.addTitle": "Neuer Kunde",
+ "cl.editTitle": "Kunde bearbeiten",
+ "cl.taxId": "Steuernummer",
+ "cl.notes": "Private Notizen",
+ "cl.notesHint": "Nur du siehst sie. Sie werden nicht gedruckt.",
+ "cl.draftsHint": "Entwürfe für diesen Kunden werden ebenfalls aktualisiert. Bereits gesendete Dokumente behalten die Daten, mit denen sie gesendet wurden.",
+ "cl.save": "Speichern",
+ "cl.errName": "Gib einen Namen ein.",
+ "cl.errDup": "Es gibt bereits einen Kunden namens „{name}“.",
+ "cl.errEmail": "Diese E-Mail-Adresse scheint nicht zu stimmen.",
+ "cl.added": "{name} hinzugefügt",
+ "cl.updated": "{name} aktualisiert",
+ "cl.updatedDrafts": {
+  "one": "{name} aktualisiert, dazu {n} Entwurf",
+  "other": "{name} aktualisiert, dazu {n} Entwürfe"
+ },
+ "cl.allClients": "Alle Kunden",
+ "cl.summary": "Übersicht",
+ "cl.stat.owed": "Offen",
+ "cl.stat.paid": "Bisher bezahlt",
+ "cl.stat.billed": "Berechnet",
+ "cl.nothingOverdue": "Nichts überfällig",
+ "cl.lastPayment": "Letzte Zahlung am {date}",
+ "cl.noPayments": "Noch keine Zahlungen",
+ "cl.across": {
+  "one": "Aus {n} Dokument",
+  "other": "Aus {n} Dokumenten"
+ },
+ "cl.details": "Daten",
+ "cl.noDetails": "Noch keine Kontaktdaten. Wähle Daten bearbeiten, um sie hinzuzufügen.",
+ "cl.history": "Verlauf",
+ "cl.historyEmpty": "Noch keine Dokumente für diesen Kunden.",
+ "cl.notFound": "Kunde nicht gefunden",
+ "cl.notFoundBody": "Er wurde vielleicht gelöscht oder auf einem anderen Gerät angelegt.",
+ "cl.itemAddTitle": "Neuer Artikel",
+ "cl.itemEditTitle": "Artikel bearbeiten",
+ "cl.price": "Preis",
+ "cl.errDesc": "Gib eine Beschreibung ein.",
+ "cl.errPrice": "Gib einen Preis von 0 oder mehr ein.",
+ "cl.itemSaved": "„{item}“ gespeichert",
+ "cl.itemDeleted": "„{item}“ gelöscht"
 }

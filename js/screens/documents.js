@@ -201,21 +201,23 @@ function metaFor(v) {
   return d.due ? t("docs.dueOn", { date: date(d.due) }) : date(d.issued);
 }
 
-function rowHtml(v) {
+// Also used for a client's history (opts.byDoc: the document number is the title).
+export function rowHtml(v, opts = {}) {
   const d = v.doc, tt = v.totals;
   const name = d.client.name.trim();
+  const title = opts.byDoc ? `${typeName(d.type)} ${d.no}`.trim() : name;
   const unpaid = d.type === "invoice" && ["sent", "partial", "overdue"].includes(v.status);
   const main = unpaid ? tt.balance : tt.total;
   const sub = unpaid && tt.paid > 0 ? tHtml("docs.ofTotal", { total: `<bdi class="ltr">${esc(money(tt.total, d.currency))}</bdi>` }) : "";
   const extra = [typeName(d.type), statusName(v.status), money(main, d.currency)].join(", ");
   return `<li class="doc-row" data-id="${esc(d.id)}">
-    <span class="avatar" aria-hidden="true">${esc(name ? initials(name) : "–")}</span>
+    <span class="avatar${opts.byDoc ? " avatar-icon" : ""}" aria-hidden="true">${opts.byDoc ? icon(d.type === "receipt" ? "receipt" : d.type === "estimate" ? "file-plus" : "file-text", 18) : esc(name ? initials(name) : "–")}</span>
     <a class="doc-main" href="#/edit/${encodeURIComponent(d.id)}">
-      <span class="doc-client${name ? "" : " is-empty"}" dir="auto">${esc(name || t("docs.noClient"))}</span>
-      <span class="doc-meta"><bdi class="ltr">${esc(d.no || "—")}</bdi> · ${esc(metaFor(v))}</span>
+      <span class="row-title${title ? "" : " is-empty"}" dir="auto">${esc(title || t("docs.noClient"))}</span>
+      <span class="doc-meta">${opts.byDoc ? "" : `<bdi class="ltr">${esc(d.no || "—")}</bdi> · `}${esc(metaFor(v))}</span>
       <span class="visually-hidden">, ${esc(extra)}</span>
     </a>
-    <span class="doc-foot" aria-hidden="true">
+    <span class="row-foot" aria-hidden="true">
       <span class="doc-status"><span class="badge" data-tone="${v.status}">${esc(statusName(v.status))}</span></span>
       <span class="doc-amount"><bdi class="ltr num">${esc(money(main, d.currency))}</bdi>${sub ? `<span class="doc-sub num">${sub}</span>` : ""}</span>
     </span>
@@ -271,7 +273,7 @@ export function focusSearch() {
 }
 
 /* ---------------- row actions ---------------- */
-function openRowMenu(id) {
+export function openRowMenu(id) {
   const d = getDoc(id);
   if (!d) return;
   const v = docView(d);

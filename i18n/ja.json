@@ -384,5 +384,111 @@
  "set.editMode": "プレビュー上で編集",
  "set.editModeHint": "書類のプレビューの文字をクリックして変更できます。初期設定はオフです。",
  "ed.bizPh": "会社名・屋号",
- "ed.clientPh": "顧客名"
+ "ed.clientPh": "顧客名",
+ "cl.sub": "一度保存すれば、新しい書類に毎回自動で入力されます。",
+ "cl.searchLabel": "検索と並べ替え",
+ "cl.tabsLabel": "表示",
+ "cl.tab.items": "品目",
+ "cl.sortLabel": "顧客の並べ替え",
+ "cl.sort.name": "名前順（A–Z）",
+ "cl.sort.owed": "未払いが多い順",
+ "cl.sort.recent": "最近の取引順",
+ "cl.add": "顧客を追加",
+ "cl.addItem": "品目を追加",
+ "cl.import": "インポート",
+ "cl.export": "CSV を書き出す",
+ "cl.exported": "{file} をダウンロードしました",
+ "cl.importClients": "顧客をインポート",
+ "cl.importItems": "品目をインポート",
+ "cl.importIntro": "Excel や Google スプレッドシートからコピーした行を貼り付けるか、CSV または Excel ファイルを選んでください。1 行目に「名前」「メール」「電話」「住所」などの列名を入れられます。",
+ "cl.importItemsIntro": "Excel や Google スプレッドシートからコピーした行を貼り付けるか、CSV または Excel ファイルを選んでください。「内容」「単位」「価格」などの列を使えます。",
+ "cl.importFound": {
+  "other": "{n} 件の顧客が見つかりました"
+ },
+ "cl.importNone": "顧客が見つかりません。顧客名または会社名の列があるか確認してください。",
+ "cl.importDo": "インポート",
+ "cl.imported": "顧客をインポートしました：新規 {added} 件、更新 {updated} 件",
+ "cl.itemsImported": {
+  "other": "{n} 件の品目をインポートしました"
+ },
+ "cl.colName": "名前",
+ "cl.clientCount": {
+  "other": "{n} 件の顧客"
+ },
+ "cl.itemCount": {
+  "other": "{n} 件の品目"
+ },
+ "cl.emptyTitle": "まだ顧客がいません",
+ "cl.emptyBody": "顧客を一度追加すると、新しい書類に毎回その情報が入ります。スプレッドシートから一覧をインポートすることもできます。",
+ "cl.itemsEmptyTitle": "保存した品目はまだありません",
+ "cl.itemsEmptyBody": "よく請求する商品やサービスを価格と一緒に保存すれば、ワンタップでどの書類にも追加できます。",
+ "cl.noMatch": "「{q}」に一致する顧客はいません。",
+ "cl.noMatchItems": "「{q}」に一致する品目はありません。",
+ "cl.clearSearch": "検索をクリア",
+ "cl.docCount": {
+  "other": "{n} 件の書類"
+ },
+ "cl.noDocs": "書類はまだありません",
+ "cl.overdue": {
+  "other": "{n} 件が期限超過"
+ },
+ "cl.unsavedBanner": {
+  "other": "書類内の {n} 件の顧客がまだ保存されていません。"
+ },
+ "cl.saveThem": "保存する",
+ "cl.savedFromDocs": {
+  "other": "{n} 件の顧客を保存しました"
+ },
+ "cl.actionsFor": "{name} の操作",
+ "cl.act.open": "顧客を開く",
+ "cl.act.newInvoice": "新しい請求書",
+ "cl.act.newEstimate": "新しい見積書",
+ "cl.act.newReceipt": "新しい領収書",
+ "cl.act.edit": "情報を編集",
+ "cl.act.delete": "顧客を削除",
+ "cl.act.editItem": "品目を編集",
+ "cl.act.deleteItem": "品目を削除",
+ "cl.deleted": "{name} を削除しました",
+ "cl.deletedKept": {
+  "other": "{name} を削除しました。{n} 件の書類は残ります。"
+ },
+ "cl.addTitle": "新しい顧客",
+ "cl.editTitle": "顧客を編集",
+ "cl.taxId": "税番号・登録番号",
+ "cl.notes": "非公開メモ",
+ "cl.notesHint": "自分だけに表示され、印刷されません。",
+ "cl.draftsHint": "この顧客の下書きも更新されます。送信済みの書類は送信時の情報のままです。",
+ "cl.save": "保存",
+ "cl.errName": "名前を入力してください。",
+ "cl.errDup": "「{name}」という顧客はすでに存在します。",
+ "cl.errEmail": "メールアドレスが正しくないようです。",
+ "cl.added": "{name} を追加しました",
+ "cl.updated": "{name} を更新しました",
+ "cl.updatedDrafts": {
+  "other": "{name} と下書き {n} 件を更新しました"
+ },
+ "cl.allClients": "すべての顧客",
+ "cl.summary": "概要",
+ "cl.stat.owed": "未払い",
+ "cl.stat.paid": "支払済み合計",
+ "cl.stat.billed": "請求額",
+ "cl.nothingOverdue": "期限超過なし",
+ "cl.lastPayment": "最終支払い {date}",
+ "cl.noPayments": "支払いはまだありません",
+ "cl.across": {
+  "other": "{n} 件の書類"
+ },
+ "cl.details": "情報",
+ "cl.noDetails": "連絡先情報はまだありません。「情報を編集」から追加できます。",
+ "cl.history": "履歴",
+ "cl.historyEmpty": "この顧客の書類はまだありません。",
+ "cl.notFound": "顧客が見つかりません",
+ "cl.notFoundBody": "削除されたか、別の端末で追加された可能性があります。",
+ "cl.itemAddTitle": "新しい品目",
+ "cl.itemEditTitle": "品目を編集",
+ "cl.price": "価格",
+ "cl.errDesc": "内容を入力してください。",
+ "cl.errPrice": "0 以上の価格を入力してください。",
+ "cl.itemSaved": "「{item}」を保存しました",
+ "cl.itemDeleted": "「{item}」を削除しました"
 }

@@ -394,5 +394,122 @@
  "set.editMode": "Modifier sur l’aperçu",
  "set.editModeHint": "Permet de cliquer sur le texte de l’aperçu du document pour le modifier. Désactivé par défaut.",
  "ed.bizPh": "Nom de votre entreprise",
- "ed.clientPh": "Nom du client"
+ "ed.clientPh": "Nom du client",
+ "cl.sub": "Enregistrés une fois, remplis pour vous sur chaque nouveau document.",
+ "cl.searchLabel": "Rechercher et trier",
+ "cl.tabsLabel": "Afficher",
+ "cl.tab.items": "Articles",
+ "cl.sortLabel": "Trier les clients",
+ "cl.sort.name": "Nom A–Z",
+ "cl.sort.owed": "Plus gros impayés",
+ "cl.sort.recent": "Activité récente",
+ "cl.add": "Ajouter un client",
+ "cl.addItem": "Ajouter un article",
+ "cl.import": "Importer",
+ "cl.export": "Exporter en CSV",
+ "cl.exported": "{file} téléchargé",
+ "cl.importClients": "Importer des clients",
+ "cl.importItems": "Importer des articles",
+ "cl.importIntro": "Collez des lignes copiées depuis Excel ou Google Sheets, ou choisissez un fichier CSV ou Excel. La première ligne peut contenir des noms de colonnes comme Nom, E-mail, Téléphone et Adresse.",
+ "cl.importItemsIntro": "Collez des lignes copiées depuis Excel ou Google Sheets, ou choisissez un fichier CSV ou Excel. Utilisez des colonnes comme Description, Unité et Prix.",
+ "cl.importFound": {
+  "one": "{n} client trouvé",
+  "other": "{n} clients trouvés"
+ },
+ "cl.importNone": "Aucun client trouvé. Vérifiez qu’une colonne contient le nom du client ou de l’entreprise.",
+ "cl.importDo": "Importer",
+ "cl.imported": "Clients importés : {added} nouveaux, {updated} mis à jour",
+ "cl.itemsImported": {
+  "one": "{n} article importé",
+  "other": "{n} articles importés"
+ },
+ "cl.colName": "Nom",
+ "cl.clientCount": {
+  "one": "{n} client",
+  "other": "{n} clients"
+ },
+ "cl.itemCount": {
+  "one": "{n} article",
+  "other": "{n} articles"
+ },
+ "cl.emptyTitle": "Pas encore de clients",
+ "cl.emptyBody": "Ajoutez un client une fois et ses coordonnées seront remplies sur chaque nouveau document. Vous pouvez aussi importer une liste depuis un tableur.",
+ "cl.itemsEmptyTitle": "Pas encore d’articles enregistrés",
+ "cl.itemsEmptyBody": "Enregistrez les produits et services que vous facturez souvent, avec leur prix, et ajoutez-les à n’importe quel document en un geste.",
+ "cl.noMatch": "Aucun client ne correspond à « {q} ».",
+ "cl.noMatchItems": "Aucun article ne correspond à « {q} ».",
+ "cl.clearSearch": "Effacer la recherche",
+ "cl.docCount": {
+  "one": "{n} document",
+  "other": "{n} documents"
+ },
+ "cl.noDocs": "Pas encore de documents",
+ "cl.overdue": {
+  "one": "{n} en retard",
+  "other": "{n} en retard"
+ },
+ "cl.unsavedBanner": {
+  "one": "{n} client de vos documents n’est pas encore enregistré.",
+  "other": "{n} clients de vos documents ne sont pas encore enregistrés."
+ },
+ "cl.saveThem": "Les enregistrer",
+ "cl.savedFromDocs": {
+  "one": "{n} client enregistré",
+  "other": "{n} clients enregistrés"
+ },
+ "cl.actionsFor": "Actions pour {name}",
+ "cl.act.open": "Ouvrir le client",
+ "cl.act.newInvoice": "Nouvelle facture",
+ "cl.act.newEstimate": "Nouveau devis",
+ "cl.act.newReceipt": "Nouveau reçu",
+ "cl.act.edit": "Modifier les coordonnées",
+ "cl.act.delete": "Supprimer le client",
+ "cl.act.editItem": "Modifier l’article",
+ "cl.act.deleteItem": "Supprimer l’article",
+ "cl.deleted": "{name} supprimé",
+ "cl.deletedKept": {
+  "one": "{name} supprimé. Son {n} document est conservé.",
+  "other": "{name} supprimé. Ses {n} documents sont conservés."
+ },
+ "cl.addTitle": "Nouveau client",
+ "cl.editTitle": "Modifier le client",
+ "cl.taxId": "Numéro fiscal",
+ "cl.notes": "Notes privées",
+ "cl.notesHint": "Vous seul les voyez. Elles ne sont pas imprimées.",
+ "cl.draftsHint": "Les brouillons de ce client sont aussi mis à jour. Les documents déjà envoyés gardent les coordonnées avec lesquelles ils ont été envoyés.",
+ "cl.save": "Enregistrer",
+ "cl.errName": "Ajoutez un nom.",
+ "cl.errDup": "Un client nommé « {name} » existe déjà.",
+ "cl.errEmail": "Cette adresse e-mail ne semble pas correcte.",
+ "cl.added": "{name} ajouté",
+ "cl.updated": "{name} mis à jour",
+ "cl.updatedDrafts": {
+  "one": "{name} mis à jour, ainsi que {n} brouillon",
+  "other": "{name} mis à jour, ainsi que {n} brouillons"
+ },
+ "cl.allClients": "Tous les clients",
+ "cl.summary": "Résumé",
+ "cl.stat.owed": "Impayé",
+ "cl.stat.paid": "Payé à ce jour",
+ "cl.stat.billed": "Facturé",
+ "cl.nothingOverdue": "Rien en retard",
+ "cl.lastPayment": "Dernier paiement le {date}",
+ "cl.noPayments": "Pas encore de paiement",
+ "cl.across": {
+  "one": "Sur {n} document",
+  "other": "Sur {n} documents"
+ },
+ "cl.details": "Coordonnées",
+ "cl.noDetails": "Pas encore de coordonnées. Choisissez Modifier les coordonnées pour les ajouter.",
+ "cl.history": "Historique",
+ "cl.historyEmpty": "Pas encore de documents pour ce client.",
+ "cl.notFound": "Client introuvable",
+ "cl.notFoundBody": "Il a peut-être été supprimé, ou ajouté sur un autre appareil.",
+ "cl.itemAddTitle": "Nouvel article",
+ "cl.itemEditTitle": "Modifier l’article",
+ "cl.price": "Prix",
+ "cl.errDesc": "Ajoutez une description.",
+ "cl.errPrice": "Saisissez un prix de 0 ou plus.",
+ "cl.itemSaved": "« {item} » enregistré",
+ "cl.itemDeleted": "« {item} » supprimé"
 }

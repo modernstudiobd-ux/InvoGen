@@ -394,5 +394,122 @@
  "set.editMode": "Modifica sull’anteprima",
  "set.editModeHint": "Permette di fare clic sul testo nell’anteprima del documento per modificarlo. Disattivato per impostazione predefinita.",
  "ed.bizPh": "Nome della tua attività",
- "ed.clientPh": "Nome del cliente"
+ "ed.clientPh": "Nome del cliente",
+ "cl.sub": "Salvati una volta, compilati per te in ogni nuovo documento.",
+ "cl.searchLabel": "Cerca e ordina",
+ "cl.tabsLabel": "Mostra",
+ "cl.tab.items": "Articoli",
+ "cl.sortLabel": "Ordina clienti",
+ "cl.sort.name": "Nome A–Z",
+ "cl.sort.owed": "Più da incassare",
+ "cl.sort.recent": "Attività recente",
+ "cl.add": "Aggiungi cliente",
+ "cl.addItem": "Aggiungi articolo",
+ "cl.import": "Importa",
+ "cl.export": "Esporta CSV",
+ "cl.exported": "Scaricato {file}",
+ "cl.importClients": "Importa clienti",
+ "cl.importItems": "Importa articoli",
+ "cl.importIntro": "Incolla righe copiate da Excel o Google Sheets, oppure scegli un file CSV o Excel. La prima riga può contenere nomi di colonna come Nome, Email, Telefono e Indirizzo.",
+ "cl.importItemsIntro": "Incolla righe copiate da Excel o Google Sheets, oppure scegli un file CSV o Excel. Usa colonne come Descrizione, Unità e Prezzo.",
+ "cl.importFound": {
+  "one": "{n} cliente trovato",
+  "other": "{n} clienti trovati"
+ },
+ "cl.importNone": "Nessun cliente trovato. Assicurati che una colonna contenga il nome del cliente o dell’azienda.",
+ "cl.importDo": "Importa",
+ "cl.imported": "Clienti importati: {added} nuovi, {updated} aggiornati",
+ "cl.itemsImported": {
+  "one": "{n} articolo importato",
+  "other": "{n} articoli importati"
+ },
+ "cl.colName": "Nome",
+ "cl.clientCount": {
+  "one": "{n} cliente",
+  "other": "{n} clienti"
+ },
+ "cl.itemCount": {
+  "one": "{n} articolo",
+  "other": "{n} articoli"
+ },
+ "cl.emptyTitle": "Ancora nessun cliente",
+ "cl.emptyBody": "Aggiungi un cliente una volta e i suoi dati verranno inseriti in ogni nuovo documento. Puoi anche importare un elenco da un foglio di calcolo.",
+ "cl.itemsEmptyTitle": "Ancora nessun articolo salvato",
+ "cl.itemsEmptyBody": "Salva i prodotti e i servizi che fatturi spesso, con il prezzo, e aggiungili a qualsiasi documento con un tocco.",
+ "cl.noMatch": "Nessun cliente corrisponde a «{q}».",
+ "cl.noMatchItems": "Nessun articolo corrisponde a «{q}».",
+ "cl.clearSearch": "Cancella ricerca",
+ "cl.docCount": {
+  "one": "{n} documento",
+  "other": "{n} documenti"
+ },
+ "cl.noDocs": "Ancora nessun documento",
+ "cl.overdue": {
+  "one": "{n} scaduto",
+  "other": "{n} scaduti"
+ },
+ "cl.unsavedBanner": {
+  "one": "{n} cliente dei tuoi documenti non è ancora salvato.",
+  "other": "{n} clienti dei tuoi documenti non sono ancora salvati."
+ },
+ "cl.saveThem": "Salvali",
+ "cl.savedFromDocs": {
+  "one": "{n} cliente salvato",
+  "other": "{n} clienti salvati"
+ },
+ "cl.actionsFor": "Azioni per {name}",
+ "cl.act.open": "Apri cliente",
+ "cl.act.newInvoice": "Nuova fattura",
+ "cl.act.newEstimate": "Nuovo preventivo",
+ "cl.act.newReceipt": "Nuova ricevuta",
+ "cl.act.edit": "Modifica dati",
+ "cl.act.delete": "Elimina cliente",
+ "cl.act.editItem": "Modifica articolo",
+ "cl.act.deleteItem": "Elimina articolo",
+ "cl.deleted": "{name} eliminato",
+ "cl.deletedKept": {
+  "one": "{name} eliminato. Il suo {n} documento viene conservato.",
+  "other": "{name} eliminato. I suoi {n} documenti vengono conservati."
+ },
+ "cl.addTitle": "Nuovo cliente",
+ "cl.editTitle": "Modifica cliente",
+ "cl.taxId": "Partita IVA o codice fiscale",
+ "cl.notes": "Note private",
+ "cl.notesHint": "Le vedi solo tu. Non vengono stampate.",
+ "cl.draftsHint": "Anche le bozze di questo cliente vengono aggiornate. I documenti già inviati mantengono i dati con cui sono stati inviati.",
+ "cl.save": "Salva",
+ "cl.errName": "Aggiungi un nome.",
+ "cl.errDup": "Esiste già un cliente chiamato «{name}».",
+ "cl.errEmail": "Questo indirizzo email non sembra corretto.",
+ "cl.added": "{name} aggiunto",
+ "cl.updated": "{name} aggiornato",
+ "cl.updatedDrafts": {
+  "one": "{name} aggiornato, insieme a {n} bozza",
+  "other": "{name} aggiornato, insieme a {n} bozze"
+ },
+ "cl.allClients": "Tutti i clienti",
+ "cl.summary": "Riepilogo",
+ "cl.stat.owed": "Da incassare",
+ "cl.stat.paid": "Pagato finora",
+ "cl.stat.billed": "Fatturato",
+ "cl.nothingOverdue": "Niente di scaduto",
+ "cl.lastPayment": "Ultimo pagamento il {date}",
+ "cl.noPayments": "Ancora nessun pagamento",
+ "cl.across": {
+  "one": "Su {n} documento",
+  "other": "Su {n} documenti"
+ },
+ "cl.details": "Dati",
+ "cl.noDetails": "Ancora nessun dato di contatto. Scegli Modifica dati per aggiungerli.",
+ "cl.history": "Cronologia",
+ "cl.historyEmpty": "Ancora nessun documento per questo cliente.",
+ "cl.notFound": "Cliente non trovato",
+ "cl.notFoundBody": "Potrebbe essere stato eliminato o aggiunto su un altro dispositivo.",
+ "cl.itemAddTitle": "Nuovo articolo",
+ "cl.itemEditTitle": "Modifica articolo",
+ "cl.price": "Prezzo",
+ "cl.errDesc": "Aggiungi una descrizione.",
+ "cl.errPrice": "Inserisci un prezzo pari a 0 o superiore.",
+ "cl.itemSaved": "«{item}» salvato",
+ "cl.itemDeleted": "«{item}» eliminato"
 }
