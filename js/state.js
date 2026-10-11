@@ -1,218 +1,401 @@
-// state.js — the single source of truth for the app's in-memory data, plus the
-// constants/defaults that shape it. No rendering or DOM-writing logic lives
-// here on purpose: everything else imports `state` and reads/writes it.
+// state.js — the single source of truth for the app's data (documents, clients,
+// products, settings) and every action that changes it. Changes are saved to this
+// device automatically (IndexedDB, localStorage fallback — see storage.js) and
+// shared with other open InvoGen tabs.
 
-import { $, uid } from "./dom.js";
+import { uid } from "./dom.js";
+import { loadData, saveData, clearData, requestPersistence } from "./storage.js";
+import { todayISO, addDays, addMonths, DEFAULT_DATE_FORMAT } from "./format.js";
+import { totals, statusOf } from "./calc.js";
+import { CURRENCY } from "./currencies.js";
 
-export const KEY = "invoiceStudioPro.v2";
+export const SCHEMA = 1;
+export const DOC_TYPES = ["invoice", "estimate", "receipt"];
 
-export const defaultColumns = () => [
-  { id: uid(), key: "sku", label: "SKU", type: "text", width: 14, align: "left", visible: true, role: "none" },
-  { id: uid(), key: "description", label: "Description", type: "text", width: 44, align: "left", visible: true, role: "none" },
-  { id: uid(), key: "quantity", label: "Qty", type: "number", width: 11, align: "right", visible: true, role: "quantity" },
-  { id: uid(), key: "rate", label: "Rate", type: "currency", width: 14, align: "right", visible: true, role: "rate" },
-  { id: uid(), key: "amount", label: "Amount", type: "currency", width: 17, align: "right", visible: true, role: "amount" }
-];
+export function defaultSettings() {
+  return {
+    appLang: "en",
+    langChosen: false,
+    business: { name: "", email: "", phone: "", address: "", website: "", taxId: "", logo: "" },
+    country: "",
+    currency: "USD",
+    dateFormat: DEFAULT_DATE_FORMAT,
+    numberFormat: "auto",
+    docLang: "en",
+    paper: "A4",
+    taxName: "Tax",
+    taxRate: 0,
+    taxInclusive: false,
+    termsDays: 30,
+    estimateValidDays: 30,
+    numbering: {
+      invoice: { prefix: "INV", next: 1, pad: 4 },
+      estimate: { prefix: "EST", next: 1, pad: 4 },
+      receipt: { prefix: "R", next: 1, pad: 4 }
+    },
+    template: "modern",
+    accent: "",
+    notes: "Thank you for your business.",
+    paymentInstructions: "",
+    editMode: false,
+    onboarded: false,
+    lastBackupAt: 0,
+    backupSnoozeUntil: 0,
+    changesSinceBackup: 0
+  };
+}
 
-export const sectionDefs = [
-  ["logo", "Logo"], ["company", "Company details"], ["client", "Client details"], ["status", "Invoice status"],
-  ["invoiceDate", "Invoice date"], ["dueDate", "Due date"], ["reference", "Reference / PO"], ["balance", "Balance due"],
-  ["notes", "Notes"], ["discount", "Discount"], ["tax", "Tax"], ["shipping", "Shipping"], ["payment", "Payment details"],
-  ["terms", "Terms"], ["footer", "Footer"],
-  ["payTerms", "Payment terms"], ["tax2", "Second tax"], ["amountPaid", "Amount paid & balance"],
-  ["amountWords", "Amount in words"], ["payQr", "Online payment link & QR"], ["signature", "Signature / stamp"]
-];
-const SECTIONS_OFF_BY_DEFAULT = new Set(["status", "tax2", "amountWords"]);
+function freshState() {
+  return { schema: SCHEMA, settings: defaultSettings(), docs: [], clients: [], products: [], looks: [], meta: { createdAt: Date.now() } };
+}
 
-// Every section defaults to shown except Invoice status, which most invoices
-// don't need and is off until someone turns it on.
-export const defaultSections = () => Object.fromEntries(sectionDefs.map(x => [x[0], !SECTIONS_OFF_BY_DEFAULT.has(x[0])]));
+/* ---------------- Normalising (protects against old or hand-edited data) ---------------- */
+const str = (v, max = 5000) => (v == null ? "" : String(v)).slice(0, max);
+const numv = v => (Number.isFinite(Number(v)) ? Number(v) : 0);
+const isoOr = (v, d = "") => (/^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? String(v) : d);
 
-// Renameable document labels ("INVOICE", "Bill to", "Balance due", ...) are
-// now ordinary form fields living directly on the invoice canvas (ids
-// labelTitle, labelBillTo, labelBalance, labelNote, labelPayment,
-// labelTerms, labelInvoiceDate, labelDueDate, labelReference — see the
-// `fields` array below and index.html). defaultLabels() is kept only as
-// fallback/placeholder text and to migrate invoices saved before this
-// change (see LEGACY_LABEL_MAP in invoiceData.js / brandTemplates.js).
-// bill/note/payment/terms are uppercase here to match the literal
-// uppercase placeholder text those four fields carry in index.html (see
-// the .label rule in css/invoice.css — the uppercase default look comes
-// from that literal text now, not a text-transform, so a genuinely
-// customized value keeps its exact typed casing instead of being forced
-// uppercase too); this keeps a pre-3.15 file with no saved value for one
-// of these four falling back to the *same* default a brand-new invoice
-// shows, rather than a differently-cased one.
-export const defaultLabels = () => ({
-  title: "INVOICE", bill: "BILL TO", balance: "Balance due", note: "NOTE",
-  payment: "PAYMENT DETAILS", terms: "TERMS", date: "Invoice date", due: "Due date", ref: "Reference"
-});
+export function normalizeDoc(d = {}) {
+  const type = DOC_TYPES.includes(d.type) ? d.type : "invoice";
+  const okStatus = { invoice: ["draft", "sent", "paid", "void"], estimate: ["draft", "sent", "accepted", "declined"], receipt: ["paid"] }[type];
+  return {
+    id: str(d.id, 100) || uid(),
+    type,
+    no: str(d.no, 60),
+    status: okStatus.includes(d.status) ? d.status : okStatus[0],
+    issued: isoOr(d.issued, todayISO()),
+    due: isoOr(d.due),
+    termsDays: d.termsDays === "" || d.termsDays == null ? "" : numv(d.termsDays),
+    reference: str(d.reference, 200),
+    currency: CURRENCY[d.currency] ? d.currency : "USD",
+    lang: str(d.lang, 8) || "en",
+    dateFormat: str(d.dateFormat, 20) || DEFAULT_DATE_FORMAT,
+    numberFormat: str(d.numberFormat, 20) || "auto",
+    business: { name: "", email: "", phone: "", address: "", website: "", taxId: "", logo: "", ...(d.business || {}) },
+    client: { id: "", name: "", email: "", phone: "", address: "", taxId: "", ...(d.client || {}) },
+    items: (Array.isArray(d.items) ? d.items : []).map(it => ({
+      id: str(it.id, 100) || uid(), desc: str(it.desc, 2000), details: str(it.details, 4000), sku: str(it.sku, 100),
+      qty: it.qty === "" ? "" : numv(it.qty ?? 1), unit: str(it.unit, 30), rate: numv(it.rate)
+    })),
+    discount: { type: d.discount?.type === "amount" ? "amount" : "percent", value: numv(d.discount?.value) },
+    tax: { name: str(d.tax?.name, 40) || "Tax", rate: numv(d.tax?.rate), inclusive: !!d.tax?.inclusive },
+    tax2: { on: !!d.tax2?.on, name: str(d.tax2?.name, 40), rate: numv(d.tax2?.rate) },
+    shipping: numv(d.shipping),
+    deposit: { on: !!d.deposit?.on, type: d.deposit?.type === "amount" ? "amount" : "percent", value: numv(d.deposit?.value) },
+    lateFee: { on: !!d.lateFee?.on, type: d.lateFee?.type === "amount" ? "amount" : "percent", value: numv(d.lateFee?.value), graceDays: numv(d.lateFee?.graceDays), repeat: d.lateFee?.repeat === "monthly" ? "monthly" : "once" },
+    payLink: str(d.payLink, 2000),
+    notes: str(d.notes, 8000),
+    terms: str(d.terms, 8000),
+    footer: str(d.footer, 1000),
+    signature: { mode: ["type", "draw", "image"].includes(d.signature?.mode) ? d.signature.mode : "type", text: str(d.signature?.text, 120), font: str(d.signature?.font, 60) || "Caveat", img: str(d.signature?.img, 6e6), on: !!d.signature?.on },
+    watermark: { on: !!d.watermark?.on, text: str(d.watermark?.text, 40) },
+    template: str(d.template, 40) || "modern",
+    accent: str(d.accent, 20),
+    paper: str(d.paper, 30) || "A4",
+    recurring: { on: !!d.recurring?.on, every: Math.max(1, numv(d.recurring?.every) || 1), unit: ["week", "month", "year"].includes(d.recurring?.unit) ? d.recurring.unit : "month", next: isoOr(d.recurring?.next), end: isoOr(d.recurring?.end) },
+    recurringFrom: str(d.recurringFrom, 100),
+    payments: (Array.isArray(d.payments) ? d.payments : []).map(p => ({ id: str(p.id, 100) || uid(), date: isoOr(p.date, todayISO()), amount: Math.max(0, numv(p.amount)), method: str(p.method, 40), note: str(p.note, 500) })),
+    sentAt: numv(d.sentAt), createdAt: numv(d.createdAt) || Date.now(), updatedAt: numv(d.updatedAt) || Date.now(),
+    sample: !!d.sample
+  };
+}
 
-// Maps each new label field id to its key in the old (pre-3.15) top-level
-// `labels` object, so invoices saved before labels became ordinary fields
-// still load with the right title/row-label text. See invoiceData.js and
-// brandTemplates.js.
-export const LEGACY_LABEL_MAP = {
-  labelTitle: "title", labelBillTo: "bill", labelBalance: "balance", labelNote: "note",
-  labelPayment: "payment", labelTerms: "terms", labelInvoiceDate: "date", labelDueDate: "due", labelReference: "ref"
-};
+export function normalizeClient(c = {}) {
+  return {
+    id: str(c.id, 100) || uid(), name: str(c.name, 300), contact: str(c.contact, 200), email: str(c.email, 300), phone: str(c.phone, 60),
+    address: str(c.address, 2000), taxId: str(c.taxId, 100), notes: str(c.notes, 4000),
+    createdAt: numv(c.createdAt) || Date.now(), updatedAt: numv(c.updatedAt) || Date.now(), sample: !!c.sample
+  };
+}
+export function normalizeProduct(p = {}) {
+  return { id: str(p.id, 100) || uid(), desc: str(p.desc, 2000), sku: str(p.sku, 100), unit: str(p.unit, 30), rate: numv(p.rate), taxRate: p.taxRate === "" || p.taxRate == null ? "" : numv(p.taxRate), sample: !!p.sample };
+}
 
-// Document types selectable from the sidebar's Billing submenu. All 15
-// templates share the same label fields, so these few strings are the ONLY
-// text that differs between an invoice, an estimate and a receipt — layout,
-// styling and calculations are identical. `labels` keys match the label
-// fields' ids; `noun` is used in the footer ("Estimate #EST-1001") and the
-// mobile title; `prefix` is the default document-number prefix.
-export const DOC_TYPES = {
-  invoice:  { noun: "Invoice",  prefix: "INV", labels: { labelTitle: "INVOICE",  labelBillTo: "BILL TO",       labelInvoiceDate: "Invoice date",  labelDueDate: "Due date",     labelBalance: "Balance due" } },
-  estimate: { noun: "Estimate", prefix: "EST", labels: { labelTitle: "ESTIMATE", labelBillTo: "PREPARED FOR",  labelInvoiceDate: "Estimate date", labelDueDate: "Valid until",  labelBalance: "Estimated total" } },
-  receipt:  { noun: "Receipt",  prefix: "RCT", labels: { labelTitle: "RECEIPT",  labelBillTo: "RECEIVED FROM", labelInvoiceDate: "Receipt date",  labelDueDate: "Payment date", labelBalance: "Amount paid" } }
-};
-export const docNoun = () => (DOC_TYPES[state.docType] || DOC_TYPES.invoice).noun;
+function normalizeState(raw) {
+  const s = freshState();
+  if (!raw || typeof raw !== "object") return s;
+  const def = defaultSettings();
+  const rs = raw.settings || {};
+  s.settings = { ...def, ...rs, business: { ...def.business, ...(rs.business || {}) }, numbering: { ...def.numbering } };
+  DOC_TYPES.forEach(t => { s.settings.numbering[t] = { ...def.numbering[t], ...((rs.numbering || {})[t] || {}) }; });
+  s.docs = (Array.isArray(raw.docs) ? raw.docs : []).map(normalizeDoc);
+  s.clients = (Array.isArray(raw.clients) ? raw.clients : []).map(normalizeClient);
+  s.products = (Array.isArray(raw.products) ? raw.products : []).map(normalizeProduct);
+  s.looks = Array.isArray(raw.looks) ? raw.looks : [];
+  s.meta = { ...s.meta, ...(raw.meta || {}) };
+  return s;
+}
 
-export const state = {
-  docType: "invoice",
-  logo: "",
-  logoNatural: null,
-  zoom: 1,
-  columns: defaultColumns(),
-  items: [],
-  sections: defaultSections(),
-  signature: ""
-};
+/* ---------------- Store ---------------- */
+let state = freshState();
+const subs = new Set();
+let saveTimer = 0, saving = Promise.resolve(true), lastSaveOk = true;
+const channel = "BroadcastChannel" in window ? new BroadcastChannel("invogen") : null;
+const TAB_ID = uid();
 
-export const fields = [
-  "logoHeight", "logoPosition", "invoiceNumber", "status", "invoiceDate", "dueDate", "currency", "reference",
-  "companyName", "companyReg", "companyVat", "companyAddress", "companyPhone", "companyEmail", "companyWebsite",
-  "clientName", "clientContact", "clientTax", "clientAddress", "clientEmail",
-  "discount", "tax", "shipping", "notes", "paymentDetails", "terms", "notesAlign", "template", "accent", "accentHex",
-  "totalColorHex", "balanceLabelColorHex", "headerColorHex", "headerTextColorHex", "invoiceColorHex", "paperSize",
-  "labelTitle", "labelBillTo", "labelBalance", "labelNote", "labelPayment", "labelTerms",
-  "labelInvoiceDate", "labelDueDate", "labelReference",
-  // v3.37.0
-  "paymentTerms", "labelPayTerms", "labelTax", "labelTax2", "tax2", "amountPaid", "labelPaid",
-  "signName", "signHeight", "footerText", "watermark", "watermarkText", "invoiceFont", "docLanguage",
-  "payProvider", "payLink", "useLetterhead", "lhTop", "lhBottom", "colorStyle",
-  // v3.41.0
-  "signAuto"
-];
-// Checkbox-aware read/write for the `fields` above (everything else is a plain .value).
-export function getFieldVal(id) { const el = $(id); if (!el) return ""; return el.type === "checkbox" ? (el.checked ? "1" : "") : el.value; }
-export function setFieldVal(id, v) {
-  const el = $(id); if (!el) return;
-  if (el.type === "checkbox") { el.checked = v === "1" || v === true; return; }
-  // A font from the device ("local:Name") needs its <option> before it can be selected.
-  if (el.tagName === "SELECT" && typeof v === "string" && v.startsWith("local:") && ![...el.options].some(o => o.value === v)) {
-    const grp = el.querySelector("optgroup[data-local-fonts]") || el, o = document.createElement("option");
-    o.value = v; o.textContent = v.slice(6) + " (this device)"; grp.appendChild(o);
+export const getState = () => state;
+export const settings = () => state.settings;
+export function subscribe(fn) { subs.add(fn); return () => subs.delete(fn); }
+function emit(reason) { subs.forEach(fn => { try { fn(state, reason); } catch (e) { console.error(e); } }); }
+
+export async function initState({ migrate } = {}) {
+  const raw = await loadData();
+  if (raw) state = normalizeState(raw);
+  else {
+    state = freshState();
+    if (migrate) {
+      const legacy = migrate();
+      if (legacy) {
+        state = normalizeState({ ...state, ...legacy, settings: { ...state.settings, ...(legacy.settings || {}) } });
+        await saveData(state);
+      }
+    }
   }
-  el.value = v;
+  requestPersistence();
+  if (channel) channel.onmessage = async e => {
+    if (!e.data || e.data.from === TAB_ID) return;
+    const fresh = await loadData();
+    if (fresh) { state = normalizeState(fresh); emit("sync"); }
+  };
+  window.addEventListener("pagehide", flush);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
+  return state;
 }
 
-export const DEFAULT_ACCENT = "#18181b";
+function schedule() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flush, 250);
+}
+export function flush() {
+  clearTimeout(saveTimer);
+  const snapshot = state;
+  saving = saving.then(() => saveData(snapshot)).then(ok => {
+    if (ok !== lastSaveOk) { lastSaveOk = ok; emit("storage"); }
+    if (ok && channel) channel.postMessage({ from: TAB_ID, at: Date.now() });
+    return ok;
+  });
+  return saving;
+}
+export const lastSaveFailed = () => !lastSaveOk;
 
-export const PAPER_SIZES = {
-  a4: { w: 210, h: 297, page: "A4", pdfName: "A4", ptW: 595.28, ptH: 841.89 },
-  letter: { w: 215.9, h: 279.4, page: "215.9mm 279.4mm", pdfName: "LETTER", ptW: 612, ptH: 792 }
-};
-
-export function currentPaper() {
-  const sel = $("paperSize");
-  return PAPER_SIZES[sel ? sel.value : "a4"] || PAPER_SIZES.a4;
+// Every change goes through update(): it runs the change, saves and re-renders.
+export function update(mutator, reason = "change", { countsForBackup = true } = {}) {
+  const r = mutator(state);
+  if (countsForBackup) state.settings.changesSinceBackup = (state.settings.changesSinceBackup || 0) + 1;
+  schedule();
+  emit(reason);
+  return r;
 }
 
-// Each template's own .invoice padding (top/right/bottom/left, mm) — must
-// stay in sync with css/invoice.css's base .invoice rule and each
-// .invoice.template-X rule in css/templates.css. Templates not listed here
-// (currently just Corporate) don't override the base padding, so they use
-// the "modern" entry below.
-const TEMPLATE_PADDING_MM = {
-  modern: { top: 12, right: 12, bottom: 11, left: 12 },
-  classic: { top: 14, right: 14, bottom: 13, left: 14 },
-  compact: { top: 10, right: 10, bottom: 9, left: 10 },
-  apple: { top: 16, right: 16, bottom: 14, left: 16 },
-  luxury: { top: 18, right: 16, bottom: 18, left: 16 },
-  agency: { top: 16, right: 16, bottom: 14, left: 20 },
-  medical: { top: 14, right: 14, bottom: 14, left: 14 },
-  legal: { top: 13, right: 16, bottom: 13, left: 16 },
-  realestate: { top: 14, right: 14, bottom: 14, left: 14 },
-  freelancer: { top: 14, right: 14, bottom: 14, left: 14 },
-  restaurant: { top: 14, right: 14, bottom: 14, left: 14 },
-  retail: { top: 14, right: 14, bottom: 14, left: 14 },
-  technology: { top: 14, right: 14, bottom: 14, left: 14 },
-  manufacturing: { top: 12, right: 12, bottom: 12, left: 12 },
-  dark: { top: 14, right: 14, bottom: 14, left: 14 }
-};
-
-// The footer's left/right inset (on-screen, and reused for the print
-// margin-box insets below) always matches the template's own left/right
-// padding, and its distance from the bottom edge is the template's own
-// bottom padding minus 2mm (leaving a small gap above the physical
-// page/paper edge) — the exact relationship "Modern Professional" already
-// used (padding-bottom 11mm → footer 9mm from the bottom), now applied to
-// every template instead of one hardcoded 12mm/9mm pair for all of them.
-// Letterhead in use → keep content clear of its printed header/footer artwork.
-export function letterheadInsetsMm() {
-  const on = $("useLetterhead") && $("useLetterhead").checked;
-  let has = false; try { has = !!localStorage.getItem("invoiceStudio.letterhead.v1"); } catch {}
-  if (!on || !has) return null;
-  const n = (id, d) => { const v = Number($(id) && $(id).value); return Number.isFinite(v) && v >= 0 ? Math.min(120, v) : d; };
-  return { top: n("lhTop", 30), bottom: n("lhBottom", 25) };
+/* ---------------- Numbering ---------------- */
+export function formatDocNo(type, n) {
+  const c = state.settings.numbering[type] || { prefix: "", pad: 4 };
+  const body = String(n).padStart(Math.max(1, Math.min(8, Number(c.pad) || 1)), "0");
+  return c.prefix ? `${c.prefix}-${body}` : body;
 }
-function withLetterhead(p) {
-  const lh = letterheadInsetsMm();
-  return lh ? { ...p, top: Math.max(p.top, lh.top), bottom: Math.max(p.bottom, lh.bottom) } : p;
+export function nextNumber(type) {
+  const used = new Set(state.docs.filter(d => d.type === type).map(d => d.no));
+  let n = Math.max(1, Number(state.settings.numbering[type]?.next) || 1);
+  while (used.has(formatDocNo(type, n))) n++;
+  return { no: formatDocNo(type, n), n };
 }
-export function templateFooterInsetMm(tpl) {
-  const p = withLetterhead(TEMPLATE_PADDING_MM[tpl] || TEMPLATE_PADDING_MM.modern);
-  return { left: p.left, right: p.right, bottom: Math.max(0, p.bottom - 2) };
+function consumeNumber(s, type, n) {
+  s.settings.numbering[type].next = Math.max(Number(s.settings.numbering[type].next) || 1, n + 1);
 }
 
-// The template's raw top/bottom padding (mm), used by applyPrintTableWrap()
-// in preview.js to rebuild those two insets as *real, per-page-repeating*
-// table content (a spacer <thead> for the top inset, extra bottom padding
-// on the repeating <tfoot> cell for the bottom inset) instead of leaving
-// them as .invoice's own padding-top/padding-bottom.
-//
-// That distinction matters specifically for multi-page print output: when
-// a block box (.invoice) is split across printed pages, a plain CSS
-// padding-top/padding-bottom on it is only ever rendered once each — top
-// on the box's first fragment (page 1), bottom on its last fragment (the
-// final page) — never on the pages in between, and not on both ends of
-// every page the way a real per-page margin needs to. Left/right padding
-// doesn't have this problem (a box's inline-direction padding applies to
-// every fragment identically, since pages don't split horizontally), so
-// .invoice keeps using its own padding-left/padding-right for print
-// unchanged; only top/bottom are rebuilt as repeating table content.
-export function templatePaddingMm(tpl) {
-  return withLetterhead(TEMPLATE_PADDING_MM[tpl] || TEMPLATE_PADDING_MM.modern);
+/* ---------------- Documents ---------------- */
+export const getDoc = id => state.docs.find(d => d.id === id) || null;
+
+// Builds (does not save) a new document with the business defaults filled in.
+export function newDoc(type = "invoice", over = {}) {
+  const s = state.settings, today = todayISO();
+  const { no } = nextNumber(type);
+  const due = type === "receipt" ? "" : addDays(today, type === "estimate" ? s.estimateValidDays : s.termsDays);
+  return normalizeDoc({
+    type, no, status: type === "receipt" ? "paid" : "draft", issued: today, due,
+    termsDays: type === "invoice" ? s.termsDays : "",
+    currency: s.currency, lang: s.docLang, dateFormat: s.dateFormat, numberFormat: s.numberFormat,
+    business: { ...s.business },
+    items: [{ desc: "", qty: 1, rate: 0 }],
+    tax: { name: s.taxName, rate: s.taxRate, inclusive: s.taxInclusive },
+    notes: s.notes, terms: s.paymentInstructions, template: s.template, accent: s.accent, paper: s.paper,
+    ...over
+  });
 }
 
-// @page margin is always 0 — the repeating footer lives as real in-flow
-// content instead (a native HTML <table>'s repeating <tfoot>, applied at
-// print time in preview.js's applyPrintTableWrap) rather than in a @page
-// margin, so there's no reserved margin band here for it to need. See the
-// comment on applyPrintTableWrap for the full reasoning and the two other
-// designs that came before it.
-function cssStringEscape(s) {
-  return String(s ?? "").replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/[\r\n]+/g, " ").trim();
+export function saveDoc(doc) {
+  return update(s => {
+    const d = normalizeDoc({ ...doc, updatedAt: Date.now() });
+    const i = s.docs.findIndex(x => x.id === d.id);
+    if (i >= 0) s.docs[i] = d;
+    else {
+      s.docs.unshift(d);
+      const m = /(\d+)\s*$/.exec(d.no);
+      if (m && d.no === formatDocNo(d.type, +m[1])) consumeNumber(s, d.type, +m[1]);
+    }
+    return d;
+  }, "docs");
 }
 
-export function applyPaperSize() {
-  const p = currentPaper();
-  document.documentElement.style.setProperty("--page-w", p.w + "mm");
-  document.documentElement.style.setProperty("--page-h", p.h + "mm");
-  // This is the single source of truth for @page — print.css intentionally
-  // has no @page rule of its own, to avoid two separate @page declarations
-  // (which Firefox's paged-media engine handles less predictably than
-  // Chrome's) ever disagreeing with each other.
-  $("pageSizeCSS").textContent = `@page{size:${p.page};margin:0}`;
+export function deleteDoc(id) {
+  return update(s => {
+    const index = s.docs.findIndex(d => d.id === id);
+    if (index < 0) return null;
+    const [doc] = s.docs.splice(index, 1);
+    return { doc, index };
+  }, "docs");
+}
+export function restoreDoc(doc, index) {
+  update(s => {
+    if (s.docs.some(d => d.id === doc.id)) return;
+    s.docs.splice(Math.min(Math.max(0, index), s.docs.length), 0, doc);
+  }, "docs");
 }
 
-// Snapshot everything needed to fully reconstruct the current invoice
-// (used for localStorage autosave, History entries, export, and undo/redo).
-export function serialize() {
-  let f = {};
-  fields.forEach(id => f[id] = getFieldVal(id));
-  return { version: 2, docType: state.docType, logo: state.logo, logoNatural: state.logoNatural, signature: state.signature, zoom: state.zoom, columns: state.columns, items: state.items, sections: state.sections, fields: f };
+export function duplicateDoc(id, asType) {
+  const src = getDoc(id);
+  if (!src) return null;
+  const type = asType || src.type;
+  const { no, n } = nextNumber(type);
+  const today = todayISO();
+  const span = src.due && src.issued ? Math.max(0, Math.round((new Date(src.due) - new Date(src.issued)) / 864e5)) : (type === "receipt" ? 0 : state.settings.termsDays);
+  return update(s => {
+    const copy = normalizeDoc({
+      ...structuredClone(src), id: uid(), type, no, status: type === "receipt" ? "paid" : "draft",
+      issued: today, due: type === "receipt" ? "" : addDays(today, span), payments: [], sentAt: 0,
+      createdAt: Date.now(), updatedAt: Date.now(), sample: false, recurringFrom: "",
+      items: src.items.map(it => ({ ...it, id: uid() }))
+    });
+    s.docs.unshift(copy);
+    consumeNumber(s, type, n);
+    return copy;
+  }, "docs");
+}
+
+export function setDocFields(id, patch) {
+  return update(s => {
+    const d = s.docs.find(x => x.id === id);
+    if (!d) return null;
+    Object.assign(d, patch, { updatedAt: Date.now() });
+    return d;
+  }, "docs");
+}
+
+export function markSent(id) { return setDocFields(id, { status: "sent", sentAt: Date.now() }); }
+
+export function recordPayment(id, { amount, date, method = "", note = "" }) {
+  return update(s => {
+    const d = s.docs.find(x => x.id === id);
+    if (!d) return null;
+    const p = { id: uid(), date: date || todayISO(), amount: Math.max(0, Number(amount) || 0), method, note };
+    d.payments = [...(d.payments || []), p];
+    if (d.status === "draft") d.status = "sent";
+    if (totals(d).balance <= 0) d.status = "paid";
+    d.updatedAt = Date.now();
+    return p;
+  }, "docs");
+}
+
+// Records a payment for whatever is still owed and marks the invoice paid.
+export function markPaid(id) {
+  const d = getDoc(id);
+  if (!d) return null;
+  const prev = { status: d.status, payments: structuredClone(d.payments) };
+  const owed = totals(d).balance;
+  update(s => {
+    const x = s.docs.find(y => y.id === id);
+    if (owed > 0) x.payments = [...x.payments, { id: uid(), date: todayISO(), amount: owed, method: "", note: "" }];
+    x.status = "paid";
+    x.updatedAt = Date.now();
+  }, "docs");
+  return prev;
+}
+export function markUnpaid(id) {
+  const d = getDoc(id);
+  if (!d) return null;
+  const prev = { status: d.status, payments: structuredClone(d.payments) };
+  setDocFields(id, { status: "sent", payments: [] });
+  return prev;
+}
+export function restorePaymentState(id, prev) { setDocFields(id, { status: prev.status, payments: prev.payments }); }
+
+export function setEstimateStatus(id, status) { return setDocFields(id, { status }); }
+
+// Turns an estimate into a new draft invoice (the estimate is kept and marked accepted).
+export function convertToInvoice(id) {
+  const est = getDoc(id);
+  if (!est) return null;
+  const inv = duplicateDoc(id, "invoice");
+  if (inv) setDocFields(inv.id, { due: addDays(todayISO(), state.settings.termsDays), termsDays: state.settings.termsDays, reference: est.no });
+  if (est.status !== "accepted") setEstimateStatus(id, "accepted");
+  return inv;
+}
+
+/* ---------------- Recurring invoices ---------------- */
+// Creates a draft for every recurring invoice whose next date has arrived.
+// Runs when the app opens (there is no server to do it on a schedule).
+export function runRecurring(today = todayISO()) {
+  let made = 0;
+  const due = state.docs.filter(d => d.type === "invoice" && d.recurring.on && d.recurring.next && d.recurring.next <= today);
+  if (!due.length) return 0;
+  update(s => {
+    due.forEach(src0 => {
+      const src = s.docs.find(x => x.id === src0.id);
+      let guard = 0;
+      while (src.recurring.on && src.recurring.next && src.recurring.next <= today && guard++ < 24) {
+        if (src.recurring.end && src.recurring.next > src.recurring.end) { src.recurring.on = false; break; }
+        const issued = src.recurring.next;
+        const span = src.due && src.issued ? Math.max(0, Math.round((new Date(src.due) - new Date(src.issued)) / 864e5)) : s.settings.termsDays;
+        const { no, n } = nextNumber("invoice");
+        const copy = normalizeDoc({ ...structuredClone(src), id: uid(), no, status: "draft", issued, due: addDays(issued, span), payments: [], sentAt: 0, recurring: { on: false }, recurringFrom: src.id, createdAt: Date.now(), updatedAt: Date.now(), items: src.items.map(it => ({ ...it, id: uid() })) });
+        s.docs.unshift(copy);
+        consumeNumber(s, "invoice", n);
+        const r = src.recurring;
+        r.next = r.unit === "week" ? addDays(r.next, 7 * r.every) : r.unit === "year" ? addMonths(r.next, 12 * r.every) : addMonths(r.next, r.every);
+        made++;
+      }
+    });
+  }, "docs");
+  return made;
+}
+
+/* ---------------- Clients & products ---------------- */
+export const getClient = id => state.clients.find(c => c.id === id) || null;
+export function saveClient(c) {
+  return update(s => {
+    const x = normalizeClient({ ...c, updatedAt: Date.now() });
+    const i = s.clients.findIndex(y => y.id === x.id);
+    if (i >= 0) s.clients[i] = x; else s.clients.unshift(x);
+    return x;
+  }, "clients");
+}
+
+/* ---------------- Settings ---------------- */
+export function setSettings(patch, reason = "settings") {
+  return update(s => { Object.assign(s.settings, patch); }, reason, { countsForBackup: reason !== "ui" });
+}
+
+/* ---------------- Whole-data operations ---------------- */
+export function replaceAll(raw) {
+  state = normalizeState(raw);
+  schedule();
+  emit("replace");
+}
+
+export async function eraseEverything() {
+  const lang = state.settings.appLang;
+  await clearData();
+  state = freshState();
+  state.settings.appLang = lang;
+  await flush();
+  emit("replace");
+}
+
+export function exportSnapshot() {
+  return { app: "InvoGen", kind: "invogen-backup", schema: SCHEMA, exportedAt: new Date().toISOString(), data: structuredClone(state) };
+}
+
+/* ---------------- Derived helpers ---------------- */
+export function docView(doc, today = todayISO()) {
+  const t = totals(doc, today);
+  return { doc, totals: t, status: statusOf(doc, today) };
 }

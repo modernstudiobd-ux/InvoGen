@@ -1,145 +1,180 @@
-// format.js — number/date/currency formatting.
-//
-// Currency renders with a real symbol (₹, €, ₩, ...) rather than the ISO
-// code — see CURRENCY_SYMBOLS below, which is a curated, hand-picked symbol
-// per currency rather than pulling Intl's own currencyDisplay:"symbol".
-// That choice is deliberate: for several locales (bn-BD, ne-NP, si-LK, the
-// Arabic ones, ...) Intl's native formatting doesn't just swap in a symbol,
-// it *also* switches the digits themselves to that locale's native numeral
-// system (Bengali/Devanagari/Arabic-Indic digits) — e.g. Taka would come
-// out as "১,২৩৪.৫০৳" with no Western digits at all. That's the right
-// behavior for a document meant to be read only by a local reader, but
-// wrong for an invoice meant to be read internationally, so amounts always
-// use plain Western digits/grouping here regardless of currency, with only
-// the symbol changing.
-//
-// A handful of the symbols below (₹ ₩ ₪ ₦ ₴ ₺ ₽ ₱ ₫ ₵ ł č ฿ ৳) aren't in the
-// self-hosted Inter font — see the small offline-cached fallback subsets
-// wired up under the "Inter" family in css/base.css (unicode-range) for why
-// these still render correctly with no network connection.
+// format.js — money, number and date formatting. Every amount and date shown in the
+// app or printed on a document goes through here, so formats stay consistent.
+// Amounts are plain JavaScript numbers (exact to the cent up to about 90 trillion),
+// so totals over 1 billion format and add up correctly.
 
-import { $, esc } from "./dom.js";
-import { getDateFormat } from "./settings.js";
+import { CURRENCY } from "./currencies.js";
 
-// Forgiving number parser. Phone keyboards often produce things a plain
-// Number() rejects (and the app then silently treated as 0, so amounts never
-// changed): Bengali/Hindi/Arabic/Persian digits (০১২…), a comma as the decimal
-// mark ("12,5"), thousands commas ("1,200"), spaces / non-breaking spaces, and
-// stray currency symbols. Plain ASCII input behaves exactly as before.
-const DIGIT_BASES = [0x09E6, 0x0966, 0x0660, 0x06F0, 0x0AE6, 0x0BE6];
-export function num(v) {
+export const DATE_FORMATS = [
+  "D MMM YYYY", "DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD", "DD.MM.YYYY", "DD-MM-YYYY",
+  "YYYY/MM/DD", "MMMM D, YYYY", "D MMMM YYYY", "DD MMM YY", "YYYY年M月D日"
+];
+export const DEFAULT_DATE_FORMAT = "D MMM YYYY";
+
+// value → example shown in pickers
+export const NUMBER_FORMATS = [
+  ["auto", null], ["1,234.56", "1,234.56"], ["1.234,56", "1.234,56"], ["1 234,56", "1 234,56"],
+  ["1'234.56", "1'234.56"], ["12,34,567.89", "12,34,567.89"], ["native", null]
+];
+
+const SEPS = {
+  "1,234.56": [",", "."], "1.234,56": [".", ","], "1 234,56": [" ", ","],
+  "1'234.56": ["'", "."], "12,34,567.89": [",", ".", true]
+};
+const NATIVE_DIGITS = { ar: "arab", bn: "beng", hi: "deva" };
+
+export function decimalsOf(code) { return CURRENCY[code] ? CURRENCY[code].decimals : 2; }
+
+export function round(n, d = 2) {
+  const x = Number(n);
+  if (!Number.isFinite(x)) return 0;
+  const f = 10 ** d;
+  return Math.round((x + Math.sign(x) * Number.EPSILON) * f) / f;
+}
+
+// Parses "1,234.50", "1.234,50", "1 234,5", "١٢٣" etc. into a number (0 when empty/invalid).
+export function parseNumber(v) {
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
   let s = String(v ?? "").trim();
   if (!s) return 0;
-  let plain = Number(s);
-  if (Number.isFinite(plain)) return plain;
-  s = s.replace(/[\u0966-\u096F\u09E6-\u09EF\u0660-\u0669\u06F0-\u06F9\u0AE6-\u0AEF\u0BE6-\u0BEF]/g, ch => {
-    const c = ch.codePointAt(0), base = DIGIT_BASES.find(b => c >= b && c <= b + 9);
-    return String(c - base);
-  }).replace(/[\u066B]/g, ".").replace(/[\u066C\u00A0\u202F\s]/g, "").replace(/[^0-9.,eE+-]/g, "");
-  if (s.includes(",")) {
-    if (s.includes(".")) s = s.replace(/,/g, "");                       // 1,234.50
-    else if (/^[+-]?\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, ""); // 1,200
-    else s = s.replace(",", ".");                                       // 12,5
+  // native digits → latin
+  s = s.replace(/[٠-٩]/g, c => c.charCodeAt(0) - 0x0660)
+       .replace(/[۰-۹]/g, c => c.charCodeAt(0) - 0x06F0)
+       .replace(/[০-৯]/g, c => c.charCodeAt(0) - 0x09E6)
+       .replace(/[०-९]/g, c => c.charCodeAt(0) - 0x0966)
+       .replace(/٫/g, ".").replace(/٬/g, ",");
+  const neg = /^[-−(]/.test(s);
+  s = s.replace(/[^\d.,]/g, "");
+  const lastDot = s.lastIndexOf("."), lastComma = s.lastIndexOf(",");
+  let dec = "";
+  if (lastDot > -1 && lastComma > -1) dec = lastDot > lastComma ? "." : ",";
+  else if (lastComma > -1) dec = /,\d{1,2}$/.test(s) && (s.match(/,/g) || []).length === 1 ? "," : "";
+  else if (lastDot > -1) dec = /\.\d{3}$/.test(s) && (s.match(/\./g) || []).length > 1 ? "" : ".";
+  if (dec) {
+    const other = dec === "." ? "," : ".";
+    s = s.split(other).join("");
+    s = s.replace(dec, "#").split(dec).join("").replace("#", ".");
+  } else s = s.replace(/[.,]/g, "");
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? (neg ? -n : n) : 0;
+}
+
+function group(intStr, sep, indian) {
+  if (!indian) return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+  const last3 = intStr.slice(-3), rest = intStr.slice(0, -3);
+  return rest ? rest.replace(/\B(?=(\d{2})+(?!\d))/g, sep) + sep + last3 : last3;
+}
+
+const nfCache = new Map();
+function nf(locale, d) {
+  const k = locale + "|" + d;
+  if (!nfCache.has(k)) {
+    let f;
+    try { f = new Intl.NumberFormat(locale, { minimumFractionDigits: d, maximumFractionDigits: d }); }
+    catch { f = new Intl.NumberFormat("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+    nfCache.set(k, f);
   }
-  plain = Number(s);
-  return Number.isFinite(plain) ? plain : 0;
+  return nfCache.get(k);
 }
 
-export function today() {
-  let d = new Date(), o = d.getTimezoneOffset();
-  return new Date(d - o * 60000).toISOString().slice(0, 10);
+// Formats a plain number. `fmt` is a NUMBER_FORMATS key; `lang` is a language code (en, bn, ar…).
+export function formatNumber(n, d = 2, fmt = "auto", lang = "en") {
+  const x = round(n, d);
+  const sep = SEPS[fmt];
+  if (sep) {
+    const [int, frac] = Math.abs(x).toFixed(d).split(".");
+    return (x < 0 ? "−" : "") + group(int, sep[0], sep[2]) + (d ? sep[1] + frac : "");
+  }
+  const base = localeFor(lang);
+  const loc = fmt === "native" && NATIVE_DIGITS[lang] ? `${base}-u-nu-${NATIVE_DIGITS[lang]}` : `${base}-u-nu-latn`;
+  return nf(loc, d).format(x).replace(/^-/, "−");
 }
 
-export function plusDays(s, n) {
-  let d = new Date(s + "T00:00:00");
-  d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+// Formats an amount with its currency symbol (or code when display = "code").
+export function formatMoney(n, code = "USD", { fmt = "auto", lang = "en", display = "symbol" } = {}) {
+  const c = CURRENCY[code] || { symbol: code, decimals: 2, after: false };
+  const x = round(n, c.decimals);
+  const body = formatNumber(Math.abs(x), c.decimals, fmt, lang);
+  // Arabic-script symbols (ر.س, د.إ …) get a left-to-right mark so the number never jumps to the wrong side.
+  const sym = display === "code" ? code : (/[\u0590-\u08FF]/.test(c.symbol) ? c.symbol + "\u200E" : c.symbol);
+  const spaced = display === "code" || c.after || /\p{L}\u200E?$/u.test(sym);
+  const s = c.after || (display === "code" && c.after)
+    ? body + " " + sym
+    : sym + (spaced ? " " : "") + body;
+  return (x < 0 ? "−" : "") + s;
 }
 
-export function alignClass(a) {
-  return a === "right" ? "right" : a === "center" ? "center" : "";
+/* ---------------- Dates ---------------- */
+
+const LOCALES = { en: "en-US", es: "es-ES", fr: "fr-FR", de: "de-DE", pt: "pt-BR", it: "it-IT", nl: "nl-NL", tr: "tr-TR", ru: "ru-RU", zh: "zh-CN", ja: "ja-JP", ko: "ko-KR", ar: "ar", hi: "hi-IN", id: "id-ID", bn: "bn-BD" };
+export function localeFor(lang) { return LOCALES[lang] || lang || "en-GB"; }
+
+const pad = n => String(n).padStart(2, "0");
+
+export function todayISO(d = new Date()) {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+export function parseISO(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ""));
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+}
+export function addDays(iso, n) {
+  const d = parseISO(iso) || new Date();
+  d.setDate(d.getDate() + Number(n || 0));
+  return todayISO(d);
+}
+export function addMonths(iso, n) {
+  const d = parseISO(iso) || new Date();
+  const day = d.getDate();
+  d.setDate(1); d.setMonth(d.getMonth() + Number(n || 0));
+  d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+  return todayISO(d);
+}
+export function daysBetween(aIso, bIso) {
+  const a = parseISO(aIso), b = parseISO(bIso);
+  if (!a || !b) return 0;
+  return Math.round((b - a) / 864e5);
 }
 
-function pad2(n) { return String(n).padStart(2, "0"); }
-
-// The single place invoice dates are rendered as text anywhere in the app
-// (as opposed to a native <input type="date">, which the browser/OS itself
-// renders) — used by fmtCell() below for "date"-type line-item columns,
-// and by the Saved Invoices / Brand Templates lists (js/library.js,
-// js/brandTemplates.js). Always reads the live Settings > Default date
-// format (js/settings.js) rather than a fixed style, so changing that
-// setting is immediately reflected everywhere a date is formatted through
-// this function — nothing else in the app hardcodes a date format.
-// Accepts a "YYYY-MM-DD" date-only string (line-item cell values, native
-// date-input values), a timestamp number, or a Date.
-export function dateFmt(v) {
-  if (v === "" || v == null) return "—";
-  let d;
-  if (v instanceof Date) d = v;
-  else if (typeof v === "number") d = new Date(v);
-  // A plain "YYYY-MM-DD" string is parsed at local midnight (appending
-  // T00:00:00) so it never shifts a day depending on the visitor's UTC
-  // offset — new Date("YYYY-MM-DD") alone parses as UTC midnight.
-  else if (/^\d{4}-\d{2}-\d{2}$/.test(String(v))) d = new Date(v + "T00:00:00");
-  else d = new Date(v);
-  if (isNaN(d.getTime())) return "—";
-  const day = pad2(d.getDate()), month = pad2(d.getMonth() + 1), year = d.getFullYear();
-  return getDateFormat() === "mdy" ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
+const monthCache = new Map();
+function monthName(month, style, lang) {
+  const k = lang + style + month;
+  if (!monthCache.has(k)) {
+    let s;
+    try { s = new Intl.DateTimeFormat(localeFor(lang) + "-u-nu-latn", { month: style }).format(new Date(2020, month, 15)); }
+    catch { s = new Intl.DateTimeFormat("en-GB", { month: style }).format(new Date(2020, month, 15)); }
+    monthCache.set(k, s);
+  }
+  return monthCache.get(k);
 }
 
-// Kept only for anything that still wants a locale hint (not used by
-// money()/moneyFor() anymore, which always format digits the same way).
-export const CURRENCY_LOCALE = { USD: "en-US", CAD: "en-CA", MXN: "es-MX", BRL: "pt-BR", ARS: "es-AR", CLP: "es-CL", COP: "es-CO", PEN: "es-PE", UYU: "es-UY", JMD: "en-JM", EUR: "de-DE", GBP: "en-GB", CHF: "de-CH", SEK: "sv-SE", NOK: "nb-NO", DKK: "da-DK", PLN: "pl-PL", CZK: "cs-CZ", HUF: "hu-HU", RON: "ro-RO", UAH: "uk-UA", RUB: "ru-RU", TRY: "tr-TR", AED: "ar-AE", SAR: "ar-SA", QAR: "ar-QA", KWD: "ar-KW", BHD: "ar-BH", OMR: "ar-OM", ILS: "he-IL", EGP: "ar-EG", ZAR: "en-ZA", NGN: "en-NG", KES: "en-KE", GHS: "en-GH", AUD: "en-AU", NZD: "en-NZ", JPY: "ja-JP", CNY: "zh-CN", HKD: "zh-HK", TWD: "zh-TW", KRW: "ko-KR", SGD: "en-SG", INR: "en-IN", PKR: "en-PK", BDT: "bn-BD", LKR: "si-LK", NPR: "ne-NP", IDR: "id-ID", MYR: "ms-MY", PHP: "en-PH", THB: "th-TH", VND: "vi-VN" };
-
-// One symbol per currency. Single-character symbols sit tight against the
-// number ("$1,234.50", "₹1,234.50"); multi-letter abbreviations get a space
-// ("CHF 1,234.50", "Rs 1,234.50") — used where no single universal symbol
-// exists (Gulf currencies, PKR/LKR/NPR all sharing "Rs", etc).
-export const CURRENCY_SYMBOLS = {
-  USD: "$", CAD: "$", MXN: "$", BRL: "R$", ARS: "$", CLP: "$", COP: "$", PEN: "S/", UYU: "$U", JMD: "J$",
-  EUR: "€", GBP: "£", CHF: "CHF", SEK: "kr", NOK: "kr", DKK: "kr", PLN: "zł", CZK: "Kč", HUF: "Ft", RON: "lei",
-  UAH: "₴", RUB: "₽", TRY: "₺",
-  // Native Arabic-script symbols (dirham, riyal, dinar, pound).
-  AED: "د.إ", SAR: "ر.س", QAR: "ر.ق", KWD: "د.ك", BHD: "د.ب", OMR: "ر.ع.", EGP: "ج.م",
-  ILS: "₪", ZAR: "R", NGN: "₦", KES: "KSh", GHS: "₵",
-  AUD: "$", NZD: "$", JPY: "¥", CNY: "¥", HKD: "HK$", TWD: "NT$", KRW: "₩", SGD: "S$",
-  INR: "₹", PKR: "₨", BDT: "৳", LKR: "රු", NPR: "रू", IDR: "Rp", MYR: "RM", PHP: "₱", THB: "฿", VND: "₫"
-};
-// Minor-unit digits per ISO 4217 / CLDR (e.g. ¥1,235 and د.ك 1,234.500), so
-// every currency is written the way it is written natively. Default: 2.
-export const CURRENCY_DECIMALS = { CLP: 0, JPY: 0, KRW: 0, VND: 0, KWD: 3, BHD: 3, OMR: 3 };
-const RTL_SYMBOL = /[\u0590-\u08FF]/;
-
-const NF = {};
-function formatAmount(v, code) {
-  const symbol = CURRENCY_SYMBOLS[code] || code;
-  const d = CURRENCY_DECIMALS[code] ?? 2;
-  const nf = NF[d] || (NF[d] = new Intl.NumberFormat("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
-  let n = nf.format(num(v));
-  if (n === "-0" || /^-0[.,]?0*$/.test(n)) n = n.slice(1);
-  // Arabic/Hebrew-script symbols are followed by an invisible left-to-right
-  // mark so the amount always stays to the right of the symbol.
-  const sep = [...symbol].length === 1 ? "" : RTL_SYMBOL.test(symbol) ? "\u200E " : " ";
-  return symbol + sep + n;
+// Formats "YYYY-MM-DD" with one of DATE_FORMATS. Digits follow the number format
+// (Latin unless "native" is chosen).
+export function formatDate(iso, fmt = DEFAULT_DATE_FORMAT, lang = "en", numFmt = "auto") {
+  const d = parseISO(iso);
+  if (!d) return "";
+  const Y = d.getFullYear(), M = d.getMonth(), D = d.getDate();
+  const out = fmt.replace(/YYYY|YY|MMMM|MMM|MM|M|DD|D/g, tok => ({
+    YYYY: String(Y), YY: String(Y).slice(-2), MMMM: monthName(M, "long", lang), MMM: monthName(M, "short", lang),
+    MM: pad(M + 1), M: String(M + 1), DD: pad(D), D: String(D)
+  })[tok]);
+  return numFmt === "native" ? nativeDigits(out, lang) : out;
 }
 
-export function money(v) {
-  return formatAmount(v, $("currency").value);
+// Short date for lists ("29 Sep"): drops the year when it is the current year
+// and the format is a day-month-name one; otherwise the full format.
+export function formatShortDate(iso, fmt = DEFAULT_DATE_FORMAT, lang = "en", numFmt = "auto") {
+  const d = parseISO(iso);
+  if (!d) return "";
+  if (d.getFullYear() === new Date().getFullYear()) {
+    if (fmt === "D MMM YYYY" || fmt === "DD MMM YY" || fmt === "D MMMM YYYY") return formatDate(iso, "D MMM", lang, numFmt);
+    if (fmt === "MMMM D, YYYY") return formatDate(iso, "MMM D", lang, numFmt);
+    if (fmt === "YYYY年M月D日") return formatDate(iso, "M月D日", lang, numFmt);
+  }
+  return formatDate(iso, fmt, lang, numFmt);
 }
 
-export function moneyFor(v, c) {
-  return formatAmount(v, c || "USD");
-}
-
-export function normalizeKey(s) {
-  return String(s || "column").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "column";
-}
-
-export function fmtCell(v, col) {
-  if (col.type === "currency") return money(v);
-  if (col.type === "number") return num(v).toLocaleString("en-US", { maximumFractionDigits: 2 });
-  if (col.type === "percentage") return num(v).toFixed(2).replace(/\.00$/, "") + "%";
-  if (col.type === "date") return dateFmt(v);
-  return esc(v).replaceAll("\n", "<br>");
+export function nativeDigits(s, lang) {
+  const base = { ar: 0x0660, bn: 0x09E6, hi: 0x0966 }[lang];
+  return base ? String(s).replace(/\d/g, c => String.fromCharCode(base + +c)) : String(s);
 }

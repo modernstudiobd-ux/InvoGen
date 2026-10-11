@@ -1,34 +1,26 @@
 {
-  "name": "InvoGen - Invoice Generator",
+  "name": "InvoGen — Invoice Generator",
   "short_name": "InvoGen",
-  "description": "Create, design and export professional invoices — works fully offline.",
+  "description": "Create invoices, estimates and receipts. Works offline; everything stays on your device.",
   "id": "/",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#f5f5f5",
-  "theme_color": "#ffffff",
+  "theme_color": "#f5f5f5",
+  "lang": "en",
+  "dir": "auto",
   "categories": ["business", "finance", "productivity"],
   "icons": [
-    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "icons/icon-72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-152.png", "sizes": "152x152", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "shortcuts": [
-    {
-      "name": "New Invoice",
-      "short_name": "New",
-      "description": "Reset and start a new invoice",
-      "url": "./index.html?action=new"
-    }
+    { "name": "New invoice", "short_name": "New", "url": "./index.html#/create", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Documents", "short_name": "Documents", "url": "./index.html#/documents", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

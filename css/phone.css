@@ -1,254 +1,27 @@
-/* Phone polish layer — loaded after design-system.css, before print.css.
-   Layout/touch-size fixes only; no features, markup or behaviour changed. */
-html,body{max-width:100%;overflow-x:clip}
+/* phone.css — touch and small-screen refinements (kept from v3.x by name).
+   Loaded last so it can adjust anything above for phones and coarse pointers. */
 
-@media (max-width:640px){
-  /* Line-items toolbar (Columns / Import / help) wrapped past 360px */
-  .fe-libar-acts{flex-wrap:wrap;min-width:0}
-  .fe-libar-acts .btn:not(.icon){flex:1 1 120px;min-width:0;white-space:normal;justify-content:center}
-  .fe-libar-acts .btn.icon{flex:none}
-  .fe-libar,.fe-import-help{max-width:100%}
-
-  /* Touch targets: 44px minimum for header, toolbar and mode switch */
-  .appheader .btn,.mobileview-toggle .btn,.canvasbar .btn,.canvasmode-btn,
-  .hamburger-btn.btn,.mtb-icon.btn{min-height:44px}
-  .hamburger-btn.btn,.mtb-icon.btn,#undoBtn,#redoBtn{min-width:44px;width:auto}
-  .hamburger-btn.btn,.mtb-icon.btn{width:44px;height:44px}
-  #undoBtn,#redoBtn{height:44px}
-  .canvasmode-btn{min-width:44px;padding-inline:12px}
-  .currency-field input,#currencySearchInput{min-height:44px}
-  /* Inputs at 16px stop iOS Safari zooming the page on focus */
-  .field input,.field select,.field textarea,.fe-input,#currencySearchInput{font-size:16px}
-  .actions-primary .btn,.actions-secondary .btn,.fe-nav button,#feResetColors{min-height:44px}
-  .fe-nav{scroll-snap-type:x proximity}
-  .fe-nav button{scroll-snap-align:start}
+/* Bigger touch targets wherever the pointer is a finger */
+@media (pointer: coarse) {
+  .chip { min-height: 44px; }
+  .menu-item { min-height: 56px; }
 }
 
-body.hide-edit-mode #canvasModeEditBtn{display:none}
-
-/* ---- All devices: touch, motion, safe areas, large screens --------------- */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-button,.btn,.navitem,.canvasmode-btn,.fe-nav button,select,summary,label[for]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-
-/* Any touch device (phones, tablets, POS screens): 44px targets at every width */
-@media (pointer:coarse){
-  .btn,.navitem,.canvasmode-btn,.fe-nav button,.history-panel .btn,.right-sidebar .btn,
-  .sidebar .navitem,.combobox-option,.fe-libar-acts .btn{min-height:44px}
-  .btn.icon,.btn.small.icon{min-width:44px;min-height:44px}
-  .field input,.field select,.fe-input,.history-panel input,.history-panel select{min-height:44px}
-  .navsubitem{min-height:44px}
-  .invoice thead th,.invoice .col-head,.colhead{min-height:44px}
-  input[type=checkbox],input[type=radio]{width:22px;height:22px}
+/* Phones: tighter page padding, larger tap areas */
+@media (max-width: 767.98px) {
+  .main { padding-top: var(--s5); }
+  .chip { min-height: 44px; }
+  .page { gap: var(--s5); }
+  .card-pad { padding: var(--s5); }
+  .banner { padding: var(--s4); }
+  .empty { padding: var(--s8) var(--s4); }
 }
 
-/* Drawers and panels scroll on their own and never chain into the page */
-.mobile-drawer,.sidebar-scroll,.history-panel,.right-sidebar,.col-settings-panel,.logo-settings-panel{overscroll-behavior:contain}
-@media (max-width:1080px){
-  .mobile-drawer{padding-bottom:env(safe-area-inset-bottom);padding-top:env(safe-area-inset-top)}
-  #sidebar.mobile-drawer{padding-left:env(safe-area-inset-left)}
-  #rightSidebar.mobile-drawer{padding-right:env(safe-area-inset-right)}
+/* Very narrow phones (320–359px) */
+@media (max-width: 359.98px) {
+  :root { --gutter: 12px; }
+  .tab { font-size: 10px; }
 }
 
-/* Landscape phones: keep the form visible, shrink chrome */
-@media (max-height:500px) and (orientation:landscape){
-  .appheader{padding-block:6px!important}
-  .mobileview-toggle{padding-block:4px}
-  .fe-nav{top:0!important}
-  .fe-fab{bottom:12px!important}
-}
-
-/* Wide screens: keep the form readable instead of stretching */
-@media (min-width:1600px){
-  .formeditor{max-width:880px;margin-inline:auto}
-}
-
-/* Respect reduced-motion and high-contrast preferences */
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
-}
-@media (prefers-contrast:more){
-  :root{--ds-hairline:#a8a29e;--ds-hairline-strong:#57534e;--ds-muted:#44403c}
-  .btn,.field input,.field select{border-color:var(--ds-hairline-strong)}
-}
-
-/* ---- Desktop (>1080px): pinned header + toolbar, sidebar fits the viewport ---- */
-@media (min-width:1081px){
-  :root{--hdr-h:70px;--tb-h:62px}
-  .appheader{position:sticky;top:0;z-index:50}
-  #sidebar{top:var(--hdr-h);height:calc(100vh - var(--hdr-h));height:calc(100dvh - var(--hdr-h))}
-  .right-sidebar{top:var(--hdr-h);max-height:calc(100dvh - var(--hdr-h));overflow:auto}
-  .toolbar-row{position:sticky;top:var(--hdr-h);z-index:30;background:var(--ds-canvas);margin-top:-20px;padding-top:20px;padding-bottom:6px}
-  .fe-nav{top:calc(var(--hdr-h) + var(--tb-h))!important}
-  .canvaswrap{top:calc(var(--hdr-h) + var(--tb-h) + 12px)!important;max-height:calc(100dvh - var(--hdr-h) - var(--tb-h) - 24px);overflow-y:auto;overscroll-behavior:contain}
-  .fe-sec,.fe-profile{scroll-margin-top:calc(var(--hdr-h) + var(--tb-h) + 70px)}
-}
-
-/* ---- Colors panel: simpler ------------------------------------------------ */
-/* Brand color: presets, picker and HEX on one tidy block */
-.brand-colors{grid-template-columns:repeat(auto-fill,minmax(36px,1fr))!important;gap:10px!important}
-.brand-colors .preset,.preset-custom{min-width:32px;min-height:32px;width:auto;height:auto}
-.hex-row{margin-top:8px}
-.hex-row input{width:100%;font-variant-numeric:tabular-nums;text-transform:uppercase}
-/* Hide the explanatory hint under the style picker; the three labels are self-explanatory */
-#colorStyleHint{display:block;margin-top:6px;font-size:12px;color:var(--ds-muted)}
-/* Custom colors: collapsed, two columns, compact rows */
-.advanced-colors{margin-top:8px;border-top:1px solid var(--ds-hairline);padding-top:8px}
-.advanced-colors>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:500;color:var(--ds-ink)}
-.advanced-colors[open]{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
-.advanced-colors .field{margin:0;min-width:0}
-.advanced-colors .field>label{font-size:12px;color:var(--ds-muted);display:block;margin-bottom:4px}
-.advanced-colors .colorrow{display:flex;align-items:center;gap:6px;min-width:0}
-.advanced-colors .colorrow input[type=text]{flex:1 1 0;min-width:0}
-.advanced-colors .colorrow input[type=color]{flex:none;width:36px;height:36px;padding:2px}
-.advanced-colors .colorrow .btn.icon{flex:none}
-/* Form editor: same treatment */
-.fe-customcolors{margin:8px 0 12px;border-top:1px solid var(--ds-hairline-soft);padding-top:4px}
-.fe-customcolors>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:500;color:var(--ds-ink)}
-.fe-customcolors .fe-grid{grid-template-columns:minmax(0,1fr);gap:12px}
-@media (min-width:900px){.fe-customcolors .fe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.fe-customcolors .fe-full{grid-column:auto!important}
-.fe-customcolors .fe-colorrow{display:flex;align-items:center;gap:6px;min-width:0}
-.fe-customcolors .fe-colorrow .fe-input{flex:1 1 0;min-width:0}
-.fe-customcolors .fe-colorrow .btn{flex:none;padding:0 10px}
-
-/* ---- Design panel: summaries + tidy secondary options ---- */
-#rightSidebar>.panel>.panelhead{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}
-.panel-sum{margin-left:auto;min-width:0;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--ds-muted)}
-#rightSidebar>.panel:not(.collapsed) .panel-sum{display:none}
-.panelhead .btn{flex:none}
-.brand-more{margin-top:8px;border-top:1px solid var(--ds-hairline);padding-top:4px}
-.brand-more>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:500;color:var(--ds-ink)}
-
-.advanced-colors .field>label{text-transform:none;letter-spacing:0;font-size:13px;color:var(--ds-body);display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-.advanced-colors .colorrow input[type=text]{min-height:40px;padding:0 10px}
-.advanced-colors .colorrow input[type=color]{width:40px;height:40px}
-
-/* Touch sizing inside the drawers (≤1080px) */
-@media (max-width:1080px){
-  .right-sidebar .btn,.sidebar .btn,.history-panel .btn{min-height:40px}
-  .right-sidebar .field label,.right-sidebar .field-lab{font-size:13px}
-  .switch{position:relative}
-  .switch::after{content:"";position:absolute;inset:-12px -8px}
-  .preset-custom input{inset:0;width:100%;height:100%}
-}
-
-/* Make the Design entry point findable: icon + word */
-@media (max-width:1080px){
-  .design-reopen-btn{gap:6px;padding-inline:14px}
-  .design-reopen-btn::after{content:"Design";font-size:13px;font-weight:500}
-}
-
-/* ---- One icon style everywhere: 1.5px round-capped line icons, fixed sizes ---- */
-svg.icon{stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;fill:none;flex:none}
-.btn svg.icon,.canvasmode-btn svg.icon,.fe-nav svg.icon,.history-panel svg.icon,.pg-search svg.icon,
-.install-banner svg.icon,.mobileview-toggle .btn svg.icon,.fe-libar-acts svg.icon{width:16px;height:16px}
-.btn.icon svg.icon,.btn.small.icon svg.icon,.hamburger-btn svg.icon,.mtb-icon svg.icon{width:18px;height:18px}
-.navitem>svg.icon{width:20px;height:20px}
-.navsubitem>svg.icon{width:18px;height:18px}
-.navgroup-chevron{width:16px!important;height:16px!important}
-.right-sidebar-head svg.icon{width:18px;height:18px}
-/* filled glyphs used as dots keep their fill */
-svg.icon [fill="currentColor"]{fill:currentColor}
-
-/* Split view: the form never gets narrower than 380px; the preview scales down instead */
-@media (min-width:1081px){
-  body.form-mode .workspace{grid-template-columns:minmax(380px,1fr) minmax(0,1fr)}
-}
-
-/* Desktop: Form already shows the live preview, so no separate Preview switch */
-@media (min-width:1081px){
-  #canvasModePreviewBtn,.fe-fab #feFabBtn{display:none!important}
-  body.hide-edit-mode .canvasmode-switch,body.hide-edit-mode .canvasbar .toolbar-divider:has(+ .canvasmode-switch){display:none}
-}
-
-#docPanel .doc-body{display:block}
-#docPanel .doc-body>*{margin-bottom:12px}
-
-/* Reopen-Design tooltip */
-.design-hint{position:fixed;z-index:200;max-width:240px;padding:12px 14px;border-radius:12px;background:var(--ds-ink);color:#fff;font:400 13px/1.4 Inter,system-ui,sans-serif;display:flex;flex-direction:column;gap:2px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.18)}
-.design-hint strong{font-weight:600}
-.design-hint span{color:#e7e5e4}
-.design-hint::before{content:"";position:absolute;top:-6px;left:calc(var(--arrow,24px) - 6px);width:12px;height:12px;background:var(--ds-ink);transform:rotate(45deg);border-radius:2px}
-:root[data-theme="dark"] .design-hint{background:#fafaf9;color:#0c0a09}
-:root[data-theme="dark"] .design-hint span{color:#44403c}
-:root[data-theme="dark"] .design-hint::before{background:#fafaf9}
-
-/* Design panel starts open on desktop at a width that leaves room for form + preview */
-@media (min-width:1081px){:root{--right-sidebar-width:clamp(280px,24vw,340px)}}
-
-/* ---- Top toolbar: stable at every width ---- */
-.canvasbar{gap:8px 10px;align-items:center}
-.canvasbar-right{display:flex;align-items:center;gap:8px 10px;min-width:0}
-.currency-field{flex:1 1 120px;min-width:96px;max-width:240px}
-.canvasmode-switch{flex:0 0 auto}
-.canvasmode-btn{flex:0 0 auto}
-@media (max-width:1080px){
-  /* Zoom only scales the side preview, which isn't shown in Form mode below 1081px */
-  body.form-mode .zoom-group,body.form-mode .canvasbar-left .toolbar-divider{display:none}
-  .canvasbar-right{margin-left:auto;flex:1 1 auto;justify-content:flex-end}
-  .canvasbar-right .currency-field{max-width:220px}
-  .canvasmode-btn{padding-inline:14px}
-}
-@media (max-width:640px){
-  .canvasbar{flex-wrap:nowrap}
-  .canvasbar-right{flex:1 1 0}
-  .canvasbar-right .currency-field{flex:1 1 96px;max-width:none}
-}
-@media (min-width:1081px){
-  .toolbar-row{overflow:visible}
-  .canvasbar{flex-wrap:wrap}
-  .canvasbar-left,.canvasbar-right{flex-wrap:wrap}
-}
-
-@media (max-width:1080px){
-  .canvasbar{flex-wrap:nowrap;min-width:0}
-  .canvasbar-left{flex:0 0 auto}
-  .canvasbar-right{flex:1 1 0;min-width:0;flex-wrap:nowrap}
-  .canvasmode-switch{padding:0;gap:0;min-height:44px;align-items:stretch;border-radius:9999px;overflow:hidden}
-  .canvasmode-btn{min-height:44px;border-radius:0}
-}
-
-@media (min-width:641px) and (pointer:fine){
-  .canvasmode-switch,.canvasmode-btn{min-height:34px;height:34px}
-}
-@media (max-width:359px){
-  .canvasmode-btn{font-size:0;gap:0;padding-inline:12px;min-width:44px;justify-content:center}
-  .canvasmode-btn svg{width:18px;height:18px}
-}
-
-.ui-tip{position:fixed;z-index:300;pointer-events:none;padding:6px 10px;border-radius:8px;background:var(--ds-ink);color:#fff;font:500 12px/1.3 Inter,system-ui,sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.12)}
-:root[data-theme="dark"] .ui-tip{background:#fafaf9;color:#0c0a09}
-@media print{.ui-tip{display:none!important}}
-
-/* ---- Audit fixes: beat higher-specificity base rules, close-button widths, inputs ---- */
-@media (max-width:640px),(pointer:coarse){
-  .header-actions .actions-primary .btn,.header-actions .actions-secondary .btn{min-height:44px}
-  .sidebar-drawer-head .btn.icon,.right-sidebar-head .btn.icon{width:44px;height:44px}
-  .colorrow .btn.icon,.advanced-colors .colorrow .btn.icon{min-width:44px;min-height:44px}
-  .right-sidebar select,.right-sidebar input[type=text],.right-sidebar input[type=number],#accentHex{min-height:44px}
-  .invoice [aria-label^="Edit "][aria-label$=" column"],.invoice .col-edit-btn{min-height:44px}
-  .sidebar-footer a{display:inline-block;padding:12px 4px;margin:-12px -4px}
-}
-@media (min-width:1081px) and (pointer:fine){
-  #designCloseBtn,.right-sidebar-head .btn.icon{width:32px;height:32px}
-}
-
-@media (max-width:640px),(pointer:coarse){
-  .sidebar .navitem,.sidebar .navsubitem,.navsubitem{min-height:44px}
-}
-
-@media (max-width:640px),(pointer:coarse){
-  [aria-label^="Edit "][aria-label$=" column"]{min-height:44px}
-  .right-sidebar input:not([type]),.right-sidebar input[type=url],.right-sidebar input[type=email]{min-height:44px}
-}
-
-@media (max-width:640px),(pointer:coarse){
-  #sidebar .navsub .navsubitem,#sidebar .navitem.navsubitem{min-height:44px}
-}
-
-/* v3.39.0 — keep the selected mode visibly highlighted on phones/tablets (pill inside the track) */
-@media (max-width:1080px){
-  .canvasmode-switch{padding:3px;gap:2px}
-  .canvasmode-btn{min-height:38px;border-radius:9999px}
-  .canvasmode-btn.active{background:var(--ds-card);color:var(--ds-ink);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
-}
+/* Remove the grey tap flash on iOS/Android */
+a, button, .chip, .tab { -webkit-tap-highlight-color: transparent; }

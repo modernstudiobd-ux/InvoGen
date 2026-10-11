@@ -1,0 +1,106 @@
+/* layout.css — app shell: bottom tab bar on phones (< 768px), labelled left rail on
+   tablet (768–1279px, compact) and desktop (≥ 1280px, wide). No horizontal scroll at any width. */
+
+.app { min-height: 100vh; min-height: 100dvh; }
+
+.main {
+  min-width: 0;
+  margin-inline-start: var(--rail-w);
+  padding: var(--s6) var(--gutter) calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + var(--s10));
+  outline: none;
+}
+.page { max-width: var(--content-max); margin-inline: auto; display: flex; flex-direction: column; gap: var(--s6); }
+.page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s4); padding-top: var(--s2); }
+.page-head > div { min-width: 0; display: flex; flex-direction: column; gap: var(--s2); }
+.page-sub { color: var(--muted); font-size: var(--fs-small); overflow-wrap: anywhere; }
+
+@media (min-width: 768px) {
+  .main { padding-top: var(--s10); padding-bottom: var(--s12); }
+}
+
+/* ---------- Rail (tablet + desktop) ---------- */
+.rail {
+  display: none;
+  position: fixed; inset-block: 0; inset-inline-start: 0; z-index: 30;
+  width: var(--rail-w);
+  background: var(--card);
+  border-inline-end: 1px solid var(--hair);
+  flex-direction: column; gap: var(--s1);
+  padding: var(--s5) var(--s2);
+  overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+@media (min-width: 768px) { .rail { display: flex; } }
+
+.rail-brand {
+  display: flex; align-items: center; justify-content: center; min-height: var(--touch);
+  font: 700 22px/1 var(--font-display); letter-spacing: -.48px; color: var(--ink); text-decoration: none;
+  margin-bottom: var(--s3); border-radius: var(--r-input);
+}
+.rail-create { margin-bottom: var(--s4); }
+.rail-list { display: flex; flex-direction: column; gap: var(--s1); }
+.rail-link {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s1);
+  width: 100%; min-height: 64px; padding: var(--s2) var(--s1);
+  border-radius: 12px; color: var(--ink-2); text-decoration: none; text-align: center;
+  font: 500 12px/1.25 var(--font-ui); letter-spacing: 0;
+  transition: background-color var(--t-fast) var(--ease);
+  overflow-wrap: break-word; hyphens: auto;
+}
+.rail-link:hover { background: var(--canvas); }
+.rail-link[aria-current="page"] { background: var(--strong); color: var(--ink); }
+.rail-link .ico { width: 22px; height: 22px; }
+.rail-foot { margin-top: auto; display: flex; flex-direction: column; gap: var(--s1); padding-top: var(--s4); }
+.rail-status { display: flex; align-items: center; justify-content: center; gap: var(--s2); padding: var(--s2); font-size: 12px; line-height: 1.4; color: var(--muted); }
+.rail-status .label { display: none; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--dot-grey); }
+.dot.on { background: var(--dot-green); }
+
+/* Compact rail: Create is a round button with its label underneath */
+@media (min-width: 768px) and (max-width: 1279.98px) {
+  .rail .rail-create { flex-direction: column; height: auto; min-height: 72px; padding: var(--s1) 0; gap: var(--s1); background: none; color: var(--ink-2); font-size: 12px; white-space: normal; border-radius: 12px; }
+  .rail .rail-create .plus { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--ink-2); color: #fff; }
+  .rail .rail-create:hover { background: var(--canvas); }
+  .rail .rail-create:hover .plus { background: var(--ink); }
+  .rail-brand { font-size: 17px; }
+  .rail-link .lang-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+/* Wide rail: icon + label side by side */
+@media (min-width: 1280px) {
+  .rail { padding: var(--s6) var(--s4); }
+  .rail-brand { justify-content: flex-start; padding-inline: var(--s3); margin-bottom: var(--s5); }
+  .rail-create { width: 100%; }
+  .rail-create .plus { display: contents; }
+  .rail-link { flex-direction: row; justify-content: flex-start; gap: var(--s3); min-height: 48px; padding: 0 var(--s3); font-size: 15px; text-align: start; }
+  .rail-status { justify-content: flex-start; padding-inline: var(--s3); }
+  .rail-status .label { display: inline; }
+}
+
+/* ---------- Tab bar (phones) ---------- */
+.tabbar {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 30;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center;
+  min-height: var(--tabbar-h);
+  padding: 4px max(4px, env(safe-area-inset-left, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(4px, env(safe-area-inset-right, 0px));
+  background: rgba(255, 255, 255, .96);
+  -webkit-backdrop-filter: saturate(1.4) blur(12px);
+  backdrop-filter: saturate(1.4) blur(12px);
+  border-top: 1px solid var(--hair);
+}
+@media (min-width: 768px) { .tabbar { display: none; } }
+.tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-height: 56px; min-width: 0; padding: 4px 2px; border-radius: 12px;
+  color: var(--muted); text-decoration: none; font: 500 11px/1.2 var(--font-ui); letter-spacing: 0;
+}
+.tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab[aria-current="page"] { color: var(--ink); }
+.tab[aria-current="page"] .ico { stroke-width: 2.25; }
+.tab-create { color: var(--ink-2); }
+.tab-create .plus { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--ink-2); color: #fff; }
+.tab-create .plus .ico { width: 22px; height: 22px; }
+.tab-create span:not(.plus) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* Placeholder card for screens built in later stages */
+.placeholder { padding: var(--s8) var(--s6); text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--s3); }

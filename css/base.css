@@ -1,528 +1,88 @@
-/* Base — resets, layout shell (sidebar/workspace), buttons, form fields, panels, tabs, toast */
-/* Self-hosted variable Inter (Latin) for the app's own chrome — works fully
-   offline once cached by the service worker, unlike a Google Fonts <link>.
-   Non-Latin scripts silently fall back to the system font stack below;
-   this only affects editor UI text, never the invoice document itself
-   (each invoice template sets its own font independently). */
-@font-face{font-family:"Inter";src:url("../fonts/inter-variable.woff2") format("woff2-variations"),url("../fonts/inter-variable.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
-/* Inter (above) doesn't include every currency symbol glyph (₹ ₩ ₪ ₦ ₴ ₺ ₽
-   ₱ ₫ ₵ ł č ฿ ৳ are all missing from it) — these three tiny, self-hosted
-   subset fonts fill in exactly those characters so currency symbols
-   (js/format.js's CURRENCY_SYMBOLS) render correctly even fully offline,
-   instead of falling back to tofu boxes or a system font that may not be
-   installed. Each is restricted via unicode-range to only the handful of
-   codepoints it actually contains, so the browser loads it only when one of
-   those specific characters is used. See fonts/LICENSE-CurrencySymbols.txt. */
-@font-face{font-family:"Inter";src:url("../fonts/currency-latinext.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0142,U+010D}
-@font-face{font-family:"Inter";src:url("../fonts/currency-symbols.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+20A0-20AB,U+20AD-20C0}
-/* v3.35.0 — "InvCurSym": the full currency-sign block (₨ ₸ ₼ ₾ ₮ …) plus ฿ ৳, listed FIRST in every invoice
-   template font stack so currency symbols look identical in every template, online or offline.
-   "InvScript" (v3.37.0): full Noto Sans Arabic / Bengali / Devanagari / Sinhala, listed LAST so it is
-   only used when the device has no font for that script (native currency symbols, translated labels). */
-@font-face{font-family:"InvCurSym";src:url("../fonts/currency-symbols.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+20A0-20AB,U+20AD-20C0}
-@font-face{font-family:"InvCurSym";src:url("../fonts/currency-thai.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0E3F}
-@font-face{font-family:"InvCurSym";src:url("../fonts/currency-bengali.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+09F3}
-@font-face{font-family:"InvScript";src:url("../fonts/NotoArabic-400.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+0870-08FF,U+FB50-FDFF,U+FE70-FEFF}
-@font-face{font-family:"InvScript";src:url("../fonts/NotoArabic-700.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+0870-08FF,U+FB50-FDFF,U+FE70-FEFF}
-@font-face{font-family:"InvScript";src:url("../fonts/NotoBengali-400.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0980-09F2,U+09F4-09FE}
-@font-face{font-family:"InvScript";src:url("../fonts/NotoBengali-700.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0980-09F2,U+09F4-09FE}
-@font-face{font-family:"InvScript";src:url("../fonts/NotoDevanagari-400.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0900-097F,U+0964-0965,U+A8E0-A8FF}
-@font-face{font-family:"InvScript";src:url("../fonts/NotoDevanagari-700.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0900-097F,U+0964-0965,U+A8E0-A8FF}
-@font-face{font-family:"InvScript";src:url("../fonts/NotoSinhala-400.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0D80-0DFF}
-@font-face{font-family:"InvScript";src:url("../fonts/NotoSinhala-700.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0D80-0DFF}
-/* v3.37.0 — brand fonts for the Design panel's Font picker (all SIL OFL, self-hosted for offline use). */
-@font-face{font-family:"Montserrat";src:url("../fonts/Montserrat-400-latin.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"Montserrat";src:url("../fonts/Montserrat-400-latin-ext.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:"Montserrat";src:url("../fonts/Montserrat-700-latin.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"Montserrat";src:url("../fonts/Montserrat-700-latin-ext.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:"Lora";src:url("../fonts/Lora-400-latin.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"Lora";src:url("../fonts/Lora-400-latin-ext.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:"Lora";src:url("../fonts/Lora-700-latin.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"Lora";src:url("../fonts/Lora-700-latin-ext.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:"Playfair Display";src:url("../fonts/Playfair-400-latin.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"Playfair Display";src:url("../fonts/Playfair-400-latin-ext.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:"Playfair Display";src:url("../fonts/Playfair-700-latin.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"Playfair Display";src:url("../fonts/Playfair-700-latin-ext.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:"IBM Plex Mono";src:url("../fonts/PlexMono-400-latin.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"IBM Plex Mono";src:url("../fonts/PlexMono-400-latin-ext.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:"IBM Plex Mono";src:url("../fonts/PlexMono-700-latin.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"IBM Plex Mono";src:url("../fonts/PlexMono-700-latin-ext.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:"Noto Sans";src:url("../fonts/NotoSans-400-latin.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"Noto Sans";src:url("../fonts/NotoSans-400-latin-ext.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:"Noto Sans";src:url("../fonts/NotoSans-700-latin.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"Noto Sans";src:url("../fonts/NotoSans-700-latin-ext.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-@font-face{font-family:"Inter";src:url("../fonts/currency-thai.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0E3F}
-@font-face{font-family:"Inter";src:url("../fonts/currency-bengali.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+09F3}
-/* --app-accent is the app's OWN UI color (tabs, primary buttons, focus rings,
-   switches, badges) — fixed, independent of --accent which is set on #invoice
-   and only affects the invoice design itself. Changing the invoice's Accent
-   color must never restyle the editor chrome. */
-:root{--app-accent:#4f46e5;--app-accent-rgb:79,70,229;--app-accent-dark:#4338ca;--accent:#18181b;--accent-rgb:24,24,27;--ink:#1a1d29;--font-modern:"Inter","Segoe UI",Arial,"InvScript",sans-serif;--muted:#6b7280;--line:#e3e6ee;--panel:#fff;--danger:#b42318;--radius:14px;--radius-sm:9px;--sidebar-width:232px;--right-sidebar-width:280px;--page-w:210mm;--page-h:297mm;--shadow-sm:0 1px 2px rgba(16,24,40,.06);--shadow-md:0 6px 20px rgba(16,24,40,.08);--shadow-lg:0 18px 40px rgba(16,24,40,.14);--bg:#eef0f6}
-*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
-body{margin:0;font-family:var(--font-modern);background:radial-gradient(1100px 620px at 14% -8%,#eef1fb 0%,var(--bg) 46%) fixed,var(--bg);color:var(--ink);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
-button,input,select,textarea{font:inherit}button{cursor:pointer}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(var(--app-accent-rgb),.25);outline-offset:2px}
-/* .appheader (a normal, in-flow block above this) has real height of its
-   own — .app used to claim a flat "min-height:100vh" regardless, which
-   quietly made the *actual* content below the header taller than the
-   remaining viewport by exactly the header's height, needing a permanent
-   little bit of extra page scroll just to reach the bottom of a full-height
-   pane. flex:1 on .app (body is now the flex column, above) instead gives
-   it exactly the space left after the header — no fixed guess, correct at
-   any header height/wrap — and grid-template-rows:1fr makes that single
-   row (and therefore every grid item stretched to it: .sidebar, .workspace,
-   .right-sidebar) resolve to a real, definite height matching it, so each
-   pane's own overflow:auto/scrollbar works against a size that's actually
-   the visible viewport, not merely "at least" it. min-height:0 overrides a
-   flex item's default min-height:auto, which would otherwise still let
-   .app's own content (not just its children's overflow) push it taller
-   than the space flex just gave it. */
-.app{display:grid;grid-template-columns:var(--sidebar-width) minmax(0,1fr) var(--right-sidebar-width);grid-template-rows:1fr;flex:1;min-height:0;position:relative;transition:grid-template-columns .18s ease}
-.app.design-closed{grid-template-columns:var(--sidebar-width) minmax(0,1fr) 0}
-.app.design-closed .right-sidebar,.app.design-closed .sidebar-resizer{display:none}
-.sidebar{height:100vh;overflow:hidden;position:sticky;top:0;background:#fff;border-right:1px solid var(--line);padding:16px;transition:padding .18s ease;display:flex;flex-direction:column}
-.sidebar-scroll{flex:1 1 auto;min-height:0;overflow:auto}
-/* Version/credit strip — its own non-scrolling row at the very bottom of
-   the sidebar (see .sidebar/.sidebar-scroll above), so it stays visible
-   regardless of how far the nav list above it is scrolled. */
-.sidebar-footer{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);white-space:nowrap}
-.sidebar-footer a{color:var(--muted);font-weight:750;text-decoration:none}
-.sidebar-footer a:hover{color:var(--app-accent);text-decoration:underline}
-.sidebar-resizer{position:absolute;top:0;right:var(--right-sidebar-width);width:6px;height:100%;margin-right:-3px;cursor:col-resize;z-index:16;background:transparent;transition:background .15s}
-.sidebar-resizer:hover,.sidebar-resizer.dragging{background:rgba(var(--app-accent-rgb),.35)}
-/* No explicit height here on purpose — .app's grid-template-rows:1fr (see
-   above) already stretches this to fill the exact space available (grid
-   items default to align-items:stretch), correctly accounting for
-   .appheader's own height above it. An explicit height:100vh here would
-   *ignore* that and claim the full viewport height regardless of the
-   header — taller than the space actually left for it, which is exactly
-   the "phantom extra scroll" problem grid-template-rows:1fr avoids. */
-.workspace{padding:18px 20px;overflow:auto}.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:12px}
-/* Right Sidebar — canvas/document settings (Page setup, Alignment, Template,
-   Currency). Same visual language as the left .sidebar (panels, fields,
-   scroll), mirrored on the opposite edge; independently scrollable so a
-   long left sidebar and a short right one (or vice versa) never fight each
-   other for space. Hidden entirely at print (css/print.css) and on the
-   mobile "Menu" view (css/responsive.css) — it's an editing tool, not part
-   of the document. Closeable via its own header button (#designCloseBtn),
-   reopened via #designReopenBtn in the canvas toolbar (see .design-reopen-
-   btn below) — matches the reference UI, which shows a close (X) inside
-   the panel's own header. */
-.right-sidebar{height:100vh;overflow:auto;position:sticky;top:0;background:#fff;border-left:1px solid var(--line);padding:16px}
-.right-sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.right-sidebar-head>.icon{width:18px;height:18px;color:var(--app-accent);flex:none}
-.right-sidebar-head h2{margin:0;font-size:14px;font-weight:800;flex:1;min-width:0}
-.right-sidebar-head .btn.icon{flex:none;width:26px;height:26px}
-button.design-reopen-btn{display:none}
-.app.design-closed button.design-reopen-btn{display:inline-flex}
-.appheader{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--line);padding:10px 16px}
-.appheader .topbar{margin-bottom:0;flex:1 1 auto;min-width:0}
-/* Brand mark — the InvoGen logo (document + checkmark, indigo gradient),
-   the exact same SVG used for the favicon and PWA app icons (see
-   icons/icon.svg), inlined here for crisp rendering with zero extra
-   requests. The gradient/rounding live in the SVG itself; this box only
-   handles sizing, elevation, and clipping so the logo reads identically
-   everywhere it appears. */
-.brand{display:flex;gap:10px;align-items:center;min-width:0;width:100%}
-/* Flex items default to min-width:auto (their content's un-shrunk min-content
-   size), not 0 — for this wrapper that min-content size is the tagline's
-   full nowrap text width (see .brand p below), which silently forced .brand,
-   .topbar and .appheader wider than the viewport on narrow phones no matter
-   how much overflow:hidden/text-overflow:ellipsis the text itself had,
-   since there was never a bounded width for those to truncate against.
-   The explicit width:100% above matters even more on phones specifically:
-   .topbar switches to align-items:flex-start there (responsive.css, so its
-   column-stacked children read top-aligned instead of centered) — normal/
-   stretch (the desktop default) was what had been implicitly holding .brand
-   to topbar's own width; flex-start sizes a flex item by its own content
-   instead, which is exactly the wide, unshrinkable nowrap text this rule
-   fixes, so .brand needs to claim topbar's full width itself rather than
-   relying on stretch to hand it over. */
-.brand>div:not(.mark){min-width:0;flex:1 1 auto}
-/* :not(.mark) above matters, not just style: .mark (the logo icon box,
-   defined next) is also a plain <div> and a direct child of .brand, so an
-   unqualified ".brand>div" rule matches it too — and by specificity (a
-   class+type combinator beats .mark's own single-class "flex:none") would
-   win and stretch the 38px icon into a full-width bar. */
-.mark{width:38px;height:38px;border-radius:11px;box-shadow:0 4px 12px rgba(var(--app-accent-rgb),.35);display:grid;place-items:center;flex:none;overflow:hidden}
-.mark svg{width:100%;height:100%;display:block}
-.brand h1{font-size:17px;margin:0;letter-spacing:-.01em}.brand p{margin:2px 0 0;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* Feature tagline — the app's one-line description under the wordmark.
-   Hidden by default so it never adds height to the already-compact
-   .appheader; shown once the header has comfortable room to spare beyond
-   the brand text and the action buttons (>=1180px, see responsive.css),
-   and again once the header stacks vertically on phones (<=640px, where
-   there's vertical room even though horizontal space is tight — .brand p's
-   own overflow:hidden/text-overflow:ellipsis above truncates gracefully if
-   it doesn't fit). */
-.tagline{display:none}
-/* Header action row (Save/Duplicate/Export/Import/Reset/Print) — every
-   button here is the exact same element/id/handler that used to live split
-   across the old sidebar ".actions" block and the canvas toolbar's
-   ".invoice-toolbar"; only their location and look changed, to read as one
-   clear primary action row (reference UI) instead of two separate strips.
-   Grouped into .actions-primary (Save, Print — the two most frequent,
-   highest-consequence actions, kept visually distinct via .btn.primary)
-   and .actions-secondary (Duplicate, Export, Import, Reset — no longer
-   behind a "..." overflow menu; see the comment on .header-actions in
-   index.html for why). The grouping is a plain flex sub-row each, not a
-   popover/dropdown, so there's nothing to open/close/position — every
-   button is always simply *there*. */
-.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:none}
-.actions-primary,.actions-secondary{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.actions{display:flex;gap:6px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);background:#fff;border-radius:var(--radius-sm);padding:7px 11px;font-size:12px;font-weight:750;color:var(--ink);box-shadow:var(--shadow-sm);transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease,background-color .12s ease}
-.mtb-icon,.fullscreen-exit{display:none}
-.btn:hover{border-color:#c2c9d6;transform:translateY(-1px);box-shadow:var(--shadow-md)}.btn:active{transform:translateY(0)}.btn.primary{background:linear-gradient(160deg,var(--app-accent),var(--app-accent-dark));border-color:var(--app-accent-dark);color:#fff}.btn.primary:hover{box-shadow:0 10px 22px rgba(var(--app-accent-rgb),.32)}.btn.danger{color:var(--danger)}.btn.small{padding:6px 9px;font-size:11px}.btn.icon{width:31px;height:31px;padding:0}
-/* App navigation (left sidebar) — each row is a relocated, unchanged
-   button/handler (see the comment in index.html), styled as an icon +
-   title + subtitle row instead of a plain toolbar button, matching the
-   reference UI's left-hand nav list. "Invoices" is the sole non-button
-   row: this app has only the one editor view, so it's a static "you are
-   here" indicator rather than a control that would do nothing. */
-.appnav{display:flex;flex-direction:column;gap:3px;margin-bottom:14px}
-.navitem{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:1px solid transparent;background:transparent;border-radius:11px;padding:9px 10px;font:inherit;color:var(--ink);cursor:pointer}
-.navitem .icon{width:19px;height:19px;flex:none;color:var(--muted)}
-.navitem span{display:flex;flex-direction:column;gap:1px;min-width:0}
-.navitem strong{font-size:12.5px;font-weight:750}
-.navitem small{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.navitem:hover{background:#f4f6f9}
-.navitem.active,.navitem[aria-current="page"]{background:rgba(var(--app-accent-rgb),.08);cursor:default}
-.navitem.active .icon,.navitem[aria-current="page"] .icon{color:var(--app-accent)}
-.navitem.active strong,.navitem[aria-current="page"] strong{color:var(--app-accent)}
-.navitem-dropdown{position:relative}
-.navitem-dropdown .navitem{width:100%}
-.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:#eef0f7;padding:4px;border-radius:11px;margin-bottom:10px}.tab{border:0;background:transparent;border-radius:8px;padding:7px 2px;font-size:9.5px;font-weight:800;line-height:1.25;color:#5c6472;transition:background-color .15s ease,color .15s ease}.tab.active{background:#fff;box-shadow:var(--shadow-sm);color:var(--app-accent)}
-.tabpane{display:none}.tabpane.active{display:block}
-.panel{border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:10px;background:var(--panel);box-shadow:var(--shadow-sm);transition:box-shadow .15s ease}
-.panelhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;cursor:pointer;user-select:none}
-.panelhead h2{font-size:13px;margin:0;letter-spacing:-.005em}.hint{font-size:10px;color:var(--muted)}
-.panelhead::after{content:"⌄";margin-left:6px;color:var(--muted);font-size:13px;transition:transform .15s ease;flex:none}
-.panel.collapsed{padding-bottom:12px}.panel.collapsed>*:not(.panelhead){display:none}.panel.collapsed .panelhead{margin-bottom:0}.panel.collapsed .panelhead::after{transform:rotate(-90deg)}
-.grid2,.grid3{display:grid;gap:8px}.grid2{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:repeat(3,1fr)}.full{grid-column:1/-1}
-.field label{display:block;font-size:10.5px;font-weight:850;text-transform:uppercase;letter-spacing:.04em;color:#475467;margin-bottom:3px}.field input,.field select,.field textarea{width:100%;border:1px solid #d7dce5;border-radius:var(--radius-sm);padding:7px 9px;background:#fff;min-height:34px;transition:border-color .12s ease,box-shadow .12s ease}.field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(var(--app-accent-rgb),.55);box-shadow:0 0 0 3px rgba(var(--app-accent-rgb),.12)}.field textarea{min-height:60px;resize:vertical}
-.field .colorrow{display:flex;gap:6px;align-items:center}.field .colorrow input[type=color]{width:40px;padding:2px;flex:none;min-height:34px}.field .colorrow input[type=text]{flex:1}
-.toggleline{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed #e0e5ec;font-size:12px}.toggleline:last-child{border-bottom:0}.switch{position:relative;width:38px;height:21px}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;inset:0;background:#c9d1dc;border-radius:20px;transition:.2s}.slider:before{content:"";position:absolute;width:15px;height:15px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(16,24,40,.25)}.switch input:checked+.slider{background:var(--app-accent)}.switch input:checked+.slider:before{transform:translateX(17px)}
-.columnrow{border:1px solid #dde3eb;border-radius:var(--radius-sm);padding:9px;margin-bottom:7px;background:#fbfcfe}.columnhead{display:flex;align-items:center;gap:6px;margin-bottom:7px}.drag{color:#7a8390;cursor:grab;font-size:17px}.columnhead strong{font-size:11px;flex:1}.colgrid{display:grid;grid-template-columns:1.2fr .8fr .6fr;gap:7px}.tiny{font-size:10px}
-.itemcard{border:1px solid #dde3eb;border-radius:var(--radius-sm);padding:9px;margin-bottom:7px;background:#fbfcfe}.itemtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}.itemtop strong{font-size:11px}.itemgrid{display:grid;gap:7px;grid-template-columns:repeat(2,1fr)}.itemgrid .field textarea{min-height:44px}
-.historycard{border:1px solid #dde3eb;border-radius:10px;padding:10px;margin-bottom:8px;background:#fbfcfe}.historycard.current{border-color:var(--app-accent);box-shadow:0 0 0 1px rgba(var(--app-accent-rgb),.25)}.historytop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.historytop strong{font-size:12.5px}.historyamount{font-size:12.5px;font-weight:800;white-space:nowrap}.historymeta{display:flex;justify-content:space-between;align-items:center;margin:6px 0 8px;gap:8px}.historyactions{display:flex;gap:6px;flex-wrap:wrap}.historyactions .btn{flex:1 1 auto}
-.tinybadge{font-size:8.5px;font-weight:800;color:var(--app-accent);background:rgba(var(--app-accent-rgb),.1);border-radius:6px;padding:2px 6px;margin-left:5px;text-transform:uppercase;letter-spacing:.04em;vertical-align:middle}
-/* Sits directly under the header (index.html) as its own full-width bar —
-   not the rounded, inset "card" look it had inside .sidebar's own padding
-   before — spanning edge-to-edge with its own horizontal padding instead,
-   consistent with the header's. Shown/hidden purely by js/install.js
-   toggling .hidden (display:none!important, so it always wins over the
-   flex below) based on actual installability — no width-based media query
-   here on purpose; see the comment on #installBanner in index.html. */
-.install-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:rgba(var(--app-accent-rgb),.06);border-bottom:1px solid rgba(var(--app-accent-rgb),.16);padding:9px 20px;font-size:11.5px;line-height:1.35}
-.notice{font-size:11px;color:#475467;background:rgba(var(--app-accent-rgb),.07);border:1px solid rgba(var(--app-accent-rgb),.14);padding:8px 9px;border-radius:9px;margin-bottom:10px}
-.importhelp{margin:8px 0 10px;font-size:11.5px}
-.importhelp summary{cursor:pointer;font-weight:800;color:var(--app-accent);list-style:none;padding:2px 0}
-.importhelp summary::-webkit-details-marker{display:none}
-/* Bounded, independently-scrolling tutorial body — max-height + overflow-y
-   keep it (and the rest of the Import panel below it: the danger zone) on
-   screen and reachable even on a short window, instead of the accordion
-   pushing the whole floating panel past the bottom of the viewport with no
-   way to scroll the overflow into view. overscroll-behavior:contain stops
-   scrolling this inner box from also scrolling the panel/page behind it
-   once it hits its own top/bottom edge. */
-.importhelp-body{margin-top:8px;padding:8px 10px;background:#f7f9fc;border:1px solid #e1e6ee;border-radius:9px;color:#344054;line-height:1.45;max-height:min(220px,40vh);overflow-y:auto;overscroll-behavior:contain}
-.importhelp-body p{margin:0 0 6px;font-size:11px}
-.importhelp-body p:last-child{margin-bottom:0}
-.importhelp-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
-.importhelp-list li{font-size:11px}
-.importhelp-list strong{color:var(--ink)}
-.importhelp-aliases{display:block;color:var(--muted);font-size:10.5px;margin-top:1px}
-.importhelp-body a{color:var(--app-accent);font-weight:700;text-decoration:none}
-.importhelp-body a:hover{text-decoration:underline}
-/* Visually separates an irreversible action (Clear all line items) from the
-   ordinary actions above it inside a dropdown panel — a dashed rule + small
-   uppercase "Danger zone" label, the same convention modern SaaS settings
-   pages use to make sure a destructive action is never mistaken for a
-   routine one. The button itself still requires a confirm() before anything
-   is actually deleted. */
-.danger-zone{margin-top:10px;padding-top:10px;border-top:1px dashed #f0d3ce}
-.danger-zone-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--danger);margin-bottom:6px}
-/* Sprite icons — replace pictographic emoji so every icon renders identically
-   across platforms and can inherit the surrounding text color (including the
-   app accent), instead of relying on the OS's own colorful emoji font. */
-.icon{width:15px;height:15px;flex:none;stroke:currentColor;vertical-align:-2px}
-.btn .icon{margin-right:5px}
-.btn.icon .icon{margin-right:0}
-.drawer-item{gap:10px}
-.drawer-item .icon{width:17px;height:17px}
-.canvasmode-btn .icon{width:14px;height:14px}
-.install-banner .icon{width:15px;height:15px;margin-right:5px;vertical-align:-3px;color:var(--app-accent)}
-.install-banner .install-text{flex:1 1 220px;min-width:0}
-.hidden{display:none!important}
-.toast{position:fixed;right:20px;bottom:20px;background:#191d2b;color:#fff;padding:11px 14px;border-radius:11px;box-shadow:var(--shadow-lg);font-size:12.5px;max-width:min(360px,calc(100vw - 40px));opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:99}
-.toast.show{opacity:1;transform:none}
-@media (max-width:640px){.toast{left:14px;right:14px;bottom:calc(74px + env(safe-area-inset-bottom));max-width:none;text-align:center}
-  body.fullscreen-preview .toast{bottom:calc(14px + env(safe-area-inset-bottom))}}
-
-/* Invoice toolbar — Save/Duplicate/History/New invoice. Shares one visual
-   pill with the Edit/Preview + Zoom bar on desktop (see .toolbar-row in
-   css/invoice.css, which supplies the shared background/border/shadow)
-   instead of stacking as two separate boxed bars; on phones this becomes a
-   plain vertical list once js/layout.js moves it into the hamburger
-   drawer (see .drawer-toolbar-slot in responsive.css for that styling). */
-.invoice-toolbar{display:flex;justify-content:center}
-.invoice-toolbar-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-/* Tiny "Saved ✓ 4:12 PM" confirmation that appears next to Save right after
-   it succeeds and fades after a few seconds — a persistent, easy-to-spot
-   confirmation (unlike the toast, which is easy to miss) that the click
-   actually did something, addressing "it doesn't look like it's saving". */
-.save-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#18794e;opacity:0;transform:translateX(-4px);transition:opacity .2s ease,transform .2s ease;white-space:nowrap}
-.save-status.show{opacity:1;transform:translateX(0)}
-.save-status::before{content:"";width:6px;height:6px;border-radius:50%;background:#18a558;flex:none;box-shadow:0 0 0 3px rgba(24,165,88,.15)}
-.history-dropdown{position:relative}
-/* Positioned as position:fixed with top/left set inline by JS (see
-   layout.js's positionDropdownPanel) rather than position:absolute here —
-   .toolbar-row (the button strip these dropdowns hang off of) has
-   overflow-x:auto for horizontal scrolling on narrow widths, and any
-   absolutely-positioned descendant gets clipped to that scrolling
-   container's own bounds, which was squashing this panel visually inside
-   the toolbar instead of letting it float below it. Fixed positioning
-   with JS-computed coordinates escapes that clipping entirely. The mobile
-   media query below still overrides this into simple centered-fixed. */
-/* #floatingLayer (end of <body>) holds every one of these panels — see the
-   long comment there for why they can't live inside the buttons/toolbars
-   that open them. z-index:100 clears every other layer in the app (toast
-   99, panel-overlay/drawer-overlay backdrops 99/65, the off-canvas
-   sidebar/Design drawers 70, fullscreen-exit 60, the sticky hamburger bar
-   40 — see responsive.css) so a panel is never hidden behind app chrome
-   regardless of viewport width. */
-#floatingLayer{position:relative;z-index:100}
-.history-panel{display:none;position:fixed;z-index:100;width:min(360px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);padding:12px}
-.history-panel.open{display:block}
-.history-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-.history-panel-head h2{font-size:13px;margin:0}
-/* Close (×) button injected into every panel head by js/layout.js — hidden
-   here by default (unchanged desktop behavior: click the same toggle again,
-   or click outside) and only shown on phone widths, where it's needed (see
-   the long comment in layout.js and the .history-panel-close rule in
-   responsive.css for why). */
-.history-panel-close{display:none;flex:none;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border:0;background:transparent;border-radius:8px;color:var(--muted)}
-.history-panel-close:hover{background:#f1f2f6;color:var(--ink)}
-.history-panel-close .icon{width:15px;height:15px}
-
-/* Off-screen but still fully functional data-backing fields (see
-   #detailsHiddenFields in index.html) — every value on the invoice that
-   isn't shown as its own sidebar panel anymore, now that it's directly
-   editable in the live preview instead. Uses the standard "visually
-   hidden" clip pattern (not display:none) so the hidden file input can
-   still be opened programmatically (logobox click / drag-drop) and the
-   range slider can still be dragged via the on-canvas resize handle. */
-.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-
-/* Theme switch (Settings panel) — visual twin of .logo-position-switch/
-   .logo-position-btn (same 3-way segmented pill), but its own class: the
-   Logo settings panel already wires a click handler to every element
-   matching .logo-position-btn (js/main.js), so reusing that class here
-   would make this control silently fight over the logo's position field. */
-.theme-switch{display:flex;gap:2px;background:#eef0f7;padding:3px;border-radius:9px}
-.theme-btn{flex:1 1 0;border:0;background:transparent;border-radius:6px;padding:6px 4px;font-size:10.5px;font-weight:750;color:var(--muted);cursor:pointer;transition:background-color .15s ease,color .15s ease,box-shadow .15s ease}
-.theme-btn.active{background:#fff;color:var(--app-accent);box-shadow:var(--shadow-sm)}
-.theme-btn:not(.active):hover{color:var(--ink)}
-
-/* ------------------------------------------------------------------------
-   Theme (Settings > Theme: Light/Dark/System — js/settings.js sets
-   data-theme on <html>) — restyles the app's OWN chrome: both sidebars,
-   the header, the mobile view switcher, and every floating panel (Saved
-   Invoices, Brand Templates, Import, Logo settings, Column settings,
-   Settings, Help). Scoped to those containers specifically, rather than a
-   blanket variable override, and .workspace (toolbar + canvas + the
-   invoice itself) explicitly resets the shared --ink/--muted/--line/
-   --panel variables back to their light values immediately below — so an
-   invoice, its toolbar, and its print/PDF output always look exactly the
-   same no matter which theme is editing it in.
-   ------------------------------------------------------------------------ */
-:root[data-theme="dark"]{--bg:#0c0a09;--panel:#1c1917;--panel-alt:#26211f;--ink:#fafaf9;--muted:#a8a29e;--line:#292524}
-:root[data-theme="dark"] body{background:var(--bg)}
-/* Canvas shield: keeps the invoice toolbar (Undo/Redo/Zoom/Currency/Edit-
-   Preview), the canvas itself and the document inside it fully unaffected
-   by the vars above. */
-:root[data-theme="dark"] .workspace{--ink:#1a1d29;--muted:#6b7280;--line:#e3e6ee;--panel:#fff;--bg:#eef0f6}
-:root[data-theme="dark"] .sidebar,
-:root[data-theme="dark"] .right-sidebar,
-:root[data-theme="dark"] .appheader,
-:root[data-theme="dark"] .mobileview-toggle,
-:root[data-theme="dark"] .history-panel,
-:root[data-theme="dark"] .logo-settings-panel,
-:root[data-theme="dark"] .col-settings-panel{background:var(--panel);border-color:var(--line);color:var(--ink)}
-:root[data-theme="dark"] .sidebar .btn,
-:root[data-theme="dark"] .right-sidebar .btn,
-:root[data-theme="dark"] .appheader .btn,
-:root[data-theme="dark"] .mobileview-toggle .btn,
-:root[data-theme="dark"] .history-panel .btn,
-:root[data-theme="dark"] .logo-settings-panel .btn,
-:root[data-theme="dark"] .col-settings-panel .btn{background:var(--panel-alt);border-color:var(--line);color:var(--ink)}
-:root[data-theme="dark"] .sidebar .btn:hover,
-:root[data-theme="dark"] .right-sidebar .btn:hover,
-:root[data-theme="dark"] .appheader .btn:hover,
-:root[data-theme="dark"] .history-panel .btn:hover{border-color:#57534e}
-:root[data-theme="dark"] .field label{color:#a8a29e}
-:root[data-theme="dark"] .field input,
-:root[data-theme="dark"] .field select,
-:root[data-theme="dark"] .field textarea{background:var(--panel-alt);border-color:#44403c;color:var(--ink)}
-:root[data-theme="dark"] .navitem:hover{background:var(--panel-alt)}
-:root[data-theme="dark"] .navitem.active,
-:root[data-theme="dark"] .navitem[aria-current="page"]{background:rgba(var(--app-accent-rgb),.16)}
-:root[data-theme="dark"] .theme-switch,
-:root[data-theme="dark"] .logo-position-switch{background:var(--panel-alt)}
-:root[data-theme="dark"] .theme-btn.active,
-:root[data-theme="dark"] .logo-position-btn.active{background:#292524}
-:root[data-theme="dark"] .toast{background:#0c0a09}
-:root[data-theme="dark"] .install-banner{background:rgba(var(--app-accent-rgb),.16);border-color:rgba(var(--app-accent-rgb),.3)}
-:root[data-theme="dark"] .notice{background:rgba(var(--app-accent-rgb),.14);border-color:rgba(var(--app-accent-rgb),.26);color:#d6d3d1}
-:root[data-theme="dark"] .sidebar-footer{border-color:var(--line)}
-:root[data-theme="dark"] .historycard{background:var(--panel-alt);border-color:#44403c}
-:root[data-theme="dark"] .historycard.current{border-color:var(--app-accent)}
-
-
-/* --- Billing / Calculators submenus (sidebar) -------------------------------------------
-   Group heading + indented sub-items built from the existing .navitem look —
-   same hover/active colors, just a smaller, single-line row nested under a
-   thin guide line. The chevron rotates when the group is collapsed. */
-.navgroup-toggle .navgroup-chevron{width:15px;height:15px;margin:0 0 0 auto;flex:none;color:var(--muted);transition:transform .15s ease}
-.navgroup-toggle[aria-expanded="false"] .navgroup-chevron{transform:rotate(-90deg)}
-.navgroup-toggle .icon:first-child{color:var(--app-accent)}
-.navgroup-toggle strong{color:var(--app-accent)}
-.navsub{display:flex;flex-direction:column;gap:1px;margin:2px 0 4px 19px;padding-left:8px;border-left:1px solid var(--line)}
-.navsub[hidden]{display:none}
-.navsub .navitem{padding:6px 9px;gap:9px;border-radius:9px}
-.navsub .navitem .icon{width:16px;height:16px}
-.navsub .navitem strong{font-size:12px}
-.calc-panel{--calc-gap:8px}
-.calc-tabs{margin-bottom:10px}
-.calc-body[hidden]{display:none}
-.calc-results{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.calc-result{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:rgba(var(--app-accent-rgb),.05)}
-.calc-result span{font-size:10px;font-weight:750;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.calc-result strong{font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.calc-table-wrap{margin-top:10px;max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius-sm)}
-.calc-table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
-.calc-table th,.calc-table td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--line)}
-.calc-table th:first-child,.calc-table td:first-child{text-align:left}
-.calc-table thead th{position:sticky;top:0;background:#f7f8fb;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-.calc-table tbody tr:last-child td{border-bottom:0}
-:root[data-theme="dark"] .calc-table thead th{background:var(--panel-alt)}
-:root[data-theme="dark"] .navsub{border-left-color:var(--line)}
-
-/* --- Settings danger-zone helper text ----------------------------------- */
-.danger-hint{display:block;margin-top:5px;font-size:10.5px;line-height:1.35}
-
-/* --- Responsive Design-panel form (container-based) ---------------------
-   The panel's width is NOT the viewport's: on desktop it is a 240–480px
-   resizable column, on phones a ≤340px drawer. The old rule (responsive.css)
-   only collapsed two-up fields from the *viewport* width, so a panel dragged
-   narrow on a wide screen kept cramped two-column rows. Making the panel a
-   size container lets its fields follow the width they actually have:
-   at the default 280px panel (248px of content) the existing two-column
-   layout is unchanged; below ~240px of content they stack to one column.
-   (Narrow viewports keep the existing single-column rule too.) */
-.right-sidebar{container-type:inline-size;container-name:designform}
-@container designform (max-width:239px){
-  .grid2,.grid3,.itemgrid{grid-template-columns:1fr}
+/* base.css — reset, typography, focus rings, motion and RTL defaults. */
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--canvas);
 }
-.right-sidebar .field,.right-sidebar .grid2>*,.right-sidebar .grid3>*{min-width:0}
-.right-sidebar .field input,.right-sidebar .field select,.right-sidebar .field textarea{max-width:100%;min-width:0}
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--canvas);
+  color: var(--body);
+  font: 400 var(--fs-body)/1.5 var(--font-ui);
+  letter-spacing: .1px;
+  overflow-x: hidden;
+}
+/* Arabic, Bengali and Devanagari need a little more line height and no letter-spacing. */
+html[lang="ar"] body, html[lang="bn"] body, html[lang="hi"] body { letter-spacing: 0; line-height: 1.6; }
+html[lang="ar"] .h1, html[lang="bn"] .h1, html[lang="hi"] .h1 { letter-spacing: 0; line-height: 1.25; }
 
-/* === UI polish layer =========================================================
-   Visual refinement of the existing app chrome only (header, left nav, canvas
-   toolbar, Design panel, form controls). Same structure, same colors, same
-   controls — this just unifies size/spacing/type so the pieces read as one
-   system: one control height (--ctrl-h), one control font size, one radius,
-   one hairline border, calmer elevation. Deliberately does NOT touch
-   .invoice / templates / print — the document itself is unchanged.
-   css/responsive.css (loaded after this file) still wins at tablet/phone. */
-:root{--ctrl-h:34px;--ctrl-font:13px;--ctrl-radius:8px;--ease-ui:150ms cubic-bezier(.2,.7,.3,1)}
+h1, h2, h3, p, ul, ol, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+img, svg { display: block; max-width: 100%; }
+svg.ico { flex: none; }
+button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+button:disabled { cursor: not-allowed; }
+a { color: var(--ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+input, select, textarea { max-width: 100%; min-width: 0; }
+[hidden] { display: none !important; }
 
-/* Header: a little more air, 34px controls everywhere (they were 29px here but
-   34px in the canvas toolbar), and a hairline dividing primary from secondary. */
-.appheader{padding:12px 20px;gap:16px}
-.brand h1{font-size:18px;font-weight:800}
-.header-actions .btn{min-height:var(--ctrl-h);padding:0 13px;font-size:12px}
-.btn{border-radius:var(--ctrl-radius);transition:background-color var(--ease-ui),border-color var(--ease-ui),box-shadow var(--ease-ui),color var(--ease-ui)}
-.btn:hover{transform:none}
-.btn:not(.primary):not(.danger){box-shadow:none}
-.btn:not(.primary):not(.danger):hover{background:var(--surface-hover);border-color:var(--line-strong);box-shadow:none}
-@media (min-width:641px){
-  .actions-secondary{padding-left:12px;margin-left:4px;border-left:1px solid var(--line)}
+/* Focus: always visible for keyboard users */
+:focus { outline: none; }
+:focus-visible { outline: var(--focus); outline-offset: 2px; border-radius: 4px; }
+.btn:focus-visible, .chip:focus-visible, .icon-btn:focus-visible { border-radius: var(--r-pill); }
+
+::placeholder { color: var(--muted); opacity: 1; }
+::selection { background: #e7e5e4; color: var(--ink); }
+
+.h1 {
+  font: 300 var(--fs-h1)/1.05 var(--font-display);
+  letter-spacing: -1.2px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.h2 {
+  font: 300 var(--fs-h2)/1.2 var(--font-display);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.eyebrow {
+  font: 600 var(--fs-caption)/1.4 var(--font-ui);
+  letter-spacing: .96px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.muted { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+/* Numbers, codes and amounts never get reordered inside right-to-left text */
+.ltr { direction: ltr; unicode-bidi: isolate; }
+bdi { unicode-bidi: isolate; }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip-link {
+  position: fixed; inset-inline-start: 8px; top: 8px; z-index: 1000;
+  padding: 12px 16px; background: var(--ink-2); color: #fff; border-radius: var(--r-pill);
+  transform: translateY(-200%); transition: transform var(--t-fast) var(--ease);
+}
+.skip-link:focus { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important;
+  }
 }
 
-/* Left nav: roomier rows, slightly larger secondary text (10.5px was hard to
-   read), consistent hover/active feedback. */
-.sidebar{padding:18px 12px 12px}
-.appnav{gap:2px}
-.navitem{padding:9px 12px;border-radius:10px;transition:background-color var(--ease-ui),color var(--ease-ui)}
-.navitem strong{font-size:13px;font-weight:700}
-.navitem small{font-size:11px}
-.navitem.navsubitem{padding:6px 12px}
-.sidebar .notice{font-size:11.5px;line-height:1.45;padding:10px 12px;border-radius:10px}
-.sidebar-footer{font-size:11px}
-
-/* Design panel: flat, hairline-bordered cards (no stacked shadows), clearer
-   section headings, and form controls at the same 34px / 13px as the rest of
-   the app instead of the browser-default 16px they were inheriting. */
-.right-sidebar{padding:18px 16px}
-.right-sidebar-head{margin-bottom:16px}
-.right-sidebar-head h2{font-size:15px;font-weight:800}
-.panel{padding:14px;margin-bottom:12px;border-radius:12px;box-shadow:none}
-.panelhead{margin-bottom:12px}
-.panelhead h2{font-size:13px;font-weight:750}
-.grid2,.grid3{gap:10px}
-.field label{font-size:11px;font-weight:700;letter-spacing:.035em;color:var(--muted);margin-bottom:5px}
-.field input,.field select,.field textarea{font-size:var(--ctrl-font);min-height:var(--ctrl-h);border-radius:var(--ctrl-radius);border-color:#d5dae3}
-.field input:hover,.field select:hover,.field textarea:hover{border-color:#b8c0cf}
-.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible{border-color:var(--app-accent);outline:3px solid rgba(var(--app-accent-rgb),.18);outline-offset:0}
-.field+.field{margin-top:12px}
-.grid2>.field+.field,.grid3>.field+.field,.field.full+.field{margin-top:0}
-.field .colorrow{gap:8px}
-.field .colorrow input[type=color]{width:44px;min-height:var(--ctrl-h);border-radius:var(--ctrl-radius)}
-.field .hint,.panel .hint{font-size:11px;line-height:1.45}
-.toggleline{padding:10px 0;font-size:12.5px}
-
-/* Canvas area: a little more breathing room around the document. */
-.workspace{padding:20px 24px 32px}
-
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;scroll-behavior:auto!important}
+/* Boot screen shown until the app has loaded its data */
+.boot {
+  min-height: 100vh; display: grid; place-items: center;
+  font: 700 22px/1 var(--font-display); letter-spacing: -.48px; color: var(--ink);
 }
-
-/* === UI refinement pass 2 — guided by the supplied invoice-app sample ========
-   Principles taken from the sample (adapted, not copied; InvoGen's indigo
-   identity, white header and left-nav structure are kept): content lives on
-   soft cards with a clearly separated section-header band; one consistent
-   36px rounded field style; larger corner radii; a clear primary action;
-   generous but even spacing. Theme tokens (not hardcoded colors) so the
-   existing dark theme keeps working. */
-:root{--surface-2:#f7f8fb;--surface-hover:#f1f3f9;--line-strong:#c9cfdb;--radius-card:14px;--ctrl-h:36px}
-:root[data-theme="dark"]{--surface-2:#211d1b;--surface-hover:#292524;--line-strong:#44403c}
-
-/* Section cards (Design panel + left-sidebar panels): header band + body. */
-.panel{border-radius:var(--radius-card);padding:12px 14px 14px;background:var(--panel)}
-.panelhead{margin:-12px -14px 14px;padding:12px 14px;background:var(--surface-2);border-bottom:1px solid var(--line);border-radius:var(--radius-card) var(--radius-card) 0 0}
-.panelhead h2{font-size:13px;font-weight:750;letter-spacing:0}
-.panel.collapsed{padding-bottom:0}
-.panel.collapsed .panelhead{margin-bottom:0;border-bottom:0;border-radius:var(--radius-card)}
-
-/* One field style: 36px, 10px radius, soft hairline, clear focus. */
-.field input,.field select,.field textarea{min-height:var(--ctrl-h);border-radius:10px;padding:7px 11px}
-.field .colorrow input[type=color]{min-height:var(--ctrl-h);border-radius:10px}
-
-/* Primary actions read as primary: slightly larger, heavier. */
-.header-actions .actions-primary .btn{min-height:var(--ctrl-h);padding:0 16px;font-size:12.5px;font-weight:800;border-radius:10px}
-
-/* Canvas toolbar: calmer surface, same controls. */
-.toolbar-row{border-radius:var(--radius-card);box-shadow:none;padding:8px 12px}
-
-/* Left nav: rounded active pill with a clearer selected state. */
-.navitem{border-radius:11px}
-.navitem.active,.navitem[aria-current="page"]{background:rgba(var(--app-accent-rgb),.09)}
-.appnav{margin-bottom:16px}
-
-/* Header: one hairline, no stacked shadows. */
-.appheader{box-shadow:0 1px 0 var(--line)}
-
-/* Dark theme: the workspace re-scopes --ink to the light paper palette, but text colour is inherited from body, so set it explicitly. */
-:root[data-theme="dark"] .workspace{color:var(--ink)}

@@ -1,385 +1,126 @@
-// main.js — composition root. Imports every module, wires the event
-// listeners that don't already live in a feature module, and boots the app.
-// Loaded as <script type="module" src="js/main.js"> — no bundler needed,
-// the browser resolves all the import statements natively.
+// main.js — starts the app: loads saved data and the interface language, draws the
+// shell, routes between screens (#/documents, #/create, #/edit/<id>, #/clients,
+// #/templates, #/settings, #/guide), keyboard shortcuts and the service worker.
 
-import { $, uid } from "./dom.js";
-import { APP_VERSION, BUILD_DATE, BUILD_STRING } from "./version.js";
-import { state, fields, KEY, DEFAULT_ACCENT, serialize } from "./state.js";
-import { today, plusDays, num } from "./format.js";
+import { $, isTyping } from "./dom.js";
+import { initState, getState, subscribe, lastSaveFailed, runRecurring } from "./state.js";
+import { migrateLegacy } from "./migrate.js";
+import { setLanguage, detectLanguage, t, onLanguageChange } from "./i18n.js";
+import { renderShell, setActive, openLanguageSheet, setOfflineReady } from "./layout.js";
 import { toast } from "./toast.js";
-import { setAccent, applyOptionalColor, clearOptionalColor, applyAllOptionalColors } from "./accent.js";
-import { renderPreview, fitInvoiceCanvas, refreshItemRowAndTotals } from "./preview.js";
-import { initColumnCanvas, addColumn, removeColumn, hideColumn, setRole } from "./columnCanvas.js";
-import { addItem } from "./items.js";
-import { renderToggles } from "./toggles.js";
-import { save, undo, redo, pushEditHistory, updateUndoRedoButtons } from "./persistence.js";
-import { load } from "./invoiceData.js";
-import { LIBRARY_KEY, CURRENT_ID_KEY, getCurrentId, setCurrentId, saveToHistory, renderHistory, duplicateCurrentInvoice, newInvoice, clearLibrary, resetAllFields } from "./library.js";
-import { BRAND_KEY, saveCurrentAsTemplate, renderBrandTemplates, clearBrandTemplates } from "./brandTemplates.js";
-import { parseCSV, mapRows, ensureXLSX } from "./importSheet.js";
-import { printInvoice } from "./print.js";
-import { withPdfGuide, pdfFileName, resetPdfGuide } from "./pdfExport.js";
-import { initInstallPrompt, registerServiceWorker } from "./install.js";
-import { naturalLogoHeight, handleLogoFile, removeLogo } from "./logo.js";
-import { initSettings, getDefaultPaperSize } from "./settings.js";
-import { syncDocTypeUI } from "./docType.js";
-import { initCalculators } from "./calculators.js";
-import { initFormEditor } from "./formEditor.js";
-import { initNavDeclutter, initMoreMenu, initPanelAccordion, initHistoryFilters, initFirstRun, confirmPrint, syncMobileTotal } from "./uxExtras.js";
-// layout.js self-wires its own listeners on import (sidebar resize, mobile view switch, floating panels, etc.)
-import { setCanvasMode, openPage, closePage } from "./layout.js";
-import { initFeatures } from "./features.js";
-import { initColorStudio } from "./colorStudio.js";
-import { initFonts } from "./fonts.js";
-import { initPos } from "./pos.js";
-import { initCatalog } from "./catalog.js";
-import { initReports } from "./reports.js";
-import { initBackup } from "./backup.js";
+import "./install.js";
 
-/* --- Form field bindings: any change to a tracked field re-renders +
-   autosaves. This also covers the document-label fields living directly on
-   the invoice (labelTitle, labelBillTo, labelBalance, labelNote,
-   labelPayment, labelTerms, labelInvoiceDate, labelDueDate,
-   labelReference) — they're ordinary entries in `fields` (state.js) like
-   everything else, so renaming "INVOICE" to "QUOTE" or "Bill to" to
-   something else needs no special-case code here. --- */
-const OPTIONAL_COLOR_IDS = ["balanceLabelColor", "totalColor", "headerColor", "headerTextColor", "invoiceColor"];
-fields.forEach(id => {
-  let e = $(id), ev = e.tagName === "SELECT" ? "change" : "input";
-  e.addEventListener(ev, () => {
-    if (id === "accent" || id === "accentHex") setAccent(e.value);
-    else if (OPTIONAL_COLOR_IDS.some(base => id === base + "Hex")) applyOptionalColor(id.replace(/Hex$/, ""));
-    renderPreview(); save();
-  });
-});
-
-/* --- Company name (js/preview.js, css/invoice.css): a growing <textarea>
-   now, not a single-line <input> (see .companyinfo in invoice.css), so a
-   long name wraps onto a second line instead of being silently clipped.
-   That's the one behavior a real multi-line <textarea> adds that a name
-   field shouldn't have, though: pressing Enter would insert a manual line
-   break into the saved company name. Suppressing just Enter (Shift+Enter
-   included, so there's no "soft break" escape hatch either) keeps it
-   reading and behaving like a single logical name field that happens to
-   wrap on its own — autoGrow() (preview.js) still grows/shrinks its height
-   automatically as the person types or deletes, exactly like the Address
-   field already does. --- */
-$("companyName").addEventListener("keydown", e => { if (e.key === "Enter") e.preventDefault(); });
-
-/* --- Optional color swatches (Total due / Header / Invoice area / Footer):
-   picking a swatch color writes into its paired HEX field (the actual
-   persisted value) and applies it; the ✕ button clears the override so the
-   template's own default takes over again. --- */
-OPTIONAL_COLOR_IDS.forEach(id => {
-  $(id).addEventListener("input", () => { $(id + "Hex").value = $(id).value; applyOptionalColor(id); renderPreview(); save(); });
-  $(id + "Clear").onclick = () => { clearOptionalColor(id); renderPreview(); save(); };
-});
-
-/* --- Items quick actions --- */
-$("clearItemsBtn").onclick = () => { if (confirm("Remove all line items?")) { state.items = []; renderPreview(); save(); } };
-
-/* --- Table columns: all add/remove/rename/reorder/resize/show-hide/
-   settings controls live directly on the invoice canvas table (its header
-   row + the trailing "+" cell) — see js/columnCanvas.js, which wires every
-   delegated header interaction. --- */
-initColumnCanvas();
-
-// Inline item editing directly on the invoice canvas table (see preview.js):
-// the "+ Add item" button (empty-state and trailing "add another" row),
-// each row's "×" remove button, and every editable cell's <input>. All
-// delegated on document — never bound per-element — since preview.js
-// rebuilds #pItems' innerHTML on every full render, which would otherwise
-// silently drop a directly-bound listener (or, worse for the input case,
-// destroy the very element the person just attached a listener to) the
-// next time the table redraws.
-document.addEventListener("click", e => {
-  if (e.target.closest(".add-item-btn")) { addItem(); return; }
-  const removeBtn = e.target.closest(".item-remove-btn");
-  if (removeBtn) {
-    const idx = Number(removeBtn.dataset.idx);
-    if (Number.isInteger(idx) && state.items[idx] !== undefined) {
-      state.items.splice(idx, 1);
-      renderPreview(); save();
-    }
-  }
-});
-// Typing into a canvas item cell only patches that item's data + the
-// derived Amount cell/totals in place (refreshItemRowAndTotals) instead of
-// calling the full renderPreview() every other canvas field triggers —
-// renderPreview() would rebuild #pItems from scratch on every keystroke,
-// yanking focus and the caret out of the input the person is actively
-// typing in.
-// Bound to "change" as well as "input": some phone keyboards (composition /
-// predictive input) don't fire "input" reliably for numeric fields until the
-// field is committed, which left the Amount and totals stale on mobile.
-const onItemCellEdit = e => {
-  const el = e.target.closest(".item-cell-input");
-  if (!el) return;
-  const idx = Number(el.dataset.idx);
-  const item = state.items[idx];
-  if (!item) return;
-  const col = state.columns.find(c => c.key === el.dataset.key);
-  // A cleared numeric cell stays blank ("") instead of becoming 0, so a blank
-  // quantity can mean "price only" (see itemValue in calc.js).
-  item[el.dataset.key] = col && ["number", "currency", "percentage"].includes(col.type)
-    ? (el.value.trim() === "" ? "" : num(el.value)) : el.value;
-  refreshItemRowAndTotals(idx);
-  save();
+const SCREENS = {
+  documents: () => import("./screens/documents.js"),
+  create: () => import("./screens/editor.js"),
+  edit: () => import("./screens/editor.js"),
+  clients: () => import("./screens/clients.js"),
+  templates: () => import("./screens/templates.js"),
+  settings: () => import("./screens/settings.js"),
+  guide: () => import("./screens/guide.js")
 };
-document.addEventListener("input", onItemCellEdit);
-document.addEventListener("change", onItemCellEdit);
 
-/* --- Logo upload + settings panel --- */
-$("logoFile").onchange = e => { const f = e.target.files && e.target.files[0]; if (f) handleLogoFile(f, e.target); };
-$("removeLogoBtn").onclick = () => removeLogo();
-$("resetLogoSizeBtn").onclick = () => { $("logoHeight").value = naturalLogoHeight(); renderPreview(); save(); toast(state.logoNatural ? "Logo reset to its original size." : "Logo size reset to default."); };
-// The Size number field is a second, precise way to set the same
-// #logoHeight value the slider drives — never an independent width, so the
-// logo's proportions (enforced by object-fit:contain in invoice.css) can
-// never be distorted by resizing. Re-dispatching a real "input" event on
-// #logoHeight (rather than duplicating its logic here) lets it go through
-// the exact same generic `fields` binding every other tracked field
-// already uses (see the fields.forEach block near the top of this file).
-{
-  const logoHeightNumberEl = $("logoHeightValue"), logoHeightRangeEl = $("logoHeight");
-  const commitLogoHeightNumber = () => {
-    const clamped = Math.max(24, Math.min(160, num(logoHeightNumberEl.value) || naturalLogoHeight()));
-    logoHeightNumberEl.value = clamped;
-    if (String(clamped) !== logoHeightRangeEl.value) {
-      logoHeightRangeEl.value = clamped;
-      logoHeightRangeEl.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-  };
-  logoHeightNumberEl.addEventListener("input", commitLogoHeightNumber);
-  logoHeightNumberEl.addEventListener("blur", commitLogoHeightNumber);
+let current = { mod: null, api: null, route: "" };
+let navCount = 0;
+
+function parseHash() {
+  const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
+  const [path, query = ""] = h.split("?");
+  const [route, ...rest] = path.split("/").filter(Boolean);
+  const r = SCREENS[route] ? route : "documents";
+  return { route: r, params: { id: rest.join("/"), query: new URLSearchParams(query) } };
 }
-// Position segmented control (Auto/Left/Above) — writes into the real,
-// still-authoritative #logoPosition <select> (kept off-screen so
-// state.js/preview.js/serialize() need no changes) and dispatches a real
-// "change" event so it flows through the same generic `fields` binding as
-// every other tracked field.
-{
-  const logoPositionSelectEl = $("logoPosition");
-  document.querySelectorAll(".logo-position-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      if (logoPositionSelectEl.value === btn.dataset.pos) return;
-      logoPositionSelectEl.value = btn.dataset.pos;
-      logoPositionSelectEl.dispatchEvent(new Event("change", { bubbles: true }));
+
+async function navigate() {
+  const { route, params } = parseHash();
+  const main = $("main");
+  let mod;
+  try { mod = await SCREENS[route](); }
+  catch (e) { console.error(e); main.innerHTML = `<div class="page"><p>${t("common.loadError")}</p></div>`; return; }
+  if (current.mod && current.mod.unmount) current.mod.unmount();
+  window.scrollTo(0, 0);
+  const api = mod.mount(main, params) || {};
+  current = { mod, api, route, params };
+  setActive(route);
+  document.title = api.title ? `${api.title} · InvoGen` : "InvoGen";
+  // Move focus to the new page heading so keyboard and screen-reader users land on it.
+  if (navCount++ > 0) { const h = main.querySelector("#pageTitle"); if (h) h.focus({ preventScroll: true }); }
+}
+
+function remount() {
+  if (!current.mod) return;
+  if (current.mod.unmount) current.mod.unmount();
+  current.api = current.mod.mount($("main"), current.params) || {};
+  document.title = current.api.title ? `${current.api.title} · InvoGen` : "InvoGen";
+}
+
+function wireShortcuts() {
+  document.addEventListener("keydown", e => {
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || isTyping(e)) return;
+    if (document.querySelector("dialog[open]")) return;
+    if (e.key === "n" || e.key === "N") { e.preventDefault(); location.hash = "#/create"; }
+    else if (e.key === "/") {
+      e.preventDefault();
+      if (current.api && current.api.focusSearch) current.api.focusSearch();
+      else { location.hash = "#/documents"; setTimeout(() => current.api && current.api.focusSearch && current.api.focusSearch(), 50); }
+    }
+  });
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-action='lang']");
+    if (b) openLanguageSheet();
+  });
+}
+
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator) || location.protocol === "file:") return;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloading) location.reload();
+  });
+  navigator.serviceWorker.register("sw.js").then(reg => {
+    const ready = () => setOfflineReady(!!(reg.active || navigator.serviceWorker.controller));
+    ready();
+    navigator.serviceWorker.ready.then(ready);
+    const offerUpdate = worker => toast(t("pwa.updateReady"), {
+      action: t("pwa.reload"), duration: 30000,
+      onAction: () => { reloading = true; worker.postMessage({ type: "SKIP_WAITING" }); }
     });
+    if (reg.waiting && navigator.serviceWorker.controller) offerUpdate(reg.waiting);
+    reg.addEventListener("updatefound", () => {
+      const w = reg.installing;
+      if (!w) return;
+      w.addEventListener("statechange", () => {
+        if (w.state === "installed") { if (navigator.serviceWorker.controller) offerUpdate(w); else setOfflineReady(true); }
+      });
+    });
+    // Look for a new version when the app comes back to the foreground.
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") reg.update().catch(() => {}); });
+  }).catch(() => setOfflineReady(false));
+}
+
+async function boot() {
+  await initState({ migrate: migrateLegacy });
+  const s = getState().settings;
+  // First visit: follow the device language; afterwards, the language chosen in the app.
+  const lang = s.langChosen || s.onboarded || getState().docs.length ? s.appLang || "en" : detectLanguage();
+  await setLanguage(lang);
+  renderShell();
+  onLanguageChange(() => { renderShell(); setActive(current.route); remount(); });
+  subscribe((st, reason) => {
+    if (reason === "storage" && lastSaveFailed()) toast(t("storage.saveFailed"), { duration: 10000 });
+    if (reason === "replace") { setLanguage(st.settings.appLang || "en"); }
   });
-}
-$("resetColorBtn").onclick = () => { setAccent(DEFAULT_ACCENT); OPTIONAL_COLOR_IDS.forEach(clearOptionalColor); renderPreview(); save(); toast("Colors reset."); };
-
-/* --- Print / JSON export-import / reset --- */
-$("printBtn").onclick = () => {
-  if (!confirmPrint()) return;
-  printInvoice(pdfFileName());
-};
-// Download PDF — same print engine as Print (pixel-identical output), with a
-// clear file name and a one-time, device-specific "Save as PDF" guide.
-$("pdfBtn").onclick = () => {
-  if (!confirmPrint()) return;
-  withPdfGuide(() => printInvoice(pdfFileName()));
-};
-{ const r = $("resetSettingsBtn"); if (r) r.addEventListener("click", resetPdfGuide); }
-function download(name, text) { let b = new Blob([text], { type: "application/json" }), u = URL.createObjectURL(b), a = document.createElement("a"); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 500); }
-$("exportBtn").onclick = () => download(($("invoiceNumber").value || "invoice") + ".json", JSON.stringify(serialize(), null, 2));
-$("importBtn").onclick = () => $("jsonFile").click();
-$("jsonFile").onchange = async e => { try { if (e.target.files[0].size > 8e6) throw Error("That file is too large to be an invoice."); load(JSON.parse(await e.target.files[0].text())); setCurrentId(uid()); renderHistory(); toast("Invoice imported."); } catch (err) { toast(err.message); } e.target.value = ""; };
-// Two different resets, on purpose:
-//  • #resetBtn (action bar)  → "Reset Fields": clears only this document's entered data (library.js).
-//  • #fullResetBtn (Settings → Danger zone) → the full wipe below: draft, Saved Invoices, Brand
-//    Templates AND every saved preference. (The existing "Reset settings to default" button in
-//    Settings still resets only paper size / date format / theme — see settings.js.)
-$("resetBtn").onclick = () => resetAllFields();
-$("fullResetBtn").onclick = () => {
-  if (!confirm("FULL RESET — this erases EVERYTHING stored by the app on this device:\n\n• your current draft\n• ALL Saved Invoices\n• ALL Brand Templates\n• all settings (paper size, date format, theme, panel layout)\n\nThis cannot be undone. Continue?")) return;
-  [KEY, LIBRARY_KEY, CURRENT_ID_KEY, BRAND_KEY].forEach(k => localStorage.removeItem(k));
-  // Every other saved preference (paper size, date format, theme, panel width/state,
-  // last-saved stamp) — all under the app's own prefix. The "install banner dismissed"
-  // notes are browser-prompt bookkeeping, not settings, so they are left alone.
-  Object.keys(localStorage).filter(k => k.startsWith("invoiceStudio.") && !k.startsWith("invoiceStudio.installDismissed")).forEach(k => localStorage.removeItem(k));
-  location.reload();
-};
-
-/* --- Spreadsheet (CSV/XLSX) import --- */
-$("importSheetBtn").onclick = () => $("sheetFile").click();
-$("sheetFile").onchange = async e => {
-  let f = e.target.files[0]; if (!f) return;
-  try {
-    let rows;
-    if (f.name.toLowerCase().endsWith(".csv")) rows = parseCSV(await f.text());
-    else { await ensureXLSX(); let wb = XLSX.read(await f.arrayBuffer(), { type: "array" }), ws = wb.Sheets[wb.SheetNames[0]]; rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" }); }
-    let items = mapRows(rows);
-    if (!items.length) throw Error("No usable invoice rows were found.");
-    state.items = items;
-    renderPreview(); save();
-    toast(items.length + " items imported.");
-  } catch (err) { toast(err.message); }
-  e.target.value = "";
-};
-
-/* --- Zoom --- */
-$("zoomIn").onclick = () => { state.zoom = Math.min(1.3, state.zoom + .1); renderPreview(); save(); };
-$("zoomOut").onclick = () => { state.zoom = Math.max(.6, state.zoom - .1); renderPreview(); save(); };
-
-/* --- Initial defaults + first render --- */
-// Settings > Default paper size only seeds this starting value — if a
-// draft/invoice is restored just below (or one is opened/imported later),
-// its own saved Page size always overrides this, exactly like every other
-// field in `fields` (state.js). This never touches an invoice that
-// already has a Page size of its own.
-$("paperSize").value = getDefaultPaperSize();
-$("invoiceDate").value = today();
-$("dueDate").value = plusDays(today(), 14);
-if (!$("logoHeight").value) $("logoHeight").value = "48";
-setAccent(DEFAULT_ACCENT);
-applyAllOptionalColors();
-renderToggles(); renderPreview();
-
-{
-  // Refit whenever the space AVAILABLE to the canvas changes, not just when
-  // the canvas's own box happens to change on its own. Those aren't the same
-  // thing: fitInvoiceCanvas() sets .canvaswrap's width to an explicit pixel
-  // value every time it runs, so once that's set, the wrap no longer tracks
-  // its parent's width via CSS (it's a fixed px, not a percentage) — a later
-  // change to the *parent's* available width (opening/closing either
-  // sidebar, dragging the Design panel resizer, switching the mobile view,
-  // an on-screen keyboard resizing the viewport, or even an ordinary window
-  // resize once the wrap's own size happens not to change first) would
-  // otherwise go completely undetected, silently leaving the canvas at a
-  // stale size — exactly the kind of overflow/clipping/wrong-scale bug this
-  // observer exists to prevent. Observing .workspace (the actual element
-  // fitInvoiceCanvas() measures as "available" space) instead of .canvaswrap
-  // itself means every one of those cases is caught, every time.
-  const workspaceEl = document.querySelector(".workspace");
-  const canvasWrapEl = document.querySelector(".canvaswrap");
-  if (workspaceEl) {
-    if (window.ResizeObserver) {
-      new ResizeObserver(() => fitInvoiceCanvas()).observe(workspaceEl);
-    } else {
-      window.addEventListener("resize", fitInvoiceCanvas);
-    }
-    window.addEventListener("orientationchange", () => setTimeout(fitInvoiceCanvas, 200));
-  } else if (canvasWrapEl) {
-    // Defensive fallback only — .workspace should always exist alongside
-    // .canvaswrap in this markup.
-    if (window.ResizeObserver) new ResizeObserver(() => fitInvoiceCanvas()).observe(canvasWrapEl);
-    else window.addEventListener("resize", fitInvoiceCanvas);
-    window.addEventListener("orientationchange", () => setTimeout(fitInvoiceCanvas, 200));
-  }
+  const made = runRecurring();
+  window.addEventListener("hashchange", navigate);
+  wireShortcuts();
+  await navigate();
+  document.body.classList.remove("booting");
+  if (made) toast(t("recurring.created", { n: made }));
+  registerServiceWorker();
 }
 
-/* --- Restore last autosaved draft, then set up History/undo state --- */
-try { let raw = localStorage.getItem(KEY); if (raw) load(JSON.parse(raw)); } catch {}
-syncDocTypeUI();   // nav highlight, placeholders and toggle names for the restored (or default) document type
-initCalculators();
-renderPreview();
-if (!getCurrentId()) setCurrentId(uid());
-pushEditHistory();
-updateUndoRedoButtons();
-renderHistory();
-renderBrandTemplates();
-
-/* --- Save / Duplicate / New / Undo / Redo buttons --- */
-// #saveStatus is a persistent "autosaved just now / Xm ago" indicator (like
-// the reference UI's "Saved 2 min ago"), reflecting the continuous
-// autosave-on-every-edit that already happens via save() in
-// js/persistence.js — not a one-off flash tied to the "Save" button below.
-// That button does something more specific (snapshotting to Saved
-// Invoices, js/library.js), and keeps its own feedback via toast() instead,
-// so the two forms of "saved" aren't conflated.
-function formatSavedAgo(ts) {
-  const s = Math.max(0, Math.round((Date.now() - ts) / 1000));
-  if (s < 10) return "Saved just now";
-  if (s < 60) return `Saved ${s}s ago`;
-  const m = Math.round(s / 60);
-  if (m < 60) return `Saved ${m} min ago`;
-  const h = Math.round(m / 60);
-  return `Saved ${h}h ago`;
-}
-let savedTimer;
-function refreshSaveStatus() {
-  const el = $("saveStatus");
-  if (!el) return;
-  const ts = Number(localStorage.getItem("invoiceStudio.lastSavedAt"));
-  el.title = ts ? formatSavedAgo(ts) : "Changes are saved automatically on this device";
-}
-function flashSaved() {
-  const el = $("saveStatus"); if (!el) return;
-  refreshSaveStatus();
-  el.textContent = "Saved"; el.classList.add("show");
-  clearTimeout(savedTimer); savedTimer = setTimeout(() => el.classList.remove("show"), 2500);
-}
-window.addEventListener("invoicestudio:autosaved", flashSaved);
-refreshSaveStatus();
-setInterval(refreshSaveStatus, 15000);
-
-/* --- UX helpers (js/uxExtras.js) --- */
-initMoreMenu();
-initNavDeclutter();
-initPanelAccordion();
-initFormEditor({ addItem, renderPreview, save, refreshItemRowAndTotals, handleLogoFile, addColumn, removeColumn, hideColumn, setRole });
-initFeatures({ renderPreview, save, printPdf: () => $("pdfBtn").click() });
-initColorStudio({ renderPreview, save });
-initFonts({ renderPreview, save });
-initPos();
-initCatalog({ renderPreview, save, openPage, closePage });
-initReports();
-initBackup();
-renderPreview();
-try {
-  const cm = localStorage.getItem("invoiceStudio.canvasMode");
-  // Phones default to the Form editor (far easier than editing on a tiny page); Edit stays one tap away.
-  if (cm === "form" || cm === null) setCanvasMode("form");
-} catch {}
-initHistoryFilters(renderHistory);
-initFirstRun();
-syncMobileTotal();
-
-// Only claim success when the record was really stored (saveToHistory shows the failure reason itself).
-$("saveInvoiceBtn").onclick = () => { if (saveToHistory()) toast("Saved to Saved Invoices."); };
-$("duplicateInvoiceBtn").onclick = () => duplicateCurrentInvoice();
-$("newInvoiceBtn").onclick = () => newInvoice();
-$("clearHistoryBtn").onclick = () => clearLibrary();
-$("saveTemplateBtn").onclick = () => saveCurrentAsTemplate();
-$("clearTemplatesBtn").onclick = () => clearBrandTemplates();
-$("undoBtn").onclick = () => undo(load);
-$("redoBtn").onclick = () => redo(load);
-document.addEventListener("keydown", e => {
-  // Ctrl/Cmd+S → same as the Save button (works while typing too).
-  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "s") { e.preventDefault(); $("saveInvoiceBtn").click(); return; }
-  const tag = (e.target.tagName || "").toLowerCase();
-  if (tag === "input" || tag === "textarea" || tag === "select" || e.target.isContentEditable) return;
-  if (!(e.ctrlKey || e.metaKey)) return;
-  if (e.key.toLowerCase() === "z" && !e.shiftKey) { e.preventDefault(); undo(load); }
-  else if (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey)) { e.preventDefault(); redo(load); }
+boot().catch(err => {
+  console.error(err);
+  const m = $("main");
+  if (m) m.innerHTML = `<div class="page"><p>Something went wrong while starting InvoGen. Please reload the page.</p></div>`;
 });
-
-/* --- PWA install banner + service worker --- */
-initInstallPrompt();
-registerServiceWorker();
-
-/* --- Settings panel (Default paper size / Default date format / Theme) -
-   Default paper size is wired directly to the real #paperSize field (see
-   js/settings.js) so it needs no extra handling here. Date format changes
-   need everything that renders a date through format.js's dateFmt() to
-   redraw immediately: the current invoice's own "date"-type line-item
-   columns (renderPreview), plus the Saved Invoices and Brand Templates
-   lists, both of which live outside the invoice canvas. --- */
-initSettings(() => { renderPreview(); renderHistory(); renderBrandTemplates(); });
-
-/* --- Build/version string ---------------------------------------------
-   Console-logged (type `BUILD_STRING` in DevTools > Console) and now also
-   shown, compactly, in the left sidebar footer (#sidebarVersion) — single
-   source of truth stays js/version.js, bumped by the maintainer on every
-   delivered update. */
-{
-  window.APP_VERSION = APP_VERSION;
-  window.BUILD_DATE = BUILD_DATE;
-  window.BUILD_STRING = BUILD_STRING;
-  console.log(`%cInvoGen - Invoice Generator ${BUILD_STRING}`, "color:#4f46e5;font-weight:bold;");
-  const versionEl = $("sidebarVersion");
-  if (versionEl) { versionEl.textContent = `v${APP_VERSION}`; versionEl.title = BUILD_STRING; }
-}
