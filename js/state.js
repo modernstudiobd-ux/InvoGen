@@ -8,6 +8,7 @@ import { loadData, saveData, clearData, requestPersistence } from "./storage.js"
 import { todayISO, addDays, addMonths, DEFAULT_DATE_FORMAT } from "./format.js";
 import { totals, statusOf } from "./calc.js";
 import { CURRENCY } from "./currencies.js";
+import { normalizeColumns } from "./columns.js";
 
 export const SCHEMA = 1;
 export const DOC_TYPES = ["invoice", "estimate", "receipt"];
@@ -35,6 +36,7 @@ export function defaultSettings() {
     },
     template: "modern",
     accent: "",
+    columns: null,               // default line-item columns for new documents (null = standard)
     notes: "Thank you for your business.",
     paymentInstructions: "",
     editMode: false,
@@ -74,7 +76,10 @@ export function normalizeDoc(d = {}) {
     client: { id: "", name: "", contact: "", email: "", phone: "", address: "", taxId: "", ...(d.client || {}) },
     items: (Array.isArray(d.items) ? d.items : []).map(it => ({
       id: str(it.id, 100) || uid(), desc: str(it.desc, 2000), details: str(it.details, 4000), sku: str(it.sku, 100),
-      qty: it.qty === "" ? "" : numv(it.qty ?? 1), unit: str(it.unit, 30), rate: numv(it.rate)
+      qty: it.qty === "" ? "" : numv(it.qty ?? 1), unit: str(it.unit, 30), rate: numv(it.rate),
+      disc: it.disc === "" || it.disc == null ? "" : Math.min(100, Math.max(0, numv(it.disc))),
+      tax: it.tax === "" || it.tax == null ? "" : Math.max(0, numv(it.tax)),
+      cells: it.cells && typeof it.cells === "object" ? Object.fromEntries(Object.entries(it.cells).slice(0, 20).map(([k, v]) => [str(k, 40), str(v, 500)])) : {}
     })),
     discount: { type: d.discount?.type === "amount" ? "amount" : "percent", value: numv(d.discount?.value) },
     tax: { name: str(d.tax?.name, 40) || "Tax", rate: numv(d.tax?.rate), inclusive: !!d.tax?.inclusive },
@@ -85,7 +90,7 @@ export function normalizeDoc(d = {}) {
     payLink: str(d.payLink, 2000),
     payProvider: str(d.payProvider, 40),
     payMethod: str(d.payMethod, 40),
-    cols: { qty: d.cols?.qty !== false, rate: d.cols?.rate !== false, unit: !!d.cols?.unit, sku: !!d.cols?.sku },
+    columns: normalizeColumns(d.columns, d.cols),
     show: { qr: d.show?.qr !== false, words: !!d.show?.words, billTo: d.show?.billTo !== false, dueDate: d.show?.dueDate !== false },
     logoSize: Math.max(24, Math.min(140, numv(d.logoSize) || 56)),
     font: str(d.font, 60),
@@ -225,6 +230,7 @@ export function newDoc(type = "invoice", over = {}) {
     items: [{ desc: "", qty: 1, rate: 0 }],
     tax: { name: s.taxName, rate: s.taxRate, inclusive: s.taxInclusive },
     notes: s.notes, terms: s.paymentInstructions, template: s.template, accent: s.accent, paper: s.paper,
+    columns: Array.isArray(s.columns) ? structuredClone(s.columns) : undefined,
     ...over
   });
 }

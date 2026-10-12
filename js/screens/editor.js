@@ -25,6 +25,7 @@ import { openSheet, confirmSheet } from "../sheet.js";
 import { toast } from "../toast.js";
 import { readImage, signaturePad } from "../images.js";
 import { parseDelimited, toItems, readSheetFile } from "../importSheet.js";
+import { OPTIONAL, lineOptions, isNumeric, defaultWeight, normalizeColumns } from "../columns.js";
 
 /* ---------------- module state ---------------- */
 let root = null, doc = null, isNew = false, dirty = false, saveState = "saved";
@@ -39,14 +40,17 @@ function loadOpen() {
 }
 const saveOpen = () => { try { sessionStorage.setItem(OPEN_KEY, JSON.stringify([...open])); } catch {} };
 
-const PAY_PROVIDERS = ["", "PayPal", "Stripe", "Wise", "Payoneer", "Square", "Razorpay", "Flutterwave", "Paystack", "bKash", "Other"];
+// International payment providers; anything local (bKash, UPI, M-Pesa…) is typed in as a custom one.
+const PAY_PROVIDERS = ["PayPal", "Stripe", "Wise", "Payoneer", "Square", "Revolut", "Skrill"];
+const PAY_METHODS = ["bank", "card", "cash", "cheque", "online"];
+let customProvider = false, customMethod = false;
 const TERMS = ["", 0, 7, 14, 15, 30, 45, 60, 90];
 const COLORS = ["#292524", "#1f3a5f", "#2f6b4f", "#b5532a", "#2b59c3", "#7a5a12", "#8b2a4b"];
 const STATUS_OPTS = { invoice: ["draft", "sent", "paid", "void"], estimate: ["draft", "sent", "accepted", "declined"], receipt: [] };
 
 /* ---------------- helpers ---------------- */
 const getPath = (o, p) => p.split(".").reduce((a, k) => (a == null ? a : a[k]), o);
-function setPath(o, p, v) { const ks = p.split("."); let a = o; for (let i = 0; i < ks.length - 1; i++) a = a[ks[i]]; a[ks[ks.length - 1]] = v; }
+function setPath(o, p, v) { const ks = p.split("."); let a = o; for (let i = 0; i < ks.length - 1; i++) a = a[ks[i]] ?? (a[ks[i]] = {}); a[ks[ks.length - 1]] = v; }
 const fid = p => "f-" + p.replace(/\./g, "-");
 const appFmt = () => ({ fmt: settings().numberFormat, lang: getLanguage() });
 const dmoney = n => formatMoney(n, doc.currency, appFmt());
@@ -61,7 +65,7 @@ function field(label, path, o = {}) {
   const common = `id="${id}" data-f="${path}" data-k="${o.kind || "text"}"${o.rerender ? ` data-rerender="${o.rerender}"` : ""}${desc}`;
   let ctl;
   if (o.options) {
-    ctl = `<select class="select" ${common}>${o.options.map(([val, lab, grp]) => grp ? grp : `<option value="${esc(val)}"${String(val) === String(v ?? "") ? " selected" : ""}>${esc(lab)}</option>`).join("")}</select>`;
+    ctl = `<select class="select" ${common}${o.currency ? " data-currency" : ""}>${o.options.map(([val, lab, grp]) => grp ? grp : `<option value="${esc(val)}"${String(val) === String(v ?? "") ? " selected" : ""}>${esc(lab)}</option>`).join("")}</select>`;
   } else if (o.textarea) {
     ctl = `<textarea class="input textarea" rows="${o.rows || 3}" ${common}${o.placeholder ? ` placeholder="${esc(o.placeholder)}"` : ""} dir="auto">${esc(v)}</textarea>`;
   } else {
@@ -133,8 +137,8 @@ function body(id) {
         ${status}
         ${field(t("ed.issued"), "issued", { type: "date", kind: "date" })}
         ${ty === "invoice" ? field(t("ed.terms"), "termsDays", { kind: "terms", options: TERMS.map(n => [n, n === "" ? t("ed.termsCustom") : n === 0 ? t("ed.termsReceipt") : t("ed.termsNet", { n })]) }) : ""}
-        ${ty !== "receipt" ? field(dueLabel, "due", { type: "date", kind: "date" }) : field(t("ed.payMethod"), "payMethod", { options: [["", t("ed.none")], ...["bank", "card", "cash", "cheque", "mobile", "online", "other"].map(m => [t(`pay.m.${m}`), t(`pay.m.${m}`)])] })}
-        ${field(t("ed.currency"), "currency", { options: curOpts, span: true })}
+        ${ty !== "receipt" ? field(dueLabel, "due", { type: "date", kind: "date" }) : methodField()}
+        ${field(t("ed.currency"), "currency", { options: curOpts, span: true, currency: true })}
         ${field(t("ed.reference"), "reference", { span: true, max: 200 })}
         </div>
         ${details(t("ed.moreDocOptions"), `
@@ -155,7 +159,7 @@ function body(id) {
       const names = getState().clients.map(c => `<option value="${esc(c.name)}"></option>`).join("");
       return `<div class="ed-actions-row">
           <button type="button" class="btn btn-outline" data-act="pick-client" aria-haspopup="dialog">${icon("users", 18)}${esc(t("ed.chooseClient"))}</button>
-          <button type="button" class="btn btn-outline" data-act="save-client" id="saveClientBtn">${icon("plus", 18)}<span>${esc(clientBtnLabel())}</span></button>
+          <button type="button" class="btn btn-outline" data-act="save-client" id="saveClientBtn"${doc.client.name.trim() ? "" : " hidden"}${clientIsSaved() ? ' aria-disabled="true"' : ""}>${icon(clientIsSaved() ? "check" : "plus", 18)}<span>${esc(clientBtnLabel())}</span></button>
         </div>
         <datalist id="clientNames">${names}</datalist>
         <div class="ed-grid">
@@ -188,9 +192,9 @@ function body(id) {
           ${isInv ? `<div class="span2">${toggle(t("ed.lateOn"), "lateFee.on", { hint: t("ed.lateHint"), rerender: "payment" })}</div>
           ${doc.lateFee.on ? field(t("ed.lateType"), "lateFee.type", { options: [["percent", t("ed.percentOfUnpaid")], ["amount", t("ed.fixedAmount")]] }) + field(t("ed.lateValue"), "lateFee.value", { kind: "num" }) + field(t("ed.graceDays"), "lateFee.graceDays", { kind: "int" }) + field(t("ed.lateRepeat"), "lateFee.repeat", { options: [["once", t("ed.once")], ["monthly", t("ed.every30")]] }) : ""}` : ""}`, doc.deposit.on || doc.lateFee.on) : ""}
         ${ty !== "receipt" ? details(t("ed.payOnline"), `
-          ${field(t("ed.provider"), "payProvider", { options: PAY_PROVIDERS.map(p => [p, p || t("ed.none")]) })}
+          ${providerField()}
           ${field(t("ed.payLink"), "payLink", { type: "url", placeholder: "https://", hint: t("ed.payLinkHint"), kind: "url" })}
-          <div class="span2">${toggle(t("ed.showQr"), "show.qr")}</div>`, !!doc.payLink) : ""}
+          <div class="span2">${toggle(t("ed.showQr"), "show.qr")}</div>`, !!(doc.payLink || doc.payProvider)) : ""}
         <div class="ed-grid">
           ${ty !== "receipt" ? field(t("ed.payInstructions"), "terms", { textarea: true, rows: 3, span: true, placeholder: t("ed.payInstructionsPh") }) : ""}
           ${field(t("ed.notes"), "notes", { textarea: true, rows: 3, span: true })}
@@ -204,8 +208,6 @@ function body(id) {
           ${doc.watermark.on ? field(t("ed.watermarkText"), "watermark.text", { span: true, max: 40, placeholder: dl(doc.lang, "wmDraft"), hint: t("ed.watermarkHint") }) : ""}
           ${field(t("ed.paper"), "paper", { options: Object.keys(PAPERS).map(p => [p, `${p} · ${paperOf(p).join(" × ")} mm`]) })}
           <div class="span2 ed-switches">
-            ${toggle(t("ed.colQty"), "cols.qty")}${toggle(t("ed.colRate"), "cols.rate")}
-            ${toggle(t("ed.colUnit"), "cols.unit", { rerender: "items" })}${toggle(t("ed.colSku"), "cols.sku", { rerender: "items" })}
             ${toggle(t("ed.showBillTo"), "show.billTo")}${toggle(t("ed.showWords"), "show.words", { hint: t("ed.showWordsHint") })}
           </div>
         </div>`;
@@ -223,9 +225,20 @@ function body(id) {
 }
 
 function itemsBody() {
-  const cols = doc.cols;
+  const cols = doc.columns;
+  const lopt = lineOptions(cols);
+  // Every column except Description and Amount gets a box on each line, in column order.
+  // Price is always shown here (the amount needs it), even when hidden on the document.
+  const boxes = cols.filter(c => c.id !== "desc" && c.id !== "amount" && (c.on || c.id === "rate"));
   const cards = doc.items.map((it, i) => {
     const p = `items.${i}`;
+    const box = c => {
+      if (c.id === "qty") return itemNum(colName(c), `${p}.qty`, numStr(it.qty), "num");
+      if (c.id === "rate") return itemNum(colName(c), `${p}.rate`, numStr(it.rate), "num");
+      if (c.id === "sku" || c.id === "unit") return itemNum(colName(c), `${p}.${c.id}`, it[c.id], "text");
+      if (c.id === "disc" || c.id === "tax") return itemNum(colName(c), `${p}.${c.id}`, numStr(it[c.id]), "num");
+      return itemNum(colName(c), `${p}.cells.${c.id}`, (it.cells || {})[c.id] ?? "", c.role === "number" ? "cellnum" : "text");
+    };
     return `<div class="item-card" data-item="${i}">
       <div class="item-top">
         <label class="visually-hidden" for="${fid(p + ".desc")}">${esc(t("ed.itemDesc", { n: i + 1 }))}</label>
@@ -233,11 +246,8 @@ function itemsBody() {
         <button type="button" class="icon-btn" data-act="del-item" data-i="${i}" aria-label="${esc(t("ed.removeItem", { n: i + 1 }))}">${icon("trash-2", 18)}</button>
       </div>
       <div class="item-grid">
-        ${cols.sku ? itemNum(t("ed.sku"), `${p}.sku`, it.sku, "text") : ""}
-        ${itemNum(t("ed.qty"), `${p}.qty`, numStr(it.qty), "num")}
-        ${cols.unit ? itemNum(t("ed.unit"), `${p}.unit`, it.unit, "text") : ""}
-        ${itemNum(t("ed.rate"), `${p}.rate`, numStr(it.rate), "num")}
-        <div class="field"><span class="label">${esc(t("ed.amount"))}</span><output class="item-amt num" data-amt="${i}" for="${fid(p + ".qty")} ${fid(p + ".rate")}"><bdi class="ltr">${esc(dmoney(lineAmount(it, decimalsOf(doc.currency))))}</bdi></output></div>
+        ${boxes.map(box).join("")}
+        <div class="field"><span class="label">${esc(colName(cols.find(c => c.id === "amount")))}</span><output class="item-amt num" data-amt="${i}"><bdi class="ltr">${esc(dmoney(lineAmount(it, decimalsOf(doc.currency), lopt)))}</bdi></output></div>
       </div>
       ${it.details || it._details ? `<div class="field"><label for="${fid(p + ".details")}">${esc(t("ed.details"))}</label><textarea class="input textarea" rows="2" id="${fid(p + ".details")}" data-f="${p}.details" data-k="text" dir="auto">${esc(it.details)}</textarea></div>`
         : `<button type="button" class="link-btn" data-act="add-details" data-i="${i}">${icon("plus", 16)}${esc(t("ed.addDetails2"))}</button>`}
@@ -246,13 +256,20 @@ function itemsBody() {
   return `<div class="items">${cards}</div>
     <button type="button" class="btn add-item" data-act="add-item">${icon("plus", 18)}${esc(t("ed.addItem"))}</button>
     <div class="ed-actions-row">
+      <button type="button" class="btn btn-outline" data-act="columns" aria-haspopup="dialog">${icon("columns-3", 18)}${esc(t("ed.columns"))}</button>
       <button type="button" class="btn btn-outline" data-act="pick-item" aria-haspopup="dialog">${icon("files", 18)}${esc(t("ed.savedItems"))}</button>
       <button type="button" class="btn btn-outline" data-act="import-items" aria-haspopup="dialog">${icon("upload", 18)}${esc(t("ed.importItems"))}</button>
       <button type="button" class="btn btn-outline" data-act="clear-items">${icon("trash-2", 18)}${esc(t("ed.clearItems"))}</button>
     </div>`;
 }
+// A column's name in the editor: the name typed in Columns, or the standard one.
+function colName(c) {
+  if (c.label.trim()) return c.label.trim();
+  return { desc: t("ed.descShort"), qty: t("ed.qty"), rate: t("ed.rate"), amount: t("ed.amount"), sku: t("ed.sku"), unit: t("ed.unit"), disc: t("col.disc"), tax: t("col.tax") }[c.id] || t(c.role === "number" ? "col.number" : "col.text");
+}
 function itemNum(label, path, value, kind) {
-  return `<div class="field"><label for="${fid(path)}">${esc(label)}</label><input class="input${kind === "num" ? " num" : ""}" id="${fid(path)}" data-f="${path}" data-k="${kind}" value="${esc(value)}"${kind === "num" ? ' inputmode="decimal"' : ""} autocomplete="off"></div>`;
+  const num = kind === "num" || kind === "cellnum";
+  return `<div class="field"><label for="${fid(path)}">${esc(label)}</label><input class="input${num ? " num" : ""}" id="${fid(path)}" data-f="${path}" data-k="${kind === "cellnum" ? "text" : kind}" value="${esc(value)}"${num ? ' inputmode="decimal"' : ""} autocomplete="off" dir="${num ? "ltr" : "auto"}"></div>`;
 }
 
 function paymentsList() {
@@ -344,7 +361,9 @@ function renderSection(id) {
   const segFocus = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.val : null;
   const n = sections().findIndex(s => s[0] === id) + 1;
   const title = sections().find(s => s[0] === id)[1];
+  const openMore = [...sec.querySelectorAll("details")].map(d => d.open);   // keep "more options" open
   sec.outerHTML = sectionHtml(id, title, n);
+  root.querySelectorAll(`[data-sec="${id}"] details`).forEach((d, i) => { if (openMore[i]) d.open = true; });
   afterSectionRender(id);
   if (focusId) { const el = root.querySelector("#" + CSS.escape(focusId)); if (el) el.focus(); }
   else if (segFocus != null) { const el = root.querySelector(`[data-sec="${id}"] [data-val="${CSS.escape(segFocus)}"]`); if (el) el.focus(); }
@@ -373,7 +392,7 @@ function refreshAmounts() {
   const d = decimalsOf(doc.currency);
   root.querySelectorAll("[data-amt]").forEach(o => {
     const it = doc.items[+o.dataset.amt];
-    if (it) o.innerHTML = `<bdi class="ltr">${esc(dmoney(lineAmount(it, d)))}</bdi>`;
+    if (it) o.innerHTML = `<bdi class="ltr">${esc(dmoney(lineAmount(it, d, lineOptions(doc.columns))))}</bdi>`;
   });
 }
 
@@ -527,9 +546,19 @@ function clientBtnLabel() {
   const same = ["name", "contact", "email", "phone", "address", "taxId"].every(k => (m[k] || "") === (c[k] || ""));
   return same ? t("ed.clientSaved") : t("ed.updateClient");
 }
+// "Save as client" appears once a client name is typed; it reads "Saved client" (and
+// does nothing) while the details match the saved client.
+function clientIsSaved() {
+  const m = matchingClient(), c = doc.client;
+  return !!m && ["name", "contact", "email", "phone", "address", "taxId"].every(k => (m[k] || "") === (c[k] || ""));
+}
 function syncClientBtn() {
-  const b = root.querySelector("#saveClientBtn span");
-  if (b) b.textContent = clientBtnLabel();
+  const btn = root.querySelector("#saveClientBtn");
+  if (!btn) return;
+  const saved = clientIsSaved();
+  btn.hidden = !doc.client.name.trim();
+  if (saved) btn.setAttribute("aria-disabled", "true"); else btn.removeAttribute("aria-disabled");
+  btn.innerHTML = `${icon(saved ? "check" : "plus", 18)}<span>${esc(clientBtnLabel())}</span>`;
 }
 function fillClient(c) {
   doc.client = { id: c.id, name: c.name, contact: c.contact || "", email: c.email || "", phone: c.phone || "", address: c.address || "", taxId: c.taxId || "" };
@@ -547,6 +576,7 @@ function onInput(e) {
 }
 function onChange(e) {
   const el = e.target;
+  if (el.matches("[data-pick]")) return onPick(el);
   if (el.matches('[data-act="logo-file"]')) return onLogoFile(el);
   if (el.matches('[data-act="sig-file"]')) return onSigFile(el);
   if (!el.matches("[data-f]")) return;
@@ -594,6 +624,7 @@ async function onClick(e) {
     case "undo": return undo();
     case "redo": return redo();
     case "design": return openDesign();
+    case "columns": return openColumns();
     case "pdf": return exportPdf();
     case "more": return openMore();
     case "send": return openSend();
@@ -690,14 +721,14 @@ function reloadFromState() {
 
 /* ---------------- items ---------------- */
 function addItem(it = { desc: "", qty: 1, rate: 0 }) {
-  doc.items.push({ id: uid(), desc: "", details: "", sku: "", unit: "", qty: 1, rate: 0, ...it });
+  doc.items.push({ id: uid(), desc: "", details: "", sku: "", unit: "", qty: 1, rate: 0, disc: "", tax: "", cells: {}, ...it });
   if (!open.has("items")) { open.add("items"); saveOpen(); }
   renderSection("items"); changed();
   const last = root.querySelector(`[data-desc="${doc.items.length - 1}"]`); if (last) last.focus();
 }
 function delItem(i) {
   const [it] = doc.items.splice(i, 1);
-  if (!doc.items.length) doc.items.push({ id: uid(), desc: "", details: "", sku: "", unit: "", qty: 1, rate: 0 });
+  if (!doc.items.length) doc.items.push({ id: uid(), desc: "", details: "", sku: "", unit: "", qty: 1, rate: 0, disc: "", tax: "", cells: {} });
   renderSection("items"); changed();
   const nx = root.querySelector(`[data-desc="${Math.min(i, doc.items.length - 1)}"]`); if (nx) nx.focus();
   toast(t("ed.itemRemoved", { item: it.desc || t("ed.item") }), { action: t("common.undo"), onAction: () => {
@@ -709,7 +740,7 @@ async function clearItems() {
   const ok = await confirmSheet({ title: t("ed.clearTitle"), message: t("ed.clearMsg"), confirm: t("ed.clearItems"), danger: true });
   if (!ok) return;
   const prev = doc.items;
-  doc.items = [{ id: uid(), desc: "", details: "", sku: "", unit: "", qty: 1, rate: 0 }];
+  doc.items = [{ id: uid(), desc: "", details: "", sku: "", unit: "", qty: 1, rate: 0, disc: "", tax: "", cells: {} }];
   renderSection("items"); changed();
   toast(t("ed.cleared"), { action: t("common.undo"), onAction: () => { doc.items = prev; renderSection("items"); changed(); } });
 }
@@ -776,10 +807,10 @@ function importItems() {
       if (v !== "add" && v !== "replace" || !found.length) return;
       const prev = doc.items;
       const blank = doc.items.length === 1 && !doc.items[0].desc && !Number(doc.items[0].rate);
-      const add = found.map(i => ({ id: uid(), desc: i.desc, details: "", sku: i.sku, unit: i.unit, qty: i.qty, rate: i.rate }));
+      const add = found.map(i => ({ id: uid(), desc: i.desc, details: "", sku: i.sku, unit: i.unit, qty: i.qty, rate: i.rate, disc: "", tax: "", cells: {} }));
       doc.items = v === "replace" || blank ? add : [...doc.items, ...add];
-      if (add.some(i => i.unit)) doc.cols.unit = true;
-      if (add.some(i => i.sku)) doc.cols.sku = true;
+      if (add.some(i => i.unit)) showColumn("unit");
+      if (add.some(i => i.sku)) showColumn("sku");
       if (!open.has("items")) { open.add("items"); saveOpen(); }
       renderSection("items"); changed();
       toast(t("ed.imported", { n: add.length }), { action: t("common.undo"), onAction: () => { doc.items = prev; renderSection("items"); changed(); } });
@@ -813,6 +844,7 @@ function pickClient() {
 }
 function saveAsClient() {
   const c = doc.client;
+  if (clientIsSaved()) return;
   if (!c.name.trim()) { toast(t("ed.clientNameFirst")); const n = root.querySelector("#f-client-name"); if (n) n.focus(); return; }
   const m = matchingClient();
   const saved = saveClient({ ...(m || {}), id: m ? m.id : undefined, name: c.name.trim(), contact: c.contact, email: c.email, phone: c.phone, address: c.address, taxId: c.taxId });
@@ -838,6 +870,140 @@ async function onSigFile(input) {
   if (!f) return;
   try { doc.signature.img = await readImage(f, { maxW: 600, maxH: 240 }); renderSection("brand"); changed(); }
   catch { toast(t("ed.imageFail")); }
+}
+
+/* ---------------- payment provider & method ---------------- */
+// International providers and methods are listed; anything local is typed in (Custom).
+const methodLabels = () => PAY_METHODS.map(m => t(`pay.m.${m}`));
+function providerField() {
+  const cur = doc.payProvider || "";
+  const custom = customProvider || (!!cur && !PAY_PROVIDERS.includes(cur));
+  return `<div class="field"><label for="f-provPick">${esc(t("ed.provider"))}</label>
+      <select class="select" id="f-provPick" data-pick="provider"><option value="">${esc(t("ed.none"))}</option>
+        ${PAY_PROVIDERS.map(p => `<option value="${esc(p)}"${!custom && cur === p ? " selected" : ""}>${esc(p)}</option>`).join("")}
+        <option value="__custom"${custom ? " selected" : ""}>${esc(t("pay.customOpt"))}</option></select></div>
+    ${custom ? field(t("pay.customProvider"), "payProvider", { max: 40, placeholder: t("pay.customProviderPh") }) : ""}`;
+}
+function methodField() {
+  const cur = doc.payMethod || "", labels = methodLabels();
+  const custom = customMethod || (!!cur && !labels.includes(cur));
+  return `<div class="field"><label for="f-methodPick">${esc(t("ed.payMethod"))}</label>
+      <select class="select" id="f-methodPick" data-pick="method"><option value="">${esc(t("ed.none"))}</option>
+        ${labels.map(l => `<option value="${esc(l)}"${!custom && cur === l ? " selected" : ""}>${esc(l)}</option>`).join("")}
+        <option value="__custom"${custom ? " selected" : ""}>${esc(t("pay.customOpt"))}</option></select></div>
+    ${custom ? field(t("pay.customMethod"), "payMethod", { max: 40, placeholder: t("pay.customMethodPh") }) : ""}`;
+}
+function onPick(el) {
+  const isProv = el.dataset.pick === "provider", key = isProv ? "payProvider" : "payMethod";
+  const listed = isProv ? PAY_PROVIDERS : methodLabels();
+  if (el.value === "__custom") {
+    if (isProv) customProvider = true; else customMethod = true;
+    if (listed.includes(doc[key])) doc[key] = "";
+  } else {
+    if (isProv) customProvider = false; else customMethod = false;
+    doc[key] = el.value;
+  }
+  const sec = el.closest("[data-sec]").dataset.sec;
+  renderSection(sec); changed({ path: key });
+  const next = root.querySelector(el.value === "__custom" ? `#${fid(key)}` : `#${el.id}`);
+  if (next) next.focus();
+}
+
+/* ---------------- columns ---------------- */
+function showColumn(id) {
+  const c = doc.columns.find(x => x.id === id);
+  if (c) c.on = true;
+  else doc.columns.splice(doc.columns.length - 1, 0, { id, role: id === "disc" ? "disc" : id === "tax" ? "tax" : "text", label: "", on: true, w: 0 });
+}
+const ROLE_HINT = { desc: "col.r.desc", qty: "col.r.qty", rate: "col.r.rate", amount: "col.r.amount", sku: "col.r.sku", unit: "col.r.unit", disc: "col.r.disc", tax: "col.r.tax" };
+function openColumns() {
+  const rowHtml = (c, i, all) => {
+    const name = colName(c), fixed = c.id === "desc" || c.id === "amount";
+    const removable = OPTIONAL.includes(c.id) || c.id.startsWith("c_");
+    const w = c.w || defaultWeight(c);
+    const std = c.label.trim() ? "" : name;
+    return `<li class="col-row${c.on ? "" : " is-off"}" data-col="${esc(c.id)}">
+      <div class="col-main">
+        <input class="input" data-cf="label" value="${esc(c.label)}" placeholder="${esc(std || name)}" maxlength="40" dir="auto" autocomplete="off" aria-label="${esc(t("col.nameOf", { col: name }))}">
+        ${fixed ? "" : `<button type="button" class="icon-btn" data-cf="up" aria-label="${esc(t("col.up", { col: name }))}"${i <= 1 ? " disabled" : ""}>${icon("chevron-up", 18)}</button>
+        <button type="button" class="icon-btn" data-cf="down" aria-label="${esc(t("col.down", { col: name }))}"${i >= all.length - 2 ? " disabled" : ""}>${icon("chevron-down", 18)}</button>`}
+      </div>
+      <div class="col-sub">
+        <span class="hint">${esc(t(ROLE_HINT[c.id] || (c.role === "number" ? "col.r.number" : "col.r.text")))}</span>
+        <label class="col-w"><span>${esc(t("col.width"))}</span><input type="range" data-cf="w" min="0.3" max="8" step="0.1" value="${w}" aria-label="${esc(t("col.widthOf", { col: name }))}"></label>
+        ${removable ? `<button type="button" class="icon-btn" data-cf="remove" aria-label="${esc(t("col.remove", { col: name }))}">${icon("trash-2", 18)}</button>` : ""}
+        ${fixed ? "" : `<input type="checkbox" class="switch" role="switch" data-cf="on"${c.on ? " checked" : ""} aria-label="${esc(t("col.show", { col: name }))}">`}
+      </div>
+    </li>`;
+  };
+  const addHtml = () => {
+    const opts = OPTIONAL.filter(id => !doc.columns.some(c => c.id === id)).map(id => [id, { sku: t("ed.sku"), unit: t("ed.unit"), disc: t("col.disc"), tax: t("col.tax") }[id]]);
+    opts.push(["text", t("col.text")], ["number", t("col.number")]);
+    return opts.map(([id, l]) => `<button type="button" class="chip col-add" data-add="${id}">${icon("plus", 16)}${esc(l)}</button>`).join("");
+  };
+  const listHtml = () => doc.columns.map((c, i, all) => rowHtml(c, i, all)).join("");
+  openSheet({
+    title: t("col.title"),
+    side: true,
+    body: `<p class="hint">${esc(t("col.intro"))}</p>
+      <ol class="col-list" id="colList">${listHtml()}</ol>
+      <h3 class="col-add-h" id="colAddL">${esc(t("col.add"))}</h3>
+      <div class="col-adds" id="colAdds" role="group" aria-labelledby="colAddL">${addHtml()}</div>`,
+    foot: `<button type="button" class="btn btn-ghost" data-cf="reset-w">${esc(t("col.resetWidths"))}</button>
+      <button type="button" class="btn btn-outline" data-cf="default">${esc(t("col.useDefault"))}</button>
+      <button type="button" class="btn btn-primary" data-close="done">${esc(t("common.done"))}</button>`,
+    onOpen: dlg => {
+      const apply = (focusSel) => {
+        renderSection("items"); changed({ path: "columns" });
+        dlg.querySelector("#colList").innerHTML = listHtml();
+        dlg.querySelector("#colAdds").innerHTML = addHtml();
+        if (focusSel) { const f = dlg.querySelector(focusSel); if (f) f.focus(); }
+      };
+      const colOf = el => { const li = el.closest("[data-col]"); return li && doc.columns.find(c => c.id === li.dataset.col); };
+      dlg.addEventListener("input", e => {
+        const c = colOf(e.target); if (!c) return;
+        if (e.target.dataset.cf === "label") { c.label = e.target.value.slice(0, 40); renderSection("items"); changed({ path: "columns" }); }
+        else if (e.target.dataset.cf === "w") { c.w = Number(e.target.value); changed({ path: "columns" }); }
+      });
+      dlg.addEventListener("change", e => {
+        const c = colOf(e.target);
+        if (c && e.target.dataset.cf === "on") { c.on = e.target.checked; apply(`[data-col="${CSS.escape(c.id)}"] [data-cf="on"]`); }
+      });
+      dlg.addEventListener("click", e => {
+        const add = e.target.closest("[data-add]");
+        if (add) {
+          const id = add.dataset.add;
+          if (OPTIONAL.includes(id)) showColumn(id);
+          else doc.columns.splice(doc.columns.length - 1, 0, { id: "c_" + uid().slice(0, 8), role: id, label: t(id === "number" ? "col.number" : "col.text"), on: true, w: 0 });
+          const added = doc.columns[OPTIONAL.includes(id) ? doc.columns.findIndex(c => c.id === id) : doc.columns.length - 2];
+          apply(`[data-col="${CSS.escape(added.id)}"] [data-cf="label"]`);
+          return;
+        }
+        const b = e.target.closest("[data-cf]");
+        if (!b || b.tagName === "INPUT") return;
+        const act = b.dataset.cf, c = colOf(b);
+        if (act === "reset-w") { doc.columns.forEach(x => { x.w = 0; }); apply(); return; }
+        if (act === "default") {
+          setSettings({ columns: structuredClone(doc.columns.map(x => ({ ...x }))) });
+          toast(t("col.defaultSaved"));
+          return;
+        }
+        if (!c) return;
+        const i = doc.columns.indexOf(c);
+        if (act === "up" || act === "down") {
+          const j = act === "up" ? i - 1 : i + 1;
+          if (j < 1 || j > doc.columns.length - 2) return;
+          [doc.columns[i], doc.columns[j]] = [doc.columns[j], doc.columns[i]];
+          apply(`[data-col="${CSS.escape(c.id)}"] [data-cf="${act}"]:not([disabled]), [data-col="${CSS.escape(c.id)}"] [data-cf="label"]`);
+        } else if (act === "remove") {
+          const prev = structuredClone(doc.columns);
+          doc.columns.splice(i, 1);
+          apply("#colAdds .col-add");
+          toast(t("col.removed", { col: colName(c) }), { action: t("common.undo"), onAction: () => { doc.columns = prev; renderSection("items"); changed({ path: "columns" }); } });
+        }
+      });
+    }
+  });
 }
 
 /* ---------------- top-bar actions ---------------- */
@@ -996,6 +1162,7 @@ function markAsSentAfterSend() {
 /* ---------------- mount ---------------- */
 export function mount(el, params) {
   root = el;
+  customProvider = customMethod = false;
   past = []; future = []; dirty = false; saveState = "saved";
   view = "form";
   const route = location.hash.replace(/^#\/?/, "").split(/[/?]/)[0];

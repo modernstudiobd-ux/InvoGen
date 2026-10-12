@@ -4,8 +4,9 @@
 // logos, signatures, payment links with QR codes and watermarks.
 
 import { esc, safeLogo } from "./dom.js";
-import { totals } from "./calc.js";
-import { formatMoney, formatDate, formatNumber } from "./format.js";
+import { totals, lineAmount } from "./calc.js";
+import { normalizeColumns, lineOptions, cellValue, isNumeric, defaultWeight } from "./columns.js";
+import { formatMoney, formatDate, formatNumber, decimalsOf } from "./format.js";
 import { dl, colLabel, isRtlLang, netTerms } from "./docLabels.js";
 import { amountInWords } from "./words.js";
 import qrcode from "./vendor/qrcode.js";
@@ -99,30 +100,32 @@ export function renderDocument(doc, { editable = false, today, placeholders = nu
     </section>`;
 
   /* ---- items ---- */
-  const cols = doc.cols || {};
+  // Columns come from the document's column settings (js/columns.js): order, names, widths.
+  const columns = (Array.isArray(doc.columns) && doc.columns.length ? doc.columns : normalizeColumns(null, doc.cols)).filter(c => c.on);
+  const lopt = lineOptions(doc.columns);
+  const dec = decimalsOf(doc.currency);
   const qtyFmt = q => esc(formatNumber(q, Number.isInteger(Number(q)) ? 0 : Math.min(3, (String(q).split(".")[1] || "").length || 2), doc.numberFormat, L));
+  const pctFmt = v => v === "" || v == null ? "" : esc(formatNumber(v, Number.isInteger(Number(v)) ? 0 : 2, doc.numberFormat, L)) + "%";
   const visibleItems = doc.items.filter((it, i) => editable || it.desc.trim() || Number(it.rate) || doc.items.length === 1 || i === 0);
-  const head2 = [
-    cols.sku ? `<th class="c-sku">${esc(colLabel(L, "sku"))}</th>` : "",
-    `<th class="c-desc">${esc(colLabel(L, "description"))}</th>`,
-    cols.qty ? `<th class="c-num">${esc(colLabel(L, "quantity"))}</th>` : "",
-    cols.unit ? `<th class="c-unit">${esc(colLabel(L, "unit"))}</th>` : "",
-    cols.rate ? `<th class="c-num">${esc(colLabel(L, "rate"))}</th>` : "",
-    `<th class="c-num c-amt">${esc(colLabel(L, "amount"))}</th>`
-  ].join("");
-  const rows = visibleItems.map(it => {
-    const i = doc.items.indexOf(it);
-    const amt = (it.qty === "" || it.qty == null ? 1 : Number(it.qty)) * Number(it.rate || 0);
-    return `<tr>
-      ${cols.sku ? `<td class="c-sku"><bdi>${esc(it.sku)}</bdi></td>` : ""}
-      <td class="c-desc"><div class="doc-desc" dir="auto"${editAttr(editable, `items.${i}.desc`)}>${esc(it.desc)}</div>${it.details ? `<div class="doc-details" dir="auto">${lines(it.details)}</div>` : ""}</td>
-      ${cols.qty ? `<td class="c-num">${qtyFmt(it.qty === "" ? 1 : it.qty)}</td>` : ""}
-      ${cols.unit ? `<td class="c-unit">${esc(it.unit)}</td>` : ""}
-      ${cols.rate ? `<td class="c-num">${m(it.rate)}</td>` : ""}
-      <td class="c-num c-amt">${m(amt)}</td>
-    </tr>`;
-  }).join("");
-  const items = `<table class="doc-items"><thead><tr>${head2}</tr></thead><tbody>${rows}</tbody></table>`;
+  const headLabel = c => c.label.trim() || ({ desc: colLabel(L, "description"), qty: colLabel(L, "quantity"), rate: colLabel(L, "rate"), amount: colLabel(L, "amount"), sku: colLabel(L, "sku"), unit: colLabel(L, "unit"), disc: `${dl(L, "discount")} %`, tax: `${dl(L, "tax")} %` }[c.id] || "");
+  const cls = c => c.id === "desc" ? "c-desc" : c.id === "amount" ? "c-num c-amt" : `c-${c.id.startsWith("c_") ? c.role : c.id}${isNumeric(c) ? " c-num" : ""}`;
+  // Set widths when chosen, or when extra columns would otherwise squeeze the description.
+  const custom = columns.some(c => c.w > 0) || columns.length > 4;
+  const dense = columns.length > 6 ? " is-dense" : "";
+  const colgroup = custom ? (() => { const tot = columns.reduce((s2, c) => s2 + (c.w || defaultWeight(c)), 0); return `<colgroup>${columns.map(c => `<col style="width:${((c.w || defaultWeight(c)) / tot * 100).toFixed(2)}%">`).join("")}</colgroup>`; })() : "";
+  const head2 = columns.map(c => `<th class="${cls(c)}">${esc(headLabel(c))}</th>`).join("");
+  const cell = (it, i, c) => {
+    const v = cellValue(it, c);
+    if (c.id === "desc") return `<td class="c-desc"><div class="doc-desc" dir="auto"${editAttr(editable, `items.${i}.desc`)}>${esc(it.desc)}</div>${it.details ? `<div class="doc-details" dir="auto">${lines(it.details)}</div>` : ""}</td>`;
+    if (c.id === "amount") return `<td class="c-num c-amt">${m(lineAmount(it, dec, lopt))}</td>`;
+    if (c.id === "qty") return `<td class="${cls(c)}">${qtyFmt(it.qty === "" ? 1 : it.qty)}</td>`;
+    if (c.id === "rate") return `<td class="${cls(c)}">${m(it.rate)}</td>`;
+    const empty = v === "" || v == null;
+    const shown = c.role === "disc" || c.role === "tax" ? pctFmt(v) : c.role === "number" && !empty && Number.isFinite(Number(v)) ? qtyFmt(Number(v)) : `<bdi>${esc(v)}</bdi>`;
+    return `<td class="${cls(c)}${empty ? " is-empty" : ""}" data-label="${esc(headLabel(c))}">${empty ? "" : shown}</td>`;
+  };
+  const rows = visibleItems.map(it => { const i = doc.items.indexOf(it); return `<tr>${columns.map(c => cell(it, i, c)).join("")}</tr>`; }).join("");
+  const items = `<table class="doc-items${custom ? " has-widths" : ""}${dense}">${colgroup}<thead><tr>${head2}</tr></thead><tbody>${rows}</tbody></table>`;
 
   /* ---- totals ---- */
   const tr = (label, value, cls = "") => `<tr class="${cls}"><th scope="row">${label}</th><td>${value}</td></tr>`;

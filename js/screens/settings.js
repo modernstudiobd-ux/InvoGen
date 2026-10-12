@@ -81,7 +81,7 @@ function field(label, path, o = {}) {
   const desc = [o.hint ? `${id}-h` : "", o.err ? `${id}-e` : ""].filter(Boolean).join(" ");
   const common = `id="${id}" data-s="${path}" data-k="${o.kind || "text"}"${desc ? ` aria-describedby="${desc}"` : ""}`;
   let ctl;
-  if (o.options) ctl = `<select class="select" ${common}>${o.groups || optHtml(o.options, v)}</select>`;
+  if (o.options) ctl = `<select class="select" ${common}${o.currency ? " data-currency" : ""}>${o.groups || optHtml(o.options, v)}</select>`;
   else if (o.area) ctl = `<textarea class="input textarea" rows="${o.rows || 3}" ${common} dir="auto" maxlength="${o.max || 2000}"${o.ph ? ` placeholder="${esc(o.ph)}"` : ""}>${esc(v)}</textarea>`;
   else {
     const num = o.kind === "num" || o.kind === "int";
@@ -182,7 +182,7 @@ function languageSec(s) {
     <div class="ed-grid">
       <div class="field span2"><label for="setLang">${esc(t("lang.title"))}</label>
         <select class="select" id="setLang">${LANGS.map(([c, n, en]) => `<option value="${c}" lang="${c}"${c === cur ? " selected" : ""}>${esc(n)}${c !== "en" ? ` — ${esc(en)}` : ""}</option>`).join("")}</select></div>
-      ${field(t("set.currency"), "currency", { span: true, options: [], groups: currencyGroups(s.currency) })}
+      ${field(t("set.currency"), "currency", { span: true, options: [], groups: currencyGroups(s.currency), currency: true })}
       ${field(t("ed.docLang"), "docLang", { span: true, options: DOC_LANGS.map(([c, n]) => [c, n]), hint: esc(t("set.docLangHint")) })}
     </div>`);
 }

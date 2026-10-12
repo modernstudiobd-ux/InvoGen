@@ -127,7 +127,7 @@ function body(key) {
       ${field("gBizName", t("guide.bizName"), G.biz.name, { span: true, ac: "organization", err: true })}
       ${field("gBizEmail", t("guide.optional", { label: t("ed.email") }), G.biz.email, { span: true, type: "email", ac: "email", mode: "email", err: true })}
       ${field("gBizPhone", t("guide.optional", { label: t("ed.phone") }), G.biz.phone, { span: true, type: "tel", ac: "tel", mode: "tel", max: 60 })}
-      <div class="field"><label for="gCurrency">${esc(t("ed.currency"))}</label><select class="select" id="gCurrency">${currencyOptions(G.currency)}</select></div>
+      <div class="field"><label for="gCurrency">${esc(t("ed.currency"))}</label><select class="select" id="gCurrency" data-currency>${currencyOptions(G.currency)}</select></div>
       <div class="field"><label for="gDocLang">${esc(t("ed.docLang"))}</label><select class="select" id="gDocLang">${optHtml(DOC_LANGS.map(([c, nm]) => [c, nm]), G.docLang)}</select></div>
       <div class="field span2"><label for="gAppLang">${esc(t("lang.title"))}</label>
         <select class="select" id="gAppLang">${LANGS.map(([c, nm, en]) => `<option value="${c}" lang="${c}"${c === cur ? " selected" : ""}>${esc(nm)}${c !== "en" ? ` — ${esc(en)}` : ""}</option>`).join("")}</select></div>

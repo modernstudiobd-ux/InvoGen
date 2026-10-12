@@ -9,7 +9,8 @@ import { formatMoney, formatNumber, parseNumber, todayISO, decimalsOf } from "./
 import { toast } from "./toast.js";
 import { openSheet } from "./sheet.js";
 
-export const METHODS = ["bank", "card", "cash", "cheque", "mobile", "online", "other"];
+// International methods; anything local (bKash, UPI, M-Pesa…) is typed in as a custom method.
+export const METHODS = ["bank", "card", "cash", "cheque", "online"];
 
 export function openPaymentSheet(id, { onDone } = {}) {
   const d = getDoc(id);
@@ -33,7 +34,12 @@ export function openPaymentSheet(id, { onDone } = {}) {
       <div class="row2">
         <div class="field"><label for="payDate">${esc(t("pay.date"))}</label><input class="input" type="date" id="payDate" name="date" value="${todayISO()}" required></div>
         <div class="field"><label for="payMethod">${esc(t("pay.method"))}</label>
-          <select class="select" id="payMethod" name="method">${METHODS.map(m => `<option value="${m}">${esc(t(`pay.m.${m}`))}</option>`).join("")}</select></div>
+          <select class="select" id="payMethod" name="method">${METHODS.map(m => `<option value="${m}">${esc(t(`pay.m.${m}`))}</option>`).join("")}<option value="__custom">${esc(t("pay.customOpt"))}</option></select></div>
+      </div>
+      <div class="field" id="payCustomF" hidden>
+        <label for="payCustom">${esc(t("pay.customMethod"))}</label>
+        <input class="input" id="payCustom" name="custom" maxlength="40" autocomplete="off" dir="auto" placeholder="${esc(t("pay.customMethodPh"))}" aria-describedby="payCustomErr">
+        <p class="err" id="payCustomErr" hidden></p>
       </div>
       <div class="field"><label for="payNote">${esc(t("pay.note"))}</label><input class="input" id="payNote" name="note" maxlength="200" autocomplete="off"></div>
     </form>`,
@@ -42,6 +48,8 @@ export function openPaymentSheet(id, { onDone } = {}) {
     onOpen: dlg => {
       const amt = dlg.querySelector("#payAmount");
       amt.focus(); amt.select();
+      const sel = dlg.querySelector("#payMethod"), cf = dlg.querySelector("#payCustomF"), cin = dlg.querySelector("#payCustom");
+      sel.addEventListener("change", () => { cf.hidden = sel.value !== "__custom"; if (!cf.hidden) cin.focus(); });
       dlg.querySelector("#payForm").addEventListener("submit", e => {
         e.preventDefault();
         const err = dlg.querySelector("#payAmountErr");
@@ -50,9 +58,13 @@ export function openPaymentSheet(id, { onDone } = {}) {
         if (!(value > 0)) msg = t("pay.errPositive");
         else if (value > owed + 1e-9) msg = t("pay.errTooMuch", { amount: money(owed) });
         if (msg) { err.textContent = msg; err.hidden = false; amt.setAttribute("aria-invalid", "true"); amt.focus(); return; }
+        err.hidden = true; amt.removeAttribute("aria-invalid");
+        const custom = sel.value === "__custom", cname = cin.value.trim();
+        const cerr = dlg.querySelector("#payCustomErr");
+        if (custom && !cname) { cerr.textContent = t("pay.errCustom"); cerr.hidden = false; cin.setAttribute("aria-invalid", "true"); cin.focus(); return; }
         const prevStatus = d.status;
-        const methodKey = dlg.querySelector("#payMethod").value;
-        const p = recordPayment(id, { amount: value, date: dlg.querySelector("#payDate").value || todayISO(), method: t(`pay.m.${methodKey}`), note: dlg.querySelector("#payNote").value.trim() });
+        const method = custom ? cname.slice(0, 40) : t(`pay.m.${sel.value}`);
+        const p = recordPayment(id, { amount: value, date: dlg.querySelector("#payDate").value || todayISO(), method, note: dlg.querySelector("#payNote").value.trim() });
         dlg.close();
         if (onDone) onDone();
         if (p) toast(t("pay.recorded", { amount: money(value) }), {

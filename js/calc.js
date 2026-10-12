@@ -3,19 +3,26 @@
 // Pure functions: no DOM, no storage — easy to test.
 
 import { round, decimalsOf, todayISO, daysBetween } from "./format.js";
+import { lineOptions } from "./columns.js";
 
 const n = v => (Number.isFinite(Number(v)) ? Number(v) : 0);
 
-export function lineAmount(item, d = 2) {
-  const qty = item.qty === "" || item.qty == null ? 1 : n(item.qty);
-  return round(qty * n(item.rate), d);
+// One line: quantity × price, less the line discount %, plus the line tax % (when those
+// columns are switched on). Without a Quantity column every line counts once.
+export function lineAmount(item, d = 2, opt = { qty: true, disc: false, tax: false }) {
+  const qty = !opt.qty || item.qty === "" || item.qty == null ? 1 : n(item.qty);
+  let a = qty * n(item.rate);
+  if (opt.disc) a *= 1 - Math.min(100, Math.max(0, n(item.disc))) / 100;
+  if (opt.tax) a *= 1 + Math.max(0, n(item.tax)) / 100;
+  return round(a, d);
 }
 
 // Every total a document needs. `today` is injectable for tests.
 export function totals(doc, today = todayISO()) {
   const d = decimalsOf(doc.currency);
   const items = Array.isArray(doc.items) ? doc.items : [];
-  const subtotal = round(items.reduce((s, it) => s + lineAmount(it, d), 0), d);
+  const opt = lineOptions(doc.columns);
+  const subtotal = round(items.reduce((s, it) => s + lineAmount(it, d, opt), 0), d);
 
   const disc = doc.discount || {};
   const discount = round(Math.min(subtotal, disc.type === "amount" ? Math.max(0, n(disc.value)) : subtotal * Math.max(0, Math.min(100, n(disc.value))) / 100), d);

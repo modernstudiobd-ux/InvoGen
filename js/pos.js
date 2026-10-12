@@ -4,8 +4,9 @@
 
 import { esc, safeLogo } from "./dom.js";
 import { t } from "./i18n.js";
-import { totals } from "./calc.js";
-import { formatMoney, formatDate, formatNumber } from "./format.js";
+import { totals, lineAmount } from "./calc.js";
+import { lineOptions } from "./columns.js";
+import { formatMoney, formatDate, formatNumber, decimalsOf } from "./format.js";
 import { dl } from "./docLabels.js";
 import { normalizeUrl, qrSvg } from "./preview.js";
 import { runPrint } from "./print.js";
@@ -24,9 +25,11 @@ export function buildReceipt(doc, p = prefs) {
   const money = n => formatMoney(n, doc.currency, nf);
   const line = '<div class="pr-rule"></div>';
   const row = (label, value, cls = "") => `<div class="pr-row ${cls}"><span>${esc(label)}</span><b>${esc(value)}</b></div>`;
+  const lopt = lineOptions(doc.columns);
   const items = doc.items.filter(i => i.desc.trim() || Number(i.rate)).map(i => {
-    const qty = i.qty === "" ? 1 : Number(i.qty);
-    return `<div class="pr-item"><div class="pr-name" dir="auto">${esc(i.desc || "—")}</div><div class="pr-row"><span>${esc(formatNumber(qty, Number.isInteger(qty) ? 0 : 2, doc.numberFormat, L))} × ${esc(money(i.rate))}</span><b>${esc(money(qty * Number(i.rate || 0)))}</b></div></div>`;
+    const qty = !lopt.qty || i.qty === "" ? 1 : Number(i.qty);
+    const extra = [lopt.disc && Number(i.disc) ? `−${formatNumber(Number(i.disc), 2, doc.numberFormat, L).replace(/[.,]00$/, "")}%` : "", lopt.tax && Number(i.tax) ? `+${formatNumber(Number(i.tax), 2, doc.numberFormat, L).replace(/[.,]00$/, "")}%` : ""].filter(Boolean).join(" ");
+    return `<div class="pr-item"><div class="pr-name" dir="auto">${esc(i.desc || "—")}</div><div class="pr-row"><span>${esc(formatNumber(qty, Number.isInteger(qty) ? 0 : 2, doc.numberFormat, L))} × ${esc(money(i.rate))}${extra ? " " + esc(extra) : ""}</span><b>${esc(money(lineAmount(i, decimalsOf(doc.currency), lopt)))}</b></div></div>`;
   }).join("");
   const b = doc.business || {}, c = doc.client || {};
   const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
