@@ -1,5 +1,5 @@
 // templates.js — the 17 document templates: name, group, default brand colour and
-// heading font. The look of each lives in css/templates.css (.doc.tpl-<id>).
+// heading font. The look of each lives in css/app.css, "templates" section (.doc.tpl-<id>).
 // Colour helpers keep every accent readable: text drawn in the brand colour is
 // darkened or lightened until it reaches 4.5:1 contrast with what it sits on.
 

@@ -34,6 +34,8 @@ function parseHash() {
 async function navigate() {
   const { route, params } = parseHash();
   const main = $("main");
+  // The guide hides the menus; switch before anything is drawn so nothing jumps.
+  document.body.classList.toggle("is-guide", route === "guide");
   let mod;
   try { mod = await SCREENS[route](); }
   catch (e) { console.error(e); main.innerHTML = `<div class="page"><p>${t("common.loadError")}</p></div>`; return; }

@@ -17,21 +17,26 @@
   <meta name="apple-mobile-web-app-title" content="InvoGen">
   <link rel="preload" href="fonts/Inter-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/SpaceGrotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/fonts.css">
-  <link rel="stylesheet" href="css/fonts-templates.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/screens.css">
-  <link rel="stylesheet" href="css/invoice.css">
-  <link rel="stylesheet" href="css/templates.css">
-  <link rel="stylesheet" href="css/phone.css">
-  <link rel="stylesheet" href="css/print.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/print.css" media="print">
   <style id="pageSizeCSS">@page{size:A4;margin:0}</style>
+  <!-- Start fetching the app's core modules and English text right away (in parallel). -->
   <link rel="modulepreload" href="js/main.js">
+  <link rel="modulepreload" href="js/dom.js">
   <link rel="modulepreload" href="js/state.js">
-  <link rel="modulepreload" href="js/screens/documents.js">
+  <link rel="modulepreload" href="js/storage.js">
+  <link rel="modulepreload" href="js/format.js">
+  <link rel="modulepreload" href="js/calc.js">
+  <link rel="modulepreload" href="js/currencies.js">
+  <link rel="modulepreload" href="js/migrate.js">
+  <link rel="modulepreload" href="js/i18n.js">
+  <link rel="modulepreload" href="js/layout.js">
+  <link rel="modulepreload" href="js/icons.js">
+  <link rel="modulepreload" href="js/docLabels.js">
+  <link rel="modulepreload" href="js/sheet.js">
+  <link rel="modulepreload" href="js/toast.js">
+  <link rel="modulepreload" href="js/install.js">
+  <link rel="preload" href="i18n/en.json" as="fetch" crossorigin>
 </head>
 <body class="booting">
   <a class="skip-link" id="skipLink" href="#main">Skip to content</a>

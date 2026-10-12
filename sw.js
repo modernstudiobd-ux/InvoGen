@@ -2,7 +2,7 @@
 //
 // RELEASING A NEW VERSION: change VERSION below (e.g. "v4.0.1"). Returning visitors
 // then download the new files once, and the app offers a "Reload" button.
-const VERSION = "v4.0.5";
+const VERSION = "v4.0.6";
 const CACHE = `invogen-${VERSION}`;
 
 // Every file the app needs, downloaded on install so it runs with no connection.
@@ -13,17 +13,8 @@ const ASSETS = [
   "./favicon.ico",
   "./index.html",
   "./manifest.webmanifest",
-  "./css/base.css",
-  "./css/components.css",
-  "./css/fonts-templates.css",
-  "./css/fonts.css",
-  "./css/invoice.css",
-  "./css/layout.css",
-  "./css/phone.css",
+  "./css/app.css",
   "./css/print.css",
-  "./css/screens.css",
-  "./css/templates.css",
-  "./css/tokens.css",
   "./fonts/Caveat-latin-ext.woff2",
   "./fonts/Caveat-latin.woff2",
   "./fonts/DMSans-latin-ext.woff2",

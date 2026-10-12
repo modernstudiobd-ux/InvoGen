@@ -13,10 +13,13 @@ import { CURRENCIES, COMMON_CURRENCIES } from "../currencies.js";
 import { DOC_LANGS } from "../docLabels.js";
 import { formatMoney, parseNumber, decimalsOf } from "../format.js";
 import { totals, lineAmount } from "../calc.js";
-import { TEMPLATES } from "../templates.js";
-import { thumbHtml, fitThumbs } from "../tplThumbs.js";
-import { printDocument } from "../print.js";
-import { withPdfGuide } from "../pdfExport.js";
+
+// Previews, printing and PDF are only needed from step 4, so they load in the
+// background after the first step is on screen (keeps the first visit fast).
+let H = null, loading = null;
+const heavy = () => loading || (loading = Promise.all([import("../tplThumbs.js"), import("../print.js"), import("../pdfExport.js")])
+  .then(([a, b, c]) => (H = { ...a, ...b, ...c })));
+const thumbHtml = d => H.thumbHtml(d);
 
 const STEPS = ["business", "client", "items", "review", "done"];
 const LOOKS = ["modern", "classic", "dark", "corporate", "medical", "luxury"];
@@ -51,7 +54,9 @@ export function mount(el) {
   root.addEventListener("click", onClick, sig);
   root.addEventListener("input", onInput, sig);
   root.addEventListener("change", onChange, sig);
-  render();
+  if (G.step >= 3 && !H) heavy().then(() => { if (root) render(); });
+  else render();
+  setTimeout(heavy, 400);
   return { title: t("guide.title") };
 }
 export function unmount() {
@@ -112,7 +117,7 @@ function render() {
       ${foot(n)}
     </form>
   </div>`;
-  if (key === "review" || key === "done") stopFit = fitThumbs(root);
+  if (key === "review" || key === "done") stopFit = H.fitThumbs(root);
 }
 
 function body(key) {
@@ -267,7 +272,9 @@ function onSubmit(e) {
   go(n + 1);
 }
 
-function go(step) {
+async function go(step) {
+  if (step >= 3 && !H) await heavy();
+  if (!root) return;
   G.step = step;
   render();
   const h = root.querySelector("#pageTitle"); if (h) h.focus();
@@ -329,8 +336,8 @@ function onClick(e) {
       const f = root.querySelector(`#gDesc${Math.max(0, i - 1)}`); if (f) f.focus();
       break;
     }
-    case "pdf": { const d = getDoc(G.docId); if (d) withPdfGuide(d, () => printDocument(d)); break; }
-    case "print": { const d = getDoc(G.docId); if (d) printDocument(d); break; }
+    case "pdf": { const d = getDoc(G.docId); if (d) H.withPdfGuide(d, () => H.printDocument(d)); break; }
+    case "print": { const d = getDoc(G.docId); if (d) H.printDocument(d); break; }
     case "send": { const id = G.docId; finish(); G = null; location.hash = `#/edit/${encodeURIComponent(id)}?send=1`; break; }
   }
 }
