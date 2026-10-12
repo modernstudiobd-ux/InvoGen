@@ -1048,6 +1048,11 @@ export function mount(el, params) {
   renderPreview();
   renderStatus();
   renderUndo();
+  // #/edit/<id>?send=1 (from the guided first invoice) opens Send straight away.
+  if (!isNew && params.query && params.query.get("send") === "1") {
+    history.replaceState(null, "", `#/edit/${encodeURIComponent(doc.id)}`);
+    setTimeout(() => { if (root) openSend(); }, 0);
+  }
   return { title: `${typeName(doc.type)} ${doc.no}`, focusSearch: null };
 }
 

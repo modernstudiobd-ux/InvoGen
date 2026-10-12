@@ -111,6 +111,9 @@ async function boot() {
     if (reason === "storage" && lastSaveFailed()) toast(t("storage.saveFailed"), { duration: 10000 });
     if (reason === "replace") { setLanguage(st.settings.appLang || "en"); }
   });
+  // First visit: start with the guided first invoice.
+  const st0 = getState();
+  if (!st0.settings.onboarded && !st0.docs.length && /^#?\/?(documents)?$/.test(location.hash)) history.replaceState(null, "", "#/guide");
   const made = runRecurring();
   window.addEventListener("hashchange", navigate);
   wireShortcuts();
