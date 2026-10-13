@@ -775,5 +775,13 @@
  "date.next": "Sonraki ay",
  "date.today": "Bugün",
  "date.clear": "Temizle",
- "ed.colorFixed": "Bu şablonun kendi renkleri var, bu yüzden marka rengi değiştirilemez."
+ "ed.colorFixed": "Bu şablonun kendi renkleri var, bu yüzden marka rengi değiştirilemez.",
+ "nav.items": "Kalemler",
+ "nav.help": "Yardım ve destek",
+ "help.sub": "InvoGen’in her bölümü için kısa rehberler.",
+ "help.guides": "Rehberler",
+ "help.offline": "Çevrimdışı çalışır",
+ "cl.itemsSub": "Sattığınız ürün ve hizmetler, her belgeye eklenmeye hazır.",
+ "set.helpRowHint": "Rehberler, klavye kısayolları ve sık sorulan soruların yanıtları.",
+ "set.openHelp": "Yardımı aç"
 }

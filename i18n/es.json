@@ -775,5 +775,13 @@
  "date.next": "Mes siguiente",
  "date.today": "Hoy",
  "date.clear": "Borrar",
- "ed.colorFixed": "Esta plantilla tiene sus propios colores, así que el color de marca no se puede cambiar."
+ "ed.colorFixed": "Esta plantilla tiene sus propios colores, así que el color de marca no se puede cambiar.",
+ "nav.items": "Artículos",
+ "nav.help": "Ayuda y soporte",
+ "help.sub": "Guías breves para cada parte de InvoGen.",
+ "help.guides": "Guías",
+ "help.offline": "Funciona sin conexión",
+ "cl.itemsSub": "Productos y servicios que vendes, listos para añadir a cualquier documento.",
+ "set.helpRowHint": "Guías, atajos de teclado y respuestas a preguntas frecuentes.",
+ "set.openHelp": "Abrir ayuda"
 }

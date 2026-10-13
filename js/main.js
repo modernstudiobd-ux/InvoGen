@@ -16,6 +16,8 @@ const SCREENS = {
   create: () => import("./screens/editor.js"),
   edit: () => import("./screens/editor.js"),
   clients: () => import("./screens/clients.js"),
+  items: () => import("./screens/clients.js"),          // saved items: the Items tab of Clients
+  help: () => import("./screens/help.js"),
   templates: () => import("./screens/templates.js"),
   settings: () => import("./screens/settings.js"),
   guide: () => import("./screens/guide.js")
@@ -28,8 +30,11 @@ function parseHash() {
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
   const [path, query = ""] = h.split("?");
   const [route, ...rest] = path.split("/").filter(Boolean);
-  const r = SCREENS[route] ? route : "documents";
-  return { route: r, params: { id: rest.join("/"), query: new URLSearchParams(query) } };
+  let r = SCREENS[route] ? route : "documents";
+  const q = new URLSearchParams(query), id = rest.join("/");
+  if (r === "clients" && !id && q.get("tab") === "items") r = "items";
+  if (r === "items") q.set("tab", "items");
+  return { route: r, params: { id, query: q } };
 }
 
 async function navigate() {

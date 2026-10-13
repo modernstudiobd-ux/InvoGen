@@ -775,5 +775,13 @@
  "date.next": "Volgende maand",
  "date.today": "Vandaag",
  "date.clear": "Wissen",
- "ed.colorFixed": "Deze sjabloon heeft eigen kleuren, dus de merkkleur kan niet worden gewijzigd."
+ "ed.colorFixed": "Deze sjabloon heeft eigen kleuren, dus de merkkleur kan niet worden gewijzigd.",
+ "nav.items": "Artikelen",
+ "nav.help": "Hulp en ondersteuning",
+ "help.sub": "Korte handleidingen voor elk onderdeel van InvoGen.",
+ "help.guides": "Handleidingen",
+ "help.offline": "Werkt offline",
+ "cl.itemsSub": "Producten en diensten die je verkoopt, klaar voor elk document.",
+ "set.helpRowHint": "Handleidingen, sneltoetsen en antwoorden op veelgestelde vragen.",
+ "set.openHelp": "Hulp openen"
 }

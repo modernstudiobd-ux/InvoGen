@@ -775,5 +775,13 @@
  "date.next": "Nächster Monat",
  "date.today": "Heute",
  "date.clear": "Leeren",
- "ed.colorFixed": "Diese Vorlage hat eigene Farben, daher lässt sich die Markenfarbe nicht ändern."
+ "ed.colorFixed": "Diese Vorlage hat eigene Farben, daher lässt sich die Markenfarbe nicht ändern.",
+ "nav.items": "Artikel",
+ "nav.help": "Hilfe und Support",
+ "help.sub": "Kurze Anleitungen zu allen Bereichen von InvoGen.",
+ "help.guides": "Anleitungen",
+ "help.offline": "Funktioniert offline",
+ "cl.itemsSub": "Produkte und Leistungen, die Sie verkaufen – bereit für jedes Dokument.",
+ "set.helpRowHint": "Anleitungen, Tastenkürzel und Antworten auf häufige Fragen.",
+ "set.openHelp": "Hilfe öffnen"
 }

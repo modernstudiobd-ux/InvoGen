@@ -749,5 +749,13 @@
  "date.next": "次の月",
  "date.today": "今日",
  "date.clear": "クリア",
- "ed.colorFixed": "このテンプレートは配色が固定されているため、ブランドカラーは変更できません。"
+ "ed.colorFixed": "このテンプレートは配色が固定されているため、ブランドカラーは変更できません。",
+ "nav.items": "品目",
+ "nav.help": "ヘルプとサポート",
+ "help.sub": "InvoGen の各機能の簡単なガイド。",
+ "help.guides": "ガイド",
+ "help.offline": "オフラインで使えます",
+ "cl.itemsSub": "販売する商品やサービス。どの書類にもすぐ追加できます。",
+ "set.helpRowHint": "ガイド、キーボードショートカット、よくある質問への回答。",
+ "set.openHelp": "ヘルプを開く"
 }

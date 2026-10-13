@@ -26,6 +26,7 @@ import { toast } from "../toast.js";
 import { readImage, signaturePad } from "../images.js";
 import { parseDelimited, toItems, readSheetFile } from "../importSheet.js";
 import { enhancePickers } from "../picker.js";
+import { attachSuggest } from "../suggest.js";
 import { OPTIONAL, lineOptions, isNumeric, defaultWeight, normalizeColumns } from "../columns.js";
 
 /* ---------------- module state ---------------- */
@@ -157,14 +158,12 @@ function body(id) {
         ${field(t("ed.taxId"), "business.taxId")}
       </div><p class="hint">${esc(t("ed.bizHint"))}</p>`;
     case "client": {
-      const names = getState().clients.map(c => `<option value="${esc(c.name)}"></option>`).join("");
       return `<div class="ed-actions-row">
           <button type="button" class="btn btn-outline" data-act="pick-client" aria-haspopup="dialog">${icon("users", 18)}${esc(t("ed.chooseClient"))}</button>
           <button type="button" class="btn btn-outline" data-act="save-client" id="saveClientBtn"${doc.client.name.trim() ? "" : " hidden"}${clientIsSaved() ? ' aria-disabled="true"' : ""}>${icon(clientIsSaved() ? "check" : "plus", 18)}<span>${esc(clientBtnLabel())}</span></button>
         </div>
-        <datalist id="clientNames">${names}</datalist>
         <div class="ed-grid">
-          ${field(t("ed.clientName"), "client.name", { span: true, list: "clientNames" })}
+          ${field(t("ed.clientName"), "client.name", { span: true })}
           ${field(t("ed.contact"), "client.contact")}
           ${field(t("ed.phone"), "client.phone", { type: "tel" })}
           ${field(t("ed.email"), "client.email", { type: "email", span: true })}
@@ -376,6 +375,17 @@ function renderForm() {
   open.forEach(afterSectionRender);
 }
 function afterSectionRender(id) {
+  // Typing a client name suggests matching saved clients (styled like the drop-downs).
+  if (id === "client") attachSuggest(root.querySelector("#f-client-name"), {
+    label: t("ed.chooseClient"),
+    items: () => getState().clients.map(c => ({ id: c.id, label: c.name, sub: c.email || c.phone || "" })),
+    onPick: cid => {
+      const c = getState().clients.find(x => x.id === cid);
+      if (!c) return;
+      fillClient(c);
+      renderSection("client"); changed();
+    }
+  });
   if (id === "brand" && doc.signature.on && doc.signature.mode === "draw") {
     const c = root.querySelector("#sigPad");
     if (pad) pad.destroy();

@@ -775,5 +775,13 @@
  "date.next": "Next month",
  "date.today": "Today",
  "date.clear": "Clear",
- "ed.colorFixed": "This template has its own colours, so the brand colour can’t be changed."
+ "ed.colorFixed": "This template has its own colours, so the brand colour can’t be changed.",
+ "nav.items": "Items",
+ "nav.help": "Help and support",
+ "help.sub": "Short guides for every part of InvoGen.",
+ "help.guides": "Guides",
+ "help.offline": "Works offline",
+ "cl.itemsSub": "Products and services you sell, ready to add to any document.",
+ "set.helpRowHint": "Guides, keyboard shortcuts and answers to common questions.",
+ "set.openHelp": "Open help"
 }

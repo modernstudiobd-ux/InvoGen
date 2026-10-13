@@ -749,5 +749,13 @@
  "date.next": "下个月",
  "date.today": "今天",
  "date.clear": "清除",
- "ed.colorFixed": "此模板使用固定配色，无法更改品牌颜色。"
+ "ed.colorFixed": "此模板使用固定配色，无法更改品牌颜色。",
+ "nav.items": "项目",
+ "nav.help": "帮助与支持",
+ "help.sub": "InvoGen 各项功能的简明指南。",
+ "help.guides": "指南",
+ "help.offline": "可离线使用",
+ "cl.itemsSub": "你销售的产品和服务，可随时添加到任何单据。",
+ "set.helpRowHint": "指南、键盘快捷键和常见问题解答。",
+ "set.openHelp": "打开帮助"
 }

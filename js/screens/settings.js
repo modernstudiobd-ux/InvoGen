@@ -30,10 +30,9 @@ import { APP_VERSION } from "../version.js";
 
 const TYPES = ["invoice", "estimate", "receipt"];
 const SECTIONS = ["business", "country", "language", "formats", "numbering", "wording", "prefs", "install", "data", "help", "reset"];
-const GUIDES = ["first", "pdf", "send", "payment", "overdue", "recurring", "import", "templates", "backup", "offline", "languages"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-let root = null, ac = null, unsub = null, offInstall = null, helpQ = "";
+let root = null, ac = null, unsub = null, offInstall = null;
 const timers = new Map();
 
 /* ---------------- mount ---------------- */
@@ -53,7 +52,7 @@ export function mount(el) {
     else if (reason === "ui") syncQuiet();
   });
   offInstall = onInstallChange(() => renderInstall());
-  return { title: t("nav.settings"), focusSearch };
+  return { title: t("nav.settings") };
 }
 export function unmount() {
   timers.forEach(tm => clearTimeout(tm)); timers.clear();
@@ -61,10 +60,6 @@ export function unmount() {
   if (offInstall) offInstall();
   if (ac) ac.abort();
   root = ac = unsub = offInstall = null;
-}
-export function focusSearch() {
-  const q = root && root.querySelector("#helpQ");
-  if (q) { q.scrollIntoView({ block: "center" }); q.focus(); }
 }
 
 /* ---------------- helpers ---------------- */
@@ -127,7 +122,6 @@ function render() {
   </div>`;
   renderInstall();
   renderData();
-  renderHelp();
   updateNumberPreviews();
 }
 
@@ -235,16 +229,12 @@ function prefsSec(s) {
 }
 
 function helpSec() {
-  const keys = [["N", t("set.key.new")], ["/", t("set.key.search")], ["Ctrl / ⌘ + Z", t("set.key.undo")], ["Ctrl / ⌘ + Shift + Z", t("set.key.redo")], ["Ctrl / ⌘ + S", t("set.key.save")], ["Ctrl / ⌘ + P", t("set.key.print")], ["Esc", t("set.key.close")]];
+  // The full guides live on the Help and support page (#/help).
   return sec("help", t("set.sec.help"), `
+    <div class="set-row"><span class="switch-text"><span>${esc(t("nav.help"))}</span><span class="hint">${esc(t("set.helpRowHint"))}</span></span>
+      <a class="btn btn-outline" href="#/help">${icon("circle-help", 18)}${esc(t("set.openHelp"))}</a></div>
     <div class="set-row"><span class="switch-text"><span>${esc(t("set.guideTitle"))}</span><span class="hint">${esc(t("set.guideHint"))}</span></span>
-      <a class="btn btn-outline" href="#/guide">${icon("sparkles", 18)}${esc(t("set.startGuide"))}</a></div>
-    <label class="search set-help-search">${icon("search")}<span class="visually-hidden">${esc(t("set.helpSearch"))}</span>
-      <input type="search" class="input" id="helpQ" placeholder="${esc(t("set.helpSearch"))}" autocomplete="off" value="${esc(helpQ)}"></label>
-    <div id="helpList" class="set-guides"></div>
-    <p class="visually-hidden" id="helpCount" aria-live="polite"></p>
-    <h3 class="h3 set-sub">${esc(t("set.shortcuts"))}</h3>
-    <dl class="set-keys">${keys.map(([k, d]) => `<div><dt><kbd dir="ltr">${esc(k)}</kbd></dt><dd>${esc(d)}</dd></div>`).join("")}</dl>`);
+      <a class="btn btn-outline" href="#/guide">${icon("sparkles", 18)}${esc(t("set.startGuide"))}</a></div>`);
 }
 
 function resetSec() {
@@ -298,18 +288,6 @@ async function renderData() {
 // "3 documents, 1 client, 0 saved items" with the right plural in every language.
 const countList = (docs, clients, items) => [t("cl.docCount", { n: docs }), t("cl.clientCount", { n: clients }), t("cl.itemCount", { n: items })].join(", ");
 const formatSize = b => (b < 1048576 ? `${formatNumber(Math.max(1, Math.round(b / 1024)), 0, S().numberFormat, getLanguage())} KB` : `${formatNumber(b / 1048576, 1, S().numberFormat, getLanguage())} MB`);
-
-function renderHelp() {
-  const list = root && root.querySelector("#helpList");
-  if (!list) return;
-  const q = helpQ.trim().toLowerCase();
-  const items = GUIDES.filter(g => !q || (t(`set.g.${g}.q`) + " " + t(`set.g.${g}.a`)).toLowerCase().includes(q));
-  list.innerHTML = items.length
-    ? items.map(g => `<details class="set-guide"${q ? " open" : ""}><summary>${icon("chevron-right", 16)}<span>${esc(t(`set.g.${g}.q`))}</span></summary><p>${esc(t(`set.g.${g}.a`))}</p></details>`).join("")
-    : `<p class="hint">${esc(t("set.helpNone"))}</p>`;
-  const c = root.querySelector("#helpCount");
-  if (c) c.textContent = q ? t("set.helpCount", { n: items.length }) : "";
-}
 
 function updateNumberPreviews() {
   TYPES.forEach(ty => {
@@ -398,7 +376,6 @@ function refreshFormats() {
 
 function onInput(e) {
   const el = e.target;
-  if (el.id === "helpQ") { helpQ = el.value; renderHelp(); return; }
   if (!el.matches("[data-s]") || el.tagName === "SELECT" || el.type === "checkbox") return;
   clearTimeout(timers.get(el.id));
   timers.set(el.id, setTimeout(() => { timers.delete(el.id); if (root) save(el); }, 350));

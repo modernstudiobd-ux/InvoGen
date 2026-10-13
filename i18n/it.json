@@ -775,5 +775,13 @@
  "date.next": "Mese successivo",
  "date.today": "Oggi",
  "date.clear": "Cancella",
- "ed.colorFixed": "Questo modello ha colori propri, quindi il colore del marchio non si può cambiare."
+ "ed.colorFixed": "Questo modello ha colori propri, quindi il colore del marchio non si può cambiare.",
+ "nav.items": "Articoli",
+ "nav.help": "Aiuto e assistenza",
+ "help.sub": "Brevi guide per ogni parte di InvoGen.",
+ "help.guides": "Guide",
+ "help.offline": "Funziona offline",
+ "cl.itemsSub": "Prodotti e servizi che vendi, pronti da aggiungere a qualsiasi documento.",
+ "set.helpRowHint": "Guide, scorciatoie da tastiera e risposte alle domande frequenti.",
+ "set.openHelp": "Apri l’aiuto"
 }

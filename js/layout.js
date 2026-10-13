@@ -12,6 +12,7 @@ import { openSheet } from "./sheet.js";
 const NAV = [
   ["documents", "files", "nav.documents"],
   ["clients", "users", "nav.clients"],
+  ["items", "package", "nav.items"],
   ["templates", "layout-template", "nav.templates"],
   ["settings", "settings", "nav.settings"]
 ];
@@ -27,9 +28,10 @@ export function renderShell() {
     </ul>
     <div class="rail-foot">
       <button type="button" class="rail-link" data-action="lang" aria-haspopup="dialog">${icon("globe")}<span><span class="lang-label">${esc(t("nav.language"))} · </span>${esc(lang.toUpperCase())}</span></button>
+      <a class="rail-link" href="#/help" data-nav="help">${icon("circle-help")}<span>${esc(t("nav.help"))}</span></a>
       <p class="rail-status" id="offlineStatus"></p>
     </div>`;
-  const [d, c, tp, s] = NAV;
+  const [d, c, tp, s] = ["documents", "clients", "templates", "settings"].map(id => NAV.find(n => n[0] === id));
   const tab = ([id, ic, key]) => `<a class="tab" href="#/${id}" data-nav="${id}">${icon(ic, 22)}<span>${esc(t(key))}</span></a>`;
   $("tabbar").innerHTML = `${tab(d)}${tab(c)}
     <a class="tab tab-create" href="#/create" data-nav="create" aria-label="${esc(t("nav.create"))}"><span class="plus">${icon("plus")}</span><span>${esc(t("nav.create"))}</span></a>
@@ -42,8 +44,11 @@ export function renderShell() {
 
 export function setActive(route) {
   const key = route === "edit" || route === "guide" ? "" : route;
+  // The phone tab bar has no Items or Help: those pages light up Clients and Settings there.
+  const tabKey = { items: "clients", help: "settings" }[key] || key;
   document.querySelectorAll("[data-nav]").forEach(a => {
-    if (a.dataset.nav === key && key !== "create") a.setAttribute("aria-current", "page");
+    const k = a.closest("#tabbar") ? tabKey : key;
+    if (a.dataset.nav === k && k !== "create") a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });
 }

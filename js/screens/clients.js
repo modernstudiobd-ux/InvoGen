@@ -1,6 +1,6 @@
 // screens/clients.js — Clients and saved items.
 //   #/clients              list of clients (search, sort, outstanding per client)
-//   #/clients?tab=items    saved products and services
+//   #/items (or #/clients?tab=items)   saved products and services
 //   #/clients/<id>         one client's dashboard: outstanding, paid, billed, details, history
 // Add, edit and delete (with Undo), import from CSV / Excel / pasted Google Sheets rows,
 // and export to CSV.
@@ -16,6 +16,7 @@ import {
 import { outstandingOf } from "../calc.js";
 import { formatMoney, formatNumber, formatShortDate, parseNumber, todayISO } from "../format.js";
 import { toast } from "../toast.js";
+import { setActive } from "../layout.js";
 import { openSheet } from "../sheet.js";
 import { parseDelimited, readSheetFile, toClients, toItems, toCSV } from "../importSheet.js";
 import { rowHtml as docRowHtml, openRowMenu as openDocMenu } from "./documents.js";
@@ -121,7 +122,7 @@ export function mount(el, params = {}) {
   root.innerHTML = listShell();
   wireSearch();
   renderList();
-  return { title: t("nav.clients"), focusSearch };
+  return { title: t(tab === "items" ? "nav.items" : "nav.clients"), focusSearch };
 }
 export function unmount() {
   if (unsub) unsub();
@@ -150,8 +151,8 @@ function listShell() {
   <div class="page clients">
     <header class="page-head">
       <div>
-        <h1 class="h1" id="pageTitle" tabindex="-1">${esc(t("nav.clients"))}</h1>
-        <p class="page-sub">${esc(t("cl.sub"))}</p>
+        <h1 class="h1" id="pageTitle" tabindex="-1">${esc(t(tab === "items" ? "nav.items" : "nav.clients"))}</h1>
+        <p class="page-sub" id="clSub">${esc(t(tab === "items" ? "cl.itemsSub" : "cl.sub"))}</p>
       </div>
       <div class="head-actions" id="clHeadActions"></div>
     </header>
@@ -163,8 +164,8 @@ function listShell() {
         <span class="visually-hidden" id="clSearchLabel"></span>
         <input type="search" class="input" id="clSearch" autocomplete="off" enterkeyhint="search" aria-keyshortcuts="/" aria-labelledby="clSearchLabel">
       </label>
-      <label class="visually-hidden" for="clSort">${esc(t("cl.sortLabel"))}</label>
-      <select class="select pill-input" id="clSort">${SORTS.map(sortOpt).join("")}</select>
+      <div class="cl-sort" id="clSortBox"><label class="visually-hidden" for="clSort">${esc(t("cl.sortLabel"))}</label>
+      <select class="select pill-input" id="clSort">${SORTS.map(sortOpt).join("")}</select></div>
     </div>
     <p class="visually-hidden" id="clCount" aria-live="polite" aria-atomic="true"></p>
     <section class="card doc-card" id="clList" aria-labelledby="pageTitle"></section>
@@ -177,6 +178,10 @@ function renderTabs() {
   const chip = (id, label, n) => `<button type="button" class="chip" data-tab="${id}" aria-pressed="${tab === id}">${esc(label)} <span class="chip-count num">${esc(formatNumber(n, 0, st.settings.numberFormat, getLanguage()))}</span></button>`;
   root.querySelector("#clTabs").innerHTML = chip("clients", t("nav.clients"), st.clients.length) + chip("items", t("cl.tab.items"), st.products.length);
   const items = tab === "items";
+  // Clients and Items share this page; the heading follows the tab (and the left menu).
+  root.querySelector("#pageTitle").textContent = t(items ? "nav.items" : "nav.clients");
+  root.querySelector("#clSub").textContent = t(items ? "cl.itemsSub" : "cl.sub");
+  document.title = `${t(items ? "nav.items" : "nav.clients")} · InvoGen`;
   // Phones: Import and Export sit behind a "more" button so the list stays in view.
   root.querySelector("#clHeadActions").innerHTML = `
     <button type="button" class="btn btn-outline wide-only" data-act="import" aria-haspopup="dialog">${icon("upload", 18)}${esc(t("cl.import"))}</button>
@@ -186,7 +191,7 @@ function renderTabs() {
   const label = t(items ? "ed.searchItems" : "ed.searchClients");
   root.querySelector("#clSearchLabel").textContent = label;
   root.querySelector("#clSearch").placeholder = label;
-  root.querySelector("#clSort").hidden = items;
+  root.querySelector("#clSortBox").hidden = items;          // items have no sort order
   const unsaved = items ? [] : clientsFromDocs();
   root.querySelector("#clBanner").innerHTML = unsaved.length
     ? `<div class="card banner"><p>${esc(t("cl.unsavedBanner", { n: unsaved.length }))}</p><div class="actions"><button type="button" class="btn btn-outline" data-act="save-found">${icon("user-plus", 18)}${esc(t("cl.saveThem"))}</button></div></div>`
@@ -355,7 +360,8 @@ function onClick(e) {
   if (tb) {
     if (tab === tb.dataset.tab) return;
     tab = tb.dataset.tab; limit = PAGE;
-    history.replaceState(null, "", tab === "items" ? "#/clients?tab=items" : "#/clients");
+    history.replaceState(null, "", tab === "items" ? "#/items" : "#/clients");
+    setActive(tab === "items" ? "items" : "clients");
     renderTabs(); renderList();
     return;
   }

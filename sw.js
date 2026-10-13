@@ -2,7 +2,7 @@
 //
 // RELEASING A NEW VERSION: change VERSION below (e.g. "v4.0.1"). Returning visitors
 // then download the new files once, and the app offers a "Reload" button.
-const VERSION = "v4.0.8";
+const VERSION = "v4.0.9";
 const CACHE = `invogen-${VERSION}`;
 
 // Every file the app needs, downloaded on install so it runs with no connection.
@@ -127,6 +127,7 @@ const ASSETS = [
   "./js/sheet.js",
   "./js/state.js",
   "./js/storage.js",
+  "./js/suggest.js",
   "./js/templates.js",
   "./js/toast.js",
   "./js/tplThumbs.js",
@@ -136,6 +137,7 @@ const ASSETS = [
   "./js/screens/documents.js",
   "./js/screens/editor.js",
   "./js/screens/guide.js",
+  "./js/screens/help.js",
   "./js/screens/settings.js",
   "./js/screens/templates.js",
   "./js/vendor/qrcode.js",

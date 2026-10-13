@@ -749,5 +749,13 @@
  "date.next": "Bulan berikutnya",
  "date.today": "Hari ini",
  "date.clear": "Hapus",
- "ed.colorFixed": "Template ini memiliki warna sendiri, jadi warna merek tidak dapat diubah."
+ "ed.colorFixed": "Template ini memiliki warna sendiri, jadi warna merek tidak dapat diubah.",
+ "nav.items": "Item",
+ "nav.help": "Bantuan dan dukungan",
+ "help.sub": "Panduan singkat untuk setiap bagian InvoGen.",
+ "help.guides": "Panduan",
+ "help.offline": "Berfungsi offline",
+ "cl.itemsSub": "Produk dan layanan yang Anda jual, siap ditambahkan ke dokumen apa pun.",
+ "set.helpRowHint": "Panduan, pintasan keyboard, dan jawaban atas pertanyaan umum.",
+ "set.openHelp": "Buka bantuan"
 }

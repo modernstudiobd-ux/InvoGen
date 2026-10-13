@@ -462,6 +462,7 @@ body.booting .main { margin-inline-start: 0; }
 .cp-sym { flex: none; min-width: 2.6em; color: var(--muted); }
 .cp-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cp-check { flex: none; display: grid; color: var(--ink-2); margin-inline-start: auto; }
+.cp-sub { flex: 0 1 auto; max-width: 50%; margin-inline-start: auto; color: var(--muted); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cp-empty { padding: 14px 12px; color: var(--muted); font-size: 14px; }
 /* Calendar */
 .dp-pop { width: 312px; min-width: 0; }
@@ -841,7 +842,7 @@ dialog.sheet::backdrop { background: var(--scrim); animation: fade var(--t-base)
 .cl-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3); }
 .cl-tools .segmented { flex: none; }
 .cl-tools .search { flex: 1 1 240px; min-width: 0; }
-.cl-tools .select, .cl-tools .cp { flex: 0 1 auto; width: auto; min-width: 180px; }
+.cl-tools .cl-sort { flex: 0 1 auto; min-width: 180px; }
 .chip-count { margin-inline-start: 6px; color: var(--muted); font-size: 12px; font-weight: 500; }
 .avatar.avatar-icon { background: var(--strong); color: var(--ink-2); }
 button.doc-main { width: 100%; min-width: 0; padding: 0; border: 0; background: none; font: inherit; text-align: start; cursor: pointer; }
@@ -881,7 +882,7 @@ button.doc-main { width: 100%; min-width: 0; padding: 0; border: 0; background: 
   .cl-tools .segmented { width: 100%; }
   .cl-tools .segmented .chip { flex: 1 1 0; }
   .cl-tools .search { flex-basis: 100%; }
-  .cl-tools .select, .cl-tools .cp { flex: 1 1 100%; }
+  .cl-tools .cl-sort { flex: 1 1 100%; }
   .page-head > .head-actions { width: 100%; flex-wrap: nowrap; }
   .head-actions .btn { flex: 1 1 auto; }
   .head-actions .wide-only { display: none; }
