@@ -765,5 +765,15 @@
  "pay.errCustom": "Typ de betaalmethode.",
  "cur.search": "Valuta zoeken",
  "cur.searchHint": "Tik nogmaals om te zoeken of begin te typen",
- "cur.none": "Geen valuta komt overeen met ‘{q}’"
+ "cur.none": "Geen valuta komt overeen met ‘{q}’",
+ "pick.search": "Zoeken",
+ "pick.none": "Niets komt overeen met ‘{q}’",
+ "date.hint": "Tik nogmaals om de datum te typen",
+ "date.typeHint": "Typ de datum als {format}",
+ "date.bad": "Voer een geldige datum in als {format}",
+ "date.prev": "Vorige maand",
+ "date.next": "Volgende maand",
+ "date.today": "Vandaag",
+ "date.clear": "Wissen",
+ "ed.colorFixed": "Deze sjabloon heeft eigen kleuren, dus de merkkleur kan niet worden gewijzigd."
 }

@@ -765,5 +765,15 @@
  "pay.errCustom": "Saisissez le moyen de paiement.",
  "cur.search": "Rechercher une devise",
  "cur.searchHint": "Touchez à nouveau pour rechercher, ou tapez",
- "cur.none": "Aucune devise ne correspond à « {q} »"
+ "cur.none": "Aucune devise ne correspond à « {q} »",
+ "pick.search": "Rechercher",
+ "pick.none": "Aucun résultat pour « {q} »",
+ "date.hint": "Touchez à nouveau pour saisir la date",
+ "date.typeHint": "Saisissez la date au format {format}",
+ "date.bad": "Saisissez une date valide au format {format}",
+ "date.prev": "Mois précédent",
+ "date.next": "Mois suivant",
+ "date.today": "Aujourd’hui",
+ "date.clear": "Effacer",
+ "ed.colorFixed": "Ce modèle a ses propres couleurs : la couleur de marque ne peut pas être modifiée."
 }

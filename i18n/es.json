@@ -765,5 +765,15 @@
  "pay.errCustom": "Escribe el método de pago.",
  "cur.search": "Buscar monedas",
  "cur.searchHint": "Toca otra vez para buscar o empieza a escribir",
- "cur.none": "Ninguna moneda coincide con «{q}»"
+ "cur.none": "Ninguna moneda coincide con «{q}»",
+ "pick.search": "Buscar",
+ "pick.none": "Nada coincide con «{q}»",
+ "date.hint": "Toca otra vez para escribir la fecha",
+ "date.typeHint": "Escribe la fecha como {format}",
+ "date.bad": "Escribe una fecha válida como {format}",
+ "date.prev": "Mes anterior",
+ "date.next": "Mes siguiente",
+ "date.today": "Hoy",
+ "date.clear": "Borrar",
+ "ed.colorFixed": "Esta plantilla tiene sus propios colores, así que el color de marca no se puede cambiar."
 }

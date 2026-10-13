@@ -9,7 +9,7 @@ import { setLanguage, detectLanguage, t, onLanguageChange } from "./i18n.js";
 import { renderShell, setActive, openLanguageSheet, setOfflineReady } from "./layout.js";
 import { toast } from "./toast.js";
 import "./install.js";
-import { watchCurrencies } from "./currencyPicker.js";
+import { watchPickers } from "./picker.js";
 
 const SCREENS = {
   documents: () => import("./screens/documents.js"),
@@ -109,7 +109,7 @@ async function boot() {
   await setLanguage(lang);
   if (!s.langChosen && !getState().docs.length && lang !== "en" && s.docLang === "en") setSettings({ appLang: lang, docLang: lang }, "ui");
   renderShell();
-  watchCurrencies();
+  watchPickers();
   onLanguageChange(() => { renderShell(); setActive(current.route); remount(); });
   subscribe((st, reason) => {
     if (reason === "storage" && lastSaveFailed()) toast(t("storage.saveFailed"), { duration: 10000 });

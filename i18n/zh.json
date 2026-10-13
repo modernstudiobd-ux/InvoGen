@@ -739,5 +739,15 @@
  "pay.errCustom": "请输入付款方式。",
  "cur.search": "搜索货币",
  "cur.searchHint": "再次点按即可搜索，或直接输入",
- "cur.none": "没有与“{q}”匹配的货币"
+ "cur.none": "没有与“{q}”匹配的货币",
+ "pick.search": "搜索",
+ "pick.none": "没有与“{q}”匹配的结果",
+ "date.hint": "再次点按即可输入日期",
+ "date.typeHint": "请按 {format} 输入日期",
+ "date.bad": "请按 {format} 输入有效日期",
+ "date.prev": "上个月",
+ "date.next": "下个月",
+ "date.today": "今天",
+ "date.clear": "清除",
+ "ed.colorFixed": "此模板使用固定配色，无法更改品牌颜色。"
 }

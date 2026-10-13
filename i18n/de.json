@@ -765,5 +765,15 @@
  "pay.errCustom": "Geben Sie die Zahlungsart ein.",
  "cur.search": "Währungen suchen",
  "cur.searchHint": "Erneut tippen zum Suchen oder einfach lostippen",
- "cur.none": "Keine Währung passt zu „{q}“"
+ "cur.none": "Keine Währung passt zu „{q}“",
+ "pick.search": "Suchen",
+ "pick.none": "Keine Treffer für „{q}“",
+ "date.hint": "Erneut tippen, um das Datum einzugeben",
+ "date.typeHint": "Datum als {format} eingeben",
+ "date.bad": "Geben Sie ein gültiges Datum als {format} ein",
+ "date.prev": "Vorheriger Monat",
+ "date.next": "Nächster Monat",
+ "date.today": "Heute",
+ "date.clear": "Leeren",
+ "ed.colorFixed": "Diese Vorlage hat eigene Farben, daher lässt sich die Markenfarbe nicht ändern."
 }

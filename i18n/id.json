@@ -739,5 +739,15 @@
  "pay.errCustom": "Ketik metode pembayaran.",
  "cur.search": "Cari mata uang",
  "cur.searchHint": "Ketuk lagi untuk mencari, atau mulai mengetik",
- "cur.none": "Tidak ada mata uang yang cocok dengan “{q}”"
+ "cur.none": "Tidak ada mata uang yang cocok dengan “{q}”",
+ "pick.search": "Cari",
+ "pick.none": "Tidak ada yang cocok dengan “{q}”",
+ "date.hint": "Ketuk lagi untuk mengetik tanggal",
+ "date.typeHint": "Ketik tanggal sebagai {format}",
+ "date.bad": "Masukkan tanggal yang valid sebagai {format}",
+ "date.prev": "Bulan sebelumnya",
+ "date.next": "Bulan berikutnya",
+ "date.today": "Hari ini",
+ "date.clear": "Hapus",
+ "ed.colorFixed": "Template ini memiliki warna sendiri, jadi warna merek tidak dapat diubah."
 }

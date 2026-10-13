@@ -765,5 +765,15 @@
  "pay.errCustom": "Ödeme yöntemini yazın.",
  "cur.search": "Para birimi ara",
  "cur.searchHint": "Aramak için tekrar dokunun veya yazmaya başlayın",
- "cur.none": "“{q}” ile eşleşen para birimi yok"
+ "cur.none": "“{q}” ile eşleşen para birimi yok",
+ "pick.search": "Ara",
+ "pick.none": "“{q}” ile eşleşen yok",
+ "date.hint": "Tarihi yazmak için tekrar dokunun",
+ "date.typeHint": "Tarihi {format} biçiminde yazın",
+ "date.bad": "{format} biçiminde geçerli bir tarih girin",
+ "date.prev": "Önceki ay",
+ "date.next": "Sonraki ay",
+ "date.today": "Bugün",
+ "date.clear": "Temizle",
+ "ed.colorFixed": "Bu şablonun kendi renkleri var, bu yüzden marka rengi değiştirilemez."
 }

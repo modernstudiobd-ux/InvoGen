@@ -7,7 +7,7 @@ export const TEMPLATES = [
   { id: "modern",        group: "general",  accent: "#292524", font: "Plus Jakarta Sans" },
   { id: "classic",       group: "general",  accent: "#1f3a5f", font: "PT Serif" },
   { id: "compact",       group: "general",  accent: "#292524", font: "Inter" },
-  { id: "apple",         group: "general",  accent: "#1d1d1f", font: "DM Sans" },
+  { id: "apple",         group: "general",  accent: "#1d1d1f", font: "DM Sans", fixedColor: true },
   { id: "freelancer",    group: "general",  accent: "#2f6f4f", font: "Plus Jakarta Sans" },
   { id: "dark",          group: "general",  accent: "#34d399", font: "Space Grotesk", bg: "#151517", dark: true },
   { id: "corporate",     group: "industry", accent: "#1e3a5f", font: "Manrope" },
@@ -15,19 +15,22 @@ export const TEMPLATES = [
   { id: "agency",        group: "industry", accent: "#e4572e", font: "Sora" },
   { id: "construction",  group: "industry", accent: "#f2b705", font: "Montserrat" },
   { id: "medical",       group: "industry", accent: "#0f766e", font: "Outfit" },
-  { id: "legal",         group: "industry", accent: "#1f2937", font: "Lora" },
+  { id: "legal",         group: "industry", accent: "#1f2937", font: "Lora", fixedColor: true },
   { id: "realestate",    group: "industry", accent: "#8b6b3d", font: "Lora", bg: "#fbf8f1" },
   { id: "restaurant",    group: "industry", accent: "#4b5320", font: "Lora", bg: "#fbf9f4" },
-  { id: "retail",        group: "industry", accent: "#111111", font: "Montserrat" },
-  { id: "technology",    group: "industry", accent: "#0b0e14", font: "IBM Plex Mono" },
+  { id: "retail",        group: "industry", accent: "#111111", font: "Montserrat", fixedColor: true },
+  { id: "technology",    group: "industry", accent: "#0b0e14", font: "IBM Plex Mono", fixedColor: true },
   { id: "manufacturing", group: "industry", accent: "#384250", font: "Manrope" }
 ];
+// Templates with a fixed colour scheme: the brand colour option is turned off for them.
+export const hasFixedColor = id => !!templateOf(id).fixedColor;
 export const TEMPLATE_IDS = TEMPLATES.map(t => t.id);
 export const templateOf = id => TEMPLATES.find(t => t.id === id) || TEMPLATES[0];
 
 // Fonts you can pick in Design. "" means the template's own heading font.
 export const DOC_FONTS = {
   "Inter": "'Inter'",
+  "Roboto": "'Roboto'",
   "Space Grotesk": "'Space Grotesk'",
   "Plus Jakarta Sans": "'Plus Jakarta Sans'",
   "DM Sans": "'DM Sans'",
@@ -64,7 +67,7 @@ export const validHex = v => /^#[0-9a-f]{6}$/i.test(v || "");
 // CSS variables for a document: the template's colours with the person's brand colour.
 export function templateVars(id, accent) {
   const tp = templateOf(id);
-  const A = validHex(accent) ? accent.toLowerCase() : tp.accent;
+  const A = validHex(accent) && !tp.fixedColor ? accent.toLowerCase() : tp.accent;
   const bg = tp.bg || "#ffffff";
   const darkPanel = id === "technology" ? "#0b0e14" : "#1f2430";
   return {
@@ -82,7 +85,7 @@ export function templateVars(id, accent) {
 // margins), so tinted, dark, striped and grid templates cover every page completely.
 export function printBackground(id, accent, rtl = false) {
   const tp = templateOf(id), bg = tp.bg || "#ffffff";
-  const A = validHex(accent) ? accent : tp.accent;
+  const A = validHex(accent) && !tp.fixedColor ? accent : tp.accent;
   if (id === "agency") return `linear-gradient(to ${rtl ? "left" : "right"}, ${A} 0 9mm, ${bg} 9mm)`;
   if (id === "technology") return `linear-gradient(#f3f5f8 1px, transparent 1px) 0 0 / 22px 22px, linear-gradient(90deg, #f3f5f8 1px, transparent 1px) 0 0 / 22px 22px, ${bg}`;
   return tp.bg || "";

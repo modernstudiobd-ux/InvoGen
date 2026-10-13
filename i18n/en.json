@@ -765,5 +765,15 @@
  "pay.errCustom": "Type the payment method.",
  "cur.search": "Search currencies",
  "cur.searchHint": "Tap again to search, or start typing",
- "cur.none": "No currency matches “{q}”"
+ "cur.none": "No currency matches “{q}”",
+ "pick.search": "Search",
+ "pick.none": "Nothing matches “{q}”",
+ "date.hint": "Tap again to type the date",
+ "date.typeHint": "Type the date as {format}",
+ "date.bad": "Enter a real date as {format}",
+ "date.prev": "Previous month",
+ "date.next": "Next month",
+ "date.today": "Today",
+ "date.clear": "Clear",
+ "ed.colorFixed": "This template has its own colours, so the brand colour can’t be changed."
 }

@@ -2,7 +2,7 @@
 //
 // RELEASING A NEW VERSION: change VERSION below (e.g. "v4.0.1"). Returning visitors
 // then download the new files once, and the app offers a "Reload" button.
-const VERSION = "v4.0.7";
+const VERSION = "v4.0.8";
 const CACHE = `invogen-${VERSION}`;
 
 // Every file the app needs, downloaded on install so it runs with no connection.
@@ -58,6 +58,8 @@ const ASSETS = [
   "./fonts/PlayfairDisplay-latin.woff2",
   "./fonts/PlusJakartaSans-latin-ext.woff2",
   "./fonts/PlusJakartaSans-latin.woff2",
+  "./fonts/Roboto-latin-ext.woff2",
+  "./fonts/Roboto-latin.woff2",
   "./fonts/Sora-latin-ext.woff2",
   "./fonts/Sora-latin.woff2",
   "./fonts/SpaceGrotesk-latin-ext.woff2",
@@ -103,7 +105,7 @@ const ASSETS = [
   "./js/columns.js",
   "./js/countries.js",
   "./js/currencies.js",
-  "./js/currencyPicker.js",
+  "./js/datePicker.js",
   "./js/docLabels.js",
   "./js/dom.js",
   "./js/format.js",
@@ -117,6 +119,7 @@ const ASSETS = [
   "./js/migrate.js",
   "./js/payments.js",
   "./js/pdfExport.js",
+  "./js/picker.js",
   "./js/pos.js",
   "./js/preview.js",
   "./js/print.js",

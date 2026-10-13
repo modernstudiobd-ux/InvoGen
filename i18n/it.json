@@ -765,5 +765,15 @@
  "pay.errCustom": "Scrivi il metodo di pagamento.",
  "cur.search": "Cerca valute",
  "cur.searchHint": "Tocca di nuovo per cercare o inizia a scrivere",
- "cur.none": "Nessuna valuta corrisponde a «{q}»"
+ "cur.none": "Nessuna valuta corrisponde a «{q}»",
+ "pick.search": "Cerca",
+ "pick.none": "Nessun risultato per «{q}»",
+ "date.hint": "Tocca di nuovo per scrivere la data",
+ "date.typeHint": "Scrivi la data come {format}",
+ "date.bad": "Inserisci una data valida come {format}",
+ "date.prev": "Mese precedente",
+ "date.next": "Mese successivo",
+ "date.today": "Oggi",
+ "date.clear": "Cancella",
+ "ed.colorFixed": "Questo modello ha colori propri, quindi il colore del marchio non si può cambiare."
 }

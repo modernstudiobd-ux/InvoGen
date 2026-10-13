@@ -739,5 +739,15 @@
  "pay.errCustom": "결제 수단을 입력하세요.",
  "cur.search": "통화 검색",
  "cur.searchHint": "다시 탭해 검색하거나 바로 입력하세요",
- "cur.none": "“{q}”와 일치하는 통화가 없습니다"
+ "cur.none": "“{q}”와 일치하는 통화가 없습니다",
+ "pick.search": "검색",
+ "pick.none": "“{q}”와 일치하는 항목이 없습니다",
+ "date.hint": "다시 탭해 날짜를 입력하세요",
+ "date.typeHint": "{format} 형식으로 입력하세요",
+ "date.bad": "{format} 형식의 올바른 날짜를 입력하세요",
+ "date.prev": "이전 달",
+ "date.next": "다음 달",
+ "date.today": "오늘",
+ "date.clear": "지우기",
+ "ed.colorFixed": "이 템플릿은 고유 색상을 사용하므로 브랜드 색상을 바꿀 수 없습니다."
 }

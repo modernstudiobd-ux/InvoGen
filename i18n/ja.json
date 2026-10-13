@@ -739,5 +739,15 @@
  "pay.errCustom": "支払方法を入力してください。",
  "cur.search": "通貨を検索",
  "cur.searchHint": "もう一度タップして検索、または入力を開始",
- "cur.none": "「{q}」に一致する通貨はありません"
+ "cur.none": "「{q}」に一致する通貨はありません",
+ "pick.search": "検索",
+ "pick.none": "「{q}」に一致する項目はありません",
+ "date.hint": "もう一度タップして日付を入力",
+ "date.typeHint": "{format} の形式で入力",
+ "date.bad": "{format} の形式で正しい日付を入力してください",
+ "date.prev": "前の月",
+ "date.next": "次の月",
+ "date.today": "今日",
+ "date.clear": "クリア",
+ "ed.colorFixed": "このテンプレートは配色が固定されているため、ブランドカラーは変更できません。"
 }

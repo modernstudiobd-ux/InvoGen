@@ -765,5 +765,15 @@
  "pay.errCustom": "Digite o método de pagamento.",
  "cur.search": "Pesquisar moedas",
  "cur.searchHint": "Toque de novo para pesquisar ou comece a digitar",
- "cur.none": "Nenhuma moeda corresponde a “{q}”"
+ "cur.none": "Nenhuma moeda corresponde a “{q}”",
+ "pick.search": "Pesquisar",
+ "pick.none": "Nada corresponde a “{q}”",
+ "date.hint": "Toque de novo para digitar a data",
+ "date.typeHint": "Digite a data como {format}",
+ "date.bad": "Digite uma data válida como {format}",
+ "date.prev": "Mês anterior",
+ "date.next": "Próximo mês",
+ "date.today": "Hoje",
+ "date.clear": "Limpar",
+ "ed.colorFixed": "Este modelo tem cores próprias, por isso a cor da marca não pode ser alterada."
 }

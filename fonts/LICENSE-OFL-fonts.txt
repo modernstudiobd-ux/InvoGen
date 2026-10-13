@@ -71,3 +71,6 @@ This Font Software is licensed under the SIL Open Font License, Version 1.1.
 Copyright © 2010 ParaType Ltd. All rights reserved. PT_Serif-Web-Italic.ttf: Copyright © 2010 ParaType Ltd. All rights reserved. PT_Serif-Web-Bold.ttf: Copyright © 2010 ParaType Ltd. All rights reserved. PT_Serif-Web-BoldItalic.ttf: Copyright © 2010 ParaType Ltd. All rights reserved.
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
+
+== roboto
+Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic) Roboto-Italic[wdth,wght].ttf: Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic)
