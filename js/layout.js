@@ -31,7 +31,8 @@ export function renderShell() {
       <a class="rail-link" href="#/help" data-nav="help">${icon("circle-help")}<span>${esc(t("nav.help"))}</span></a>
       <p class="rail-status" id="offlineStatus"></p>
     </div>`;
-  const [d, c, tp, s] = ["documents", "clients", "templates", "settings"].map(id => NAV.find(n => n[0] === id));
+  // Phone tab bar: Items takes the Templates slot; Templates opens from Settings and the editor's Design.
+  const [d, c, tp, s] = ["documents", "clients", "items", "settings"].map(id => NAV.find(n => n[0] === id));
   const tab = ([id, ic, key]) => `<a class="tab" href="#/${id}" data-nav="${id}">${icon(ic, 22)}<span>${esc(t(key))}</span></a>`;
   $("tabbar").innerHTML = `${tab(d)}${tab(c)}
     <a class="tab tab-create" href="#/create" data-nav="create" aria-label="${esc(t("nav.create"))}"><span class="plus">${icon("plus")}</span><span>${esc(t("nav.create"))}</span></a>
@@ -44,8 +45,8 @@ export function renderShell() {
 
 export function setActive(route) {
   const key = route === "edit" || route === "guide" ? "" : route;
-  // The phone tab bar has no Items or Help: those pages light up Clients and Settings there.
-  const tabKey = { items: "clients", help: "settings" }[key] || key;
+  // The phone tab bar has no Templates or Help: those pages light up Settings there.
+  const tabKey = { templates: "settings", help: "settings" }[key] || key;
   document.querySelectorAll("[data-nav]").forEach(a => {
     const k = a.closest("#tabbar") ? tabKey : key;
     if (a.dataset.nav === k && k !== "create") a.setAttribute("aria-current", "page");
