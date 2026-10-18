@@ -632,7 +632,7 @@
  "set.g.first.q": "Die erste Rechnung erstellen",
  "set.g.first.a": "Wähle Erstellen und trage Kunde und Leistungen ein. Die Vorschau aktualisiert sich beim Tippen und alles wird automatisch gespeichert.",
  "set.g.pdf.q": "Als PDF speichern oder drucken",
- "set.g.pdf.a": "Öffne ein Dokument und wähle PDF. Das Druckfenster des Browsers öffnet sich: wähle Als PDF speichern als Drucker und dann Speichern. Mit Drucken nutzt du einen Drucker.",
+ "set.g.pdf.a": "Öffnen Sie ein Dokument und wählen Sie PDF. Die PDF-Datei wird auf Ihrem Gerät erstellt und sofort heruntergeladen, ohne Druckfenster. Auf Handy oder Tablet wählen Sie Herunterladen oder Teilen, sobald sie fertig ist. Wählen Sie Drucken für einen Drucker.",
  "set.g.send.q": "Ein Dokument an einen Kunden senden",
  "set.g.send.a": "Wähle im Editor Senden. Deine E-Mail-App öffnet sich mit der fertigen Nachricht. Hänge das gespeicherte PDF an und sende sie. Das Dokument wird dann als gesendet markiert.",
  "set.g.payment.q": "Eine Zahlung erfassen",
@@ -783,5 +783,13 @@
  "help.offline": "Funktioniert offline",
  "cl.itemsSub": "Produkte und Leistungen, die Sie verkaufen – bereit für jedes Dokument.",
  "set.helpRowHint": "Anleitungen, Tastenkürzel und Antworten auf häufige Fragen.",
- "set.openHelp": "Hilfe öffnen"
+ "set.openHelp": "Hilfe öffnen",
+ "pdf.making": "PDF wird erstellt…",
+ "pdf.makingPage": "PDF wird erstellt… Seite {n} von {total}",
+ "pdf.saved": "{name} heruntergeladen",
+ "pdf.failed": "Dieser Browser konnte das PDF nicht erstellen.",
+ "pdf.printInstead": "Stattdessen drucken",
+ "pdf.readyTitle": "Ihr PDF ist fertig",
+ "pdf.share": "Teilen",
+ "pdf.download": "Herunterladen"
 }

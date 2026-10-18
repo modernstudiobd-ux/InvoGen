@@ -609,7 +609,7 @@
  "set.g.first.q": "Buat faktur pertama Anda",
  "set.g.first.a": "Pilih Buat, tambahkan klien dan apa yang Anda tagih. Pratinjau berubah saat Anda mengetik dan semuanya tersimpan otomatis.",
  "set.g.pdf.q": "Simpan sebagai PDF atau cetak",
- "set.g.pdf.a": "Buka dokumen dan pilih PDF. Jendela cetak browser terbuka: pilih Save as PDF sebagai printer, lalu Save. Pilih Cetak untuk memakai printer.",
+ "set.g.pdf.a": "Buka dokumen lalu pilih PDF. File PDF dibuat di perangkat Anda dan langsung diunduh, tanpa jendela cetak. Di ponsel atau tablet, pilih Unduh atau Bagikan saat sudah siap. Pilih Cetak untuk menggunakan printer.",
  "set.g.send.q": "Kirim dokumen ke klien",
  "set.g.send.a": "Di editor, pilih Kirim. Aplikasi email terbuka dengan pesan yang sudah terisi. Lampirkan PDF yang Anda simpan lalu kirim. Dokumen kemudian ditandai terkirim.",
  "set.g.payment.q": "Catat pembayaran",
@@ -757,5 +757,13 @@
  "help.offline": "Berfungsi offline",
  "cl.itemsSub": "Produk dan layanan yang Anda jual, siap ditambahkan ke dokumen apa pun.",
  "set.helpRowHint": "Panduan, pintasan keyboard, dan jawaban atas pertanyaan umum.",
- "set.openHelp": "Buka bantuan"
+ "set.openHelp": "Buka bantuan",
+ "pdf.making": "Membuat PDF Anda…",
+ "pdf.makingPage": "Membuat PDF Anda… halaman {n} dari {total}",
+ "pdf.saved": "{name} telah diunduh",
+ "pdf.failed": "Browser ini tidak dapat membuat PDF.",
+ "pdf.printInstead": "Cetak saja",
+ "pdf.readyTitle": "PDF Anda siap",
+ "pdf.share": "Bagikan",
+ "pdf.download": "Unduh"
 }

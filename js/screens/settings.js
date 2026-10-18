@@ -224,8 +224,7 @@ function wordingSec(s) {
 function prefsSec(s) {
   return sec("prefs", t("set.sec.prefs"), `
     ${toggle(t("set.editMode"), "editMode", t("set.editModeHint"))}
-    <div class="set-row"><span class="switch-text"><span>${esc(t("set.pdfGuide"))}</span><span class="hint">${esc(t("set.pdfGuideHint"))}</span></span>
-      <button type="button" class="btn btn-outline" data-act="pdf-guide">${esc(t("set.showAgain"))}</button></div>`);
+`);
 }
 
 function helpSec() {

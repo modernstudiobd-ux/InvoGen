@@ -632,7 +632,7 @@
  "set.g.first.q": "Je eerste factuur maken",
  "set.g.first.a": "Kies Maken en voeg je klant toe en wat je factureert. Het voorbeeld werkt bij terwijl je typt en alles wordt vanzelf opgeslagen.",
  "set.g.pdf.q": "Opslaan als PDF of afdrukken",
- "set.g.pdf.a": "Open een document en kies PDF. Het afdrukvenster van je browser opent: kies Opslaan als PDF als printer en daarna Opslaan. Kies Afdrukken om een printer te gebruiken.",
+ "set.g.pdf.a": "Open een document en kies PDF. Het pdf-bestand wordt op je apparaat gemaakt en meteen gedownload, zonder afdrukvenster. Kies op een telefoon of tablet Downloaden of Delen als het klaar is. Kies Afdrukken om een printer te gebruiken.",
  "set.g.send.q": "Een document naar een klant sturen",
  "set.g.send.a": "Kies in de editor Versturen. Je e-mailapp opent met het bericht al ingevuld. Voeg de opgeslagen PDF toe en verstuur. Het document wordt dan als verzonden gemarkeerd.",
  "set.g.payment.q": "Een betaling registreren",
@@ -783,5 +783,13 @@
  "help.offline": "Werkt offline",
  "cl.itemsSub": "Producten en diensten die je verkoopt, klaar voor elk document.",
  "set.helpRowHint": "Handleidingen, sneltoetsen en antwoorden op veelgestelde vragen.",
- "set.openHelp": "Hulp openen"
+ "set.openHelp": "Hulp openen",
+ "pdf.making": "Je pdf wordt gemaakt…",
+ "pdf.makingPage": "Je pdf wordt gemaakt… pagina {n} van {total}",
+ "pdf.saved": "{name} gedownload",
+ "pdf.failed": "Deze browser kon de pdf niet maken.",
+ "pdf.printInstead": "In plaats daarvan afdrukken",
+ "pdf.readyTitle": "Je pdf is klaar",
+ "pdf.share": "Delen",
+ "pdf.download": "Downloaden"
 }

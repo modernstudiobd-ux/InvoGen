@@ -632,7 +632,7 @@
  "set.g.first.q": "İlk faturanızı oluşturun",
  "set.g.first.a": "Oluştur’u seçin, müşterinizi ve faturaladığınız şeyi ekleyin. Önizleme siz yazdıkça güncellenir ve her şey otomatik kaydedilir.",
  "set.g.pdf.q": "PDF olarak kaydetme veya yazdırma",
- "set.g.pdf.a": "Bir belge açıp PDF’i seçin. Tarayıcının yazdırma penceresi açılır: yazıcı olarak PDF olarak kaydet’i seçip Kaydet’e basın. Yazıcı kullanmak için Yazdır’ı seçin.",
+ "set.g.pdf.a": "Bir belge açıp PDF’yi seçin. PDF dosyası cihazınızda oluşturulur ve yazdırma penceresi olmadan hemen iner. Telefon veya tablette hazır olduğunda İndir ya da Paylaş’ı seçin. Yazıcı kullanmak için Yazdır’ı seçin.",
  "set.g.send.q": "Belgeyi müşteriye gönderme",
  "set.g.send.a": "Düzenleyicide Gönder’i seçin. E-posta uygulamanız mesaj hazır şekilde açılır. Kaydettiğiniz PDF’i ekleyip gönderin. Belge gönderildi olarak işaretlenir.",
  "set.g.payment.q": "Ödeme kaydetme",
@@ -783,5 +783,13 @@
  "help.offline": "Çevrimdışı çalışır",
  "cl.itemsSub": "Sattığınız ürün ve hizmetler, her belgeye eklenmeye hazır.",
  "set.helpRowHint": "Rehberler, klavye kısayolları ve sık sorulan soruların yanıtları.",
- "set.openHelp": "Yardımı aç"
+ "set.openHelp": "Yardımı aç",
+ "pdf.making": "PDF’niz hazırlanıyor…",
+ "pdf.makingPage": "PDF’niz hazırlanıyor… sayfa {n}/{total}",
+ "pdf.saved": "{name} indirildi",
+ "pdf.failed": "Bu tarayıcı PDF’yi oluşturamadı.",
+ "pdf.printInstead": "Bunun yerine yazdır",
+ "pdf.readyTitle": "PDF’niz hazır",
+ "pdf.share": "Paylaş",
+ "pdf.download": "İndir"
 }

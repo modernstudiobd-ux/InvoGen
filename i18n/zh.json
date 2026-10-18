@@ -609,7 +609,7 @@
  "set.g.first.q": "开第一张发票",
  "set.g.first.a": "选择“新建”，添加客户和收费项目。预览随输入实时更新，所有内容自动保存。",
  "set.g.pdf.q": "保存为 PDF 或打印",
- "set.g.pdf.a": "打开单据并选择 PDF。浏览器的打印窗口会打开：选择“另存为 PDF”作为打印机，然后保存。选择“打印”即可使用打印机。",
+ "set.g.pdf.a": "打开单据并选择 PDF。PDF 文件会在你的设备上生成并立即下载，无需打印窗口。在手机或平板上，准备好后选择“下载”或“分享”。如需使用打印机，请选择“打印”。",
  "set.g.send.q": "把单据发给客户",
  "set.g.send.a": "在编辑器中选择“发送”。邮件应用会打开并填好内容。附上你保存的 PDF 并发送，单据会被标记为已发送。",
  "set.g.payment.q": "登记收款",
@@ -757,5 +757,13 @@
  "help.offline": "可离线使用",
  "cl.itemsSub": "你销售的产品和服务，可随时添加到任何单据。",
  "set.helpRowHint": "指南、键盘快捷键和常见问题解答。",
- "set.openHelp": "打开帮助"
+ "set.openHelp": "打开帮助",
+ "pdf.making": "正在生成 PDF…",
+ "pdf.makingPage": "正在生成 PDF… 第 {n} 页，共 {total} 页",
+ "pdf.saved": "已下载 {name}",
+ "pdf.failed": "此浏览器无法生成 PDF。",
+ "pdf.printInstead": "改为打印",
+ "pdf.readyTitle": "PDF 已准备好",
+ "pdf.share": "分享",
+ "pdf.download": "下载"
 }

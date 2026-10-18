@@ -632,7 +632,7 @@
  "set.g.first.q": "Make your first invoice",
  "set.g.first.a": "Choose Create, add your client and what you are billing for. The preview updates as you type and everything saves automatically.",
  "set.g.pdf.q": "Save as PDF or print",
- "set.g.pdf.a": "Open a document and choose PDF. Your browser’s print window opens: choose Save as PDF as the printer, then Save. Choose Print to use a printer instead.",
+ "set.g.pdf.a": "Open a document and choose PDF. The PDF file is made on your device and downloads straight away, with no print window. On a phone or tablet, choose Download or Share when it’s ready. Choose Print to use a printer.",
  "set.g.send.q": "Send a document to a client",
  "set.g.send.a": "In the editor, choose Send. Your email app opens with the message filled in. Attach the PDF you saved and send it. The document is then marked as sent.",
  "set.g.payment.q": "Record a payment",
@@ -783,5 +783,13 @@
  "help.offline": "Works offline",
  "cl.itemsSub": "Products and services you sell, ready to add to any document.",
  "set.helpRowHint": "Guides, keyboard shortcuts and answers to common questions.",
- "set.openHelp": "Open help"
+ "set.openHelp": "Open help",
+ "pdf.making": "Making your PDF…",
+ "pdf.makingPage": "Making your PDF… page {n} of {total}",
+ "pdf.saved": "{name} downloaded",
+ "pdf.failed": "This browser couldn’t make the PDF.",
+ "pdf.printInstead": "Print instead",
+ "pdf.readyTitle": "Your PDF is ready",
+ "pdf.share": "Share",
+ "pdf.download": "Download"
 }

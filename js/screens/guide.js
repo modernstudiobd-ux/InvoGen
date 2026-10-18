@@ -336,7 +336,7 @@ function onClick(e) {
       const f = root.querySelector(`#gDesc${Math.max(0, i - 1)}`); if (f) f.focus();
       break;
     }
-    case "pdf": { const d = getDoc(G.docId); if (d) H.withPdfGuide(d, () => H.printDocument(d)); break; }
+    case "pdf": { const d = getDoc(G.docId); if (d) H.exportPdf(d); break; }
     case "print": { const d = getDoc(G.docId); if (d) H.printDocument(d); break; }
     case "send": { const id = G.docId; finish(); G = null; location.hash = `#/edit/${encodeURIComponent(id)}?send=1`; break; }
   }

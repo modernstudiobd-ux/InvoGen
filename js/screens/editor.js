@@ -18,7 +18,7 @@ import { renderDocument, PAPERS, paperOf, SIGNATURE_FONTS, DOC_FONTS, normalizeU
 import { TEMPLATES, templateOf, validHex, hasFixedColor } from "../templates.js";
 import { sampleDoc, thumbHtml, fitThumbs } from "../tplThumbs.js";
 import { printDocument } from "../print.js";
-import { withPdfGuide, pdfFileName } from "../pdfExport.js";
+import { exportPdf as makePdf, pdfFileName } from "../pdfExport.js";
 import { openPosSheet } from "../pos.js";
 import { openPaymentSheet } from "../payments.js";
 import { openSheet, confirmSheet } from "../sheet.js";
@@ -1019,7 +1019,7 @@ function openColumns() {
 }
 
 /* ---------------- top-bar actions ---------------- */
-function exportPdf() { flushNow(); withPdfGuide(doc, () => printDocument(doc)); }
+function exportPdf() { flushNow(); makePdf(doc); }
 
 function openDesign() {
   const effAccent = () => (validHex(doc.accent) ? doc.accent : templateOf(doc.template).accent).toLowerCase();

@@ -632,7 +632,7 @@
  "set.g.first.q": "Crea tu primera factura",
  "set.g.first.a": "Elige Crear y añade tu cliente y lo que facturas. La vista previa se actualiza mientras escribes y todo se guarda solo.",
  "set.g.pdf.q": "Guardar en PDF o imprimir",
- "set.g.pdf.a": "Abre un documento y elige PDF. Se abre la ventana de impresión del navegador: elige Guardar como PDF como impresora y pulsa Guardar. Elige Imprimir para usar una impresora.",
+ "set.g.pdf.a": "Abre un documento y elige PDF. El archivo PDF se crea en tu dispositivo y se descarga al instante, sin ventana de impresión. En un teléfono o tableta, elige Descargar o Compartir cuando esté listo. Elige Imprimir para usar una impresora.",
  "set.g.send.q": "Enviar un documento a un cliente",
  "set.g.send.a": "En el editor, elige Enviar. Se abre tu app de correo con el mensaje escrito. Adjunta el PDF que guardaste y envíalo. El documento queda marcado como enviado.",
  "set.g.payment.q": "Registrar un pago",
@@ -783,5 +783,13 @@
  "help.offline": "Funciona sin conexión",
  "cl.itemsSub": "Productos y servicios que vendes, listos para añadir a cualquier documento.",
  "set.helpRowHint": "Guías, atajos de teclado y respuestas a preguntas frecuentes.",
- "set.openHelp": "Abrir ayuda"
+ "set.openHelp": "Abrir ayuda",
+ "pdf.making": "Creando tu PDF…",
+ "pdf.makingPage": "Creando tu PDF… página {n} de {total}",
+ "pdf.saved": "{name} descargado",
+ "pdf.failed": "Este navegador no pudo crear el PDF.",
+ "pdf.printInstead": "Imprimir en su lugar",
+ "pdf.readyTitle": "Tu PDF está listo",
+ "pdf.share": "Compartir",
+ "pdf.download": "Descargar"
 }

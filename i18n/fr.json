@@ -632,7 +632,7 @@
  "set.g.first.q": "Créer votre première facture",
  "set.g.first.a": "Choisissez Créer, ajoutez votre client et ce que vous facturez. L’aperçu se met à jour pendant la saisie et tout est enregistré automatiquement.",
  "set.g.pdf.q": "Enregistrer en PDF ou imprimer",
- "set.g.pdf.a": "Ouvrez un document et choisissez PDF. La fenêtre d’impression du navigateur s’ouvre : choisissez Enregistrer au format PDF comme imprimante, puis Enregistrer. Choisissez Imprimer pour utiliser une imprimante.",
+ "set.g.pdf.a": "Ouvrez un document et choisissez PDF. Le fichier PDF est créé sur votre appareil et se télécharge aussitôt, sans fenêtre d’impression. Sur téléphone ou tablette, choisissez Télécharger ou Partager quand il est prêt. Choisissez Imprimer pour utiliser une imprimante.",
  "set.g.send.q": "Envoyer un document à un client",
  "set.g.send.a": "Dans l’éditeur, choisissez Envoyer. Votre messagerie s’ouvre avec le message rédigé. Joignez le PDF enregistré et envoyez-le. Le document est alors marqué comme envoyé.",
  "set.g.payment.q": "Enregistrer un paiement",
@@ -783,5 +783,13 @@
  "help.offline": "Fonctionne hors ligne",
  "cl.itemsSub": "Les produits et services que vous vendez, prêts à ajouter à tout document.",
  "set.helpRowHint": "Guides, raccourcis clavier et réponses aux questions fréquentes.",
- "set.openHelp": "Ouvrir l’aide"
+ "set.openHelp": "Ouvrir l’aide",
+ "pdf.making": "Création de votre PDF…",
+ "pdf.makingPage": "Création de votre PDF… page {n} sur {total}",
+ "pdf.saved": "{name} téléchargé",
+ "pdf.failed": "Ce navigateur n’a pas pu créer le PDF.",
+ "pdf.printInstead": "Imprimer à la place",
+ "pdf.readyTitle": "Votre PDF est prêt",
+ "pdf.share": "Partager",
+ "pdf.download": "Télécharger"
 }
