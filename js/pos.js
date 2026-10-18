@@ -11,7 +11,9 @@ import { dl } from "./docLabels.js";
 import { normalizeUrl, qrSvg } from "./preview.js";
 import { runPrint } from "./print.js";
 import { openSheet } from "./sheet.js";
-import { pdfFileName } from "./pdfExport.js";
+import { pdfFileName, deliverFile } from "./pdfExport.js";
+import { toast, dismissToast } from "./toast.js";
+import { icon } from "./icons.js";
 
 const PREF = "invogen.pos.v1";
 const safe = fn => { try { return fn(); } catch { return null; } };
@@ -75,6 +77,56 @@ export function printPos(doc) {
   return runPrint({ html: buildReceipt(doc), pageCss: `@page{size:${prefs.w}mm ${hMm}mm;margin:0}`, title: pdfFileName(doc), bodyClass: "pos-print" });
 }
 
+// The receipt as a file: a PDF one roll-width wide and exactly as tall as the receipt,
+// or a PNG picture (handy for WhatsApp). Drawn with the same engine as "Download PDF".
+export async function makePosFile(doc, kind = "pdf", p = prefs) {
+  const P = await import("./pdfDownload.js");
+  const { jsPDF, shot } = await P.loadPdfLibs();
+  const W = Math.round(p.w * P.MM);
+  const stage = document.createElement("div");
+  stage.setAttribute("aria-hidden", "true");
+  stage.style.cssText = `position:fixed;left:-${W * 3}px;top:0;width:${W}px;pointer-events:none;`;
+  stage.innerHTML = `<div style="width:${W}px;background:#fff;padding:2mm 0">${buildReceipt(doc, p)}</div>`;
+  document.body.appendChild(stage);
+  try {
+    const page = stage.firstElementChild;
+    page.querySelector(".pr").style.margin = "0 auto";
+    await P.ready(page);
+    const H = Math.ceil(page.getBoundingClientRect().height);
+    const scale = Math.min(3, Math.sqrt(16e6 / (W * H)));
+    const canvas = await shot.domToCanvas(page, { scale, width: W, height: H, backgroundColor: "#ffffff" });
+    const base = `${pdfFileName(doc)} – POS ${p.w}mm`;
+    if (kind === "png") {
+      const blob = await new Promise((res, rej) => canvas.toBlob(b => (b ? res(b) : rej(new Error("png"))), "image/png"));
+      return { blob, name: base + ".png" };
+    }
+    const hmm = H / P.MM;
+    const pdf = new jsPDF({ unit: "mm", format: [p.w, hmm], orientation: p.w > hmm ? "landscape" : "portrait", compress: true });
+    pdf.setProperties({ title: pdfFileName(doc), creator: "InvoGen" });
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, p.w, hmm, undefined, "FAST");
+    return { blob: pdf.output("blob"), name: base + ".pdf" };
+  } finally {
+    stage.remove();
+  }
+}
+
+let posBusy = false;
+async function downloadPos(doc, kind) {
+  if (posBusy) return;
+  posBusy = true;
+  toast(t(kind === "png" ? "pos.makingImage" : "pdf.making"), { duration: 120000 });
+  try {
+    const { blob, name } = await makePosFile(doc, kind);
+    dismissToast();
+    deliverFile(blob, name);
+  } catch (e) {
+    console.error(e);
+    toast(t("pdf.failed"), { action: t("pos.print"), duration: 12000, onAction: () => printPos(doc) });
+  } finally {
+    posBusy = false;
+  }
+}
+
 export function openPosSheet(doc) {
   const hasLink = !!normalizeUrl(doc.payLink);
   const chk = (k, label, hidden = false) => `<label class="check"${hidden ? " hidden" : ""}><input type="checkbox" data-pos="${k}"${prefs[k] ? " checked" : ""}> <span>${esc(label)}</span></label>`;
@@ -90,13 +142,16 @@ export function openPosSheet(doc) {
         ${chk("logo", t("pos.logo"))}${chk("client", t("pos.client"))}${chk("qr", t("pos.qr"), !hasLink)}
         <p class="hint">${esc(t("pos.hint"))}</p>
       </div>
-      <div class="pos-preview" aria-label="${esc(t("pos.preview"))}" role="img"><div id="posPreview">${buildReceipt(doc)}</div></div>
+      <div class="pos-preview" tabindex="0" aria-label="${esc(t("pos.preview"))}" role="img"><div id="posPreview">${buildReceipt(doc)}</div></div>
     </div>`,
-    foot: `<button type="button" class="btn btn-outline" data-close="">${esc(t("common.cancel"))}</button>
-           <button type="button" class="btn btn-primary" data-close="print">${esc(t("pos.print"))}</button>`,
+    foot: `<button type="button" class="btn btn-outline" data-pos-dl="png">${icon("image", 18)}${esc(t("pos.image"))}</button>
+           <button type="button" class="btn btn-outline" data-pos-dl="pdf">${icon("download", 18)}PDF</button>
+           <button type="button" class="btn btn-primary" data-close="print">${icon("printer", 18)}${esc(t("pos.print"))}</button>`,
     onOpen: dlg => {
       const refresh = () => { dlg.querySelector("#posPreview").innerHTML = buildReceipt(doc); };
       dlg.addEventListener("click", e => {
+        const d = e.target.closest("[data-pos-dl]");
+        if (d) { downloadPos(doc, d.dataset.posDl); return; }
         const b = e.target.closest("[data-w]");
         if (!b) return;
         prefs.w = Number(b.dataset.w); savePrefs();

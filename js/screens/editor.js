@@ -21,7 +21,7 @@ import { renderDocument, PAPERS, paperOf, SIGNATURE_FONTS, DOC_FONTS, normalizeU
 import { TEMPLATES, templateOf, validHex, hasFixedColor } from "../templates.js";
 import { sampleDoc, thumbHtml, fitThumbs } from "../tplThumbs.js";
 import { printDocument } from "../print.js";
-import { exportPdf as makePdf, pdfFileName } from "../pdfExport.js";
+import { exportPdf as makePdf, pdfFileName, pdfAttachment } from "../pdfExport.js";
 import { openPosSheet } from "../pos.js";
 import { openPaymentSheet } from "../payments.js";
 import { openSheet, confirmSheet } from "../sheet.js";
@@ -661,7 +661,7 @@ async function onClick(e) {
     case "redo": return redo();
     case "design": return openDesign();
     case "columns": return openColumns();
-    case "pdf": return exportPdf();
+    case "pdf": return pdfButton();
     case "more": return openMore();
     case "send": return openSend();
     case "add-item": return addItem();
@@ -1054,6 +1054,19 @@ function openColumns() {
 
 /* ---------------- top-bar actions ---------------- */
 function exportPdf() { flushNow(); makePdf(doc); }
+// Receipts: the PDF button asks which kind — the full page or the POS receipt.
+function pdfButton() {
+  if (doc.type !== "receipt") return exportPdf();
+  flushNow();
+  openSheet({
+    title: t("dl.title"),
+    body: `<div class="menu">
+      <button type="button" class="menu-item" data-close="full">${icon("file-text")}<span class="mi-text">${esc(t("dl.full"))}<span class="hint">${esc(t("dl.fullHint"))}</span></span></button>
+      <button type="button" class="menu-item" data-close="pos">${icon("receipt")}<span class="mi-text">${esc(t("dl.pos"))}<span class="hint">${esc(t("dl.posHint"))}</span></span></button>
+    </div>`,
+    onClose: v => { if (v === "full") setTimeout(exportPdf, 60); else if (v === "pos") setTimeout(() => openPosSheet(doc), 60); }
+  });
+}
 
 function openDesign() {
   const effAccent = () => (validHex(doc.accent) ? doc.accent : templateOf(doc.template).accent).toLowerCase();
@@ -1181,31 +1194,33 @@ function openSend() {
   const due = !NO_DUE_TYPES.includes(doc.type) && doc.due ? formatDate(doc.due, doc.dateFormat, doc.lang) : "";
   const body = t(`send.body.${doc.type}${doc.type === "purchaseOrder" && !due ? "NoDate" : ""}`, { name: doc.client.contact || doc.client.name || "", doc: `${typeName(doc.type)} ${doc.no}`, amount, due, biz: doc.business.name || "", inv: doc.reference || "" }).replace(/[ \t]+\n/g, "\n");
   const canShare = !!navigator.share;
+  const att = pdfAttachment(doc);
   openSheet({
     title: t("send.title"),
     body: `<div class="field"><label for="sendTo">${esc(t("send.to"))}</label><input class="input" type="email" id="sendTo" value="${esc(doc.client.email)}" autocomplete="email" dir="ltr"></div>
       <div class="field"><label for="sendSubj">${esc(t("send.subject"))}</label><input class="input" id="sendSubj" value="${esc(subject)}" dir="auto"></div>
       <div class="field"><label for="sendMsg">${esc(t("send.message"))}</label><textarea class="input textarea" id="sendMsg" rows="6" dir="auto">${esc(body)}</textarea></div>
-      <p class="hint">${esc(t("send.attachHint"))}</p>
+      ${att.html}
       <div class="send-grid">
         <button type="button" class="btn btn-outline" data-send="pdf">${icon("download", 18)}${esc(t("send.pdfFirst"))}</button>
-        ${canShare ? `<button type="button" class="btn btn-outline" data-send="share">${icon("send", 18)}${esc(t("send.share"))}</button>` : ""}
+        ${canShare ? `<button type="button" class="btn btn-outline" data-send="share">${icon("share-2", 18)}${esc(t("send.share"))}</button>` : ""}
         <button type="button" class="btn btn-primary" data-send="email">${icon("send", 18)}${esc(t("send.email"))}</button>
       </div>`,
     onOpen: dlg => {
+      const pdf = att.attach(dlg);
       dlg.addEventListener("click", async e => {
         const b = e.target.closest("[data-send]");
         if (!b) return;
         const to = dlg.querySelector("#sendTo").value.trim(), subj = dlg.querySelector("#sendSubj").value, msg = dlg.querySelector("#sendMsg").value;
-        if (b.dataset.send === "pdf") { dlg.close(); exportPdf(); return; }
+        if (b.dataset.send === "pdf") { pdf.download(); return; }
         if (b.dataset.send === "share") {
-          try { await navigator.share({ title: subj, text: msg }); markAsSentAfterSend(); dlg.close(); } catch {}
+          if (await pdf.share({ title: subj, text: msg })) { markAsSentAfterSend(); dlg.close(); }
           return;
         }
         const href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(msg)}`;
         if (to && doc.client.email !== to) { doc.client.email = to; changed({ path: "client.email" }); }
         dlg.close();
-        window.location.href = href;
+        pdf.email(href);
         markAsSentAfterSend();
       });
     }

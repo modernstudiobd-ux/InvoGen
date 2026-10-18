@@ -13,7 +13,7 @@
 import { renderDocument, paperOf } from "./preview.js";
 import { pdfFileName } from "./pdfExport.js";
 
-const MM = 96 / 25.4;                       // CSS pixels per millimetre
+export const MM = 96 / 25.4;                       // CSS pixels per millimetre
 const SCALE = 2;                            // image detail: about 190 dpi, sharp in print
 const MAX_PIXELS = 16e6;                    // stay under phone canvas limits
 
@@ -40,7 +40,7 @@ export function loadPdfLibs() {
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-async function ready(el) {
+export async function ready(el) {
   const fonts = document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, wait(2500)]) : null;
   const imgs = [...el.querySelectorAll("img")].map(i => (i.decode ? i.decode().catch(() => {}) : null));
   await Promise.all([fonts, Promise.race([Promise.all(imgs), wait(2500)])]);

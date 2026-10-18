@@ -10,7 +10,7 @@ import { getState, getDoc, logReminder } from "./state.js";
 import { totals } from "./calc.js";
 import { formatMoney, formatDate, formatShortDate, daysBetween, todayISO } from "./format.js";
 import { normalizeUrl } from "./preview.js";
-import { exportPdf } from "./pdfExport.js";
+import { pdfAttachment } from "./pdfExport.js";
 import { openSheet } from "./sheet.js";
 import { toast } from "./toast.js";
 
@@ -68,6 +68,7 @@ export function openReminderSheet(id, { onDone } = {}) {
   const lastDate = last ? formatShortDate(new Date(last.at).toISOString().slice(0, 10), s.dateFormat, getLanguage(), s.numberFormat) : "";
   const history = last ? t("remind.history", { n: doc.reminders.length, date: lastDate }) : t("remind.none");
   const canShare = !!navigator.share;
+  const att = pdfAttachment(doc);
   const first = reminderText(doc, tone);
   const status = late > 0 ? t("remind.lateBy", { days: t("remind.days", { n: late }) }) : doc.due ? t("remind.dueIn", { days: t("remind.days", { n: Math.abs(late) }) }) : "";
   openSheet({
@@ -81,7 +82,7 @@ export function openReminderSheet(id, { onDone } = {}) {
       <div class="field"><label for="remTo">${esc(t("send.to"))}</label><input class="input" type="email" id="remTo" value="${esc(doc.client.email)}" autocomplete="email" dir="ltr"></div>
       <div class="field"><label for="remSubj">${esc(t("send.subject"))}</label><input class="input" id="remSubj" value="${esc(first.subject)}" dir="auto"></div>
       <div class="field"><label for="remMsg">${esc(t("send.message"))}</label><textarea class="input textarea" id="remMsg" rows="9" dir="auto">${esc(first.body)}</textarea></div>
-      <p class="hint">${esc(t("send.attachHint"))}</p>
+      ${att.html}
       <div class="send-grid">
         <button type="button" class="btn btn-outline" data-rem="pdf">${icon("download", 18)}${esc(t("send.pdfFirst"))}</button>
         <button type="button" class="btn btn-outline" data-rem="copy">${icon("copy", 18)}${esc(t("remind.copy"))}</button>
@@ -90,6 +91,7 @@ export function openReminderSheet(id, { onDone } = {}) {
       </div>`,
     onOpen: dlg => {
       const subj = dlg.querySelector("#remSubj"), msg = dlg.querySelector("#remMsg");
+      const pdf = att.attach(dlg);
       const done = (how, note) => {
         logReminder(id, tone);
         toast(note || t("remind.logged", { doc: `${t(`type.${doc.type}`)} ${doc.no}` }));
@@ -116,19 +118,19 @@ export function openReminderSheet(id, { onDone } = {}) {
         const b = e.target.closest("[data-rem]");
         if (!b) return;
         const to = dlg.querySelector("#remTo").value.trim();
-        if (b.dataset.rem === "pdf") { exportPdf(getDoc(id) || doc); return; }
+        if (b.dataset.rem === "pdf") { pdf.download(); return; }
         if (b.dataset.rem === "copy") {
           try { await navigator.clipboard.writeText(`${subj.value}\n\n${msg.value}`); dlg.close(); done("copy", t("remind.copied")); }
           catch { msg.focus(); msg.select(); }
           return;
         }
         if (b.dataset.rem === "share") {
-          try { await navigator.share({ title: subj.value, text: msg.value }); dlg.close(); done("share"); } catch {}
+          if (await pdf.share({ title: subj.value, text: msg.value })) { dlg.close(); done("share"); }
           return;
         }
         const href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj.value)}&body=${encodeURIComponent(msg.value)}`;
         dlg.close();
-        window.location.href = href;
+        pdf.email(href);
         done("email");
       });
     }
