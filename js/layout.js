@@ -8,11 +8,13 @@ import { setSettings, getState } from "./state.js";
 import { DOC_LANGS } from "./docLabels.js";
 const DOC_LANG_CODES = new Set(DOC_LANGS.map(l => l[0]));
 import { openSheet } from "./sheet.js";
+import { isLockSet, lock, onLockChange } from "./lock.js";
 
 const NAV = [
   ["documents", "files", "nav.documents"],
   ["clients", "users", "nav.clients"],
   ["items", "package", "nav.items"],
+  ["reports", "chart-column", "nav.reports"],
   ["templates", "layout-template", "nav.templates"],
   ["settings", "settings", "nav.settings"]
 ];
@@ -29,6 +31,7 @@ export function renderShell() {
     <div class="rail-foot">
       <button type="button" class="rail-link" data-action="lang" aria-haspopup="dialog">${icon("globe")}<span><span class="lang-label">${esc(t("nav.language"))} · </span>${esc(lang.toUpperCase())}</span></button>
       <a class="rail-link" href="#/help" data-nav="help">${icon("circle-help")}<span>${esc(t("nav.help"))}</span></a>
+      ${isLockSet() ? `<button type="button" class="rail-link" data-action="lock">${icon("lock")}<span>${esc(t("lock.lockNow"))}</span></button>` : ""}
       <p class="rail-status" id="offlineStatus"></p>
     </div>`;
   // Phone tab bar: Items takes the Templates slot; Templates opens from Settings and the editor's Design.
@@ -46,13 +49,17 @@ export function renderShell() {
 export function setActive(route) {
   const key = route === "edit" || route === "guide" ? "" : route;
   // The phone tab bar has no Templates or Help: those pages light up Settings there.
-  const tabKey = { templates: "settings", help: "settings" }[key] || key;
+  const tabKey = { templates: "settings", help: "settings", reports: "documents" }[key] || key;
   document.querySelectorAll("[data-nav]").forEach(a => {
     const k = a.closest("#tabbar") ? tabKey : key;
     if (a.dataset.nav === k && k !== "create") a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });
 }
+
+// The rail's "Lock" button appears once a PIN is set.
+onLockChange(() => { if (document.getElementById("rail").innerHTML) { const cur = document.querySelector("#rail [aria-current]"); renderShell(); if (cur) setActive(cur.dataset.nav); } });
+document.addEventListener("click", e => { if (e.target.closest("[data-action='lock']")) lock(); });
 
 export function setOfflineReady(v) { offlineReady = v; renderOfflineStatus(); }
 function renderOfflineStatus() {

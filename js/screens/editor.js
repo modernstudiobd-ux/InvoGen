@@ -1,4 +1,5 @@
-// screens/editor.js — create and edit invoices, estimates and receipts.
+// screens/editor.js — create and edit every document type: invoices, estimates, receipts,
+// credit notes, proformas, purchase orders and delivery notes.
 // Form on the left (numbered, collapsible sections; advanced options folded away),
 // live preview on the right (Form / Preview tabs on phones and tablets). Every change
 // is saved automatically. Undo/redo, Design, PDF, Print, POS receipt and Send included.
@@ -8,8 +9,10 @@ import { icon } from "../icons.js";
 import { t, getLanguage, currencyName } from "../i18n.js";
 import {
   getState, settings, subscribe, getDoc, newDoc, nextNumber, saveDoc, deleteDoc, restoreDoc, duplicateDoc,
-  setSettings, saveClient, saveProducts, markPaid, markSent, convertToInvoice, restorePaymentState, setDocFields, normalizeDoc
+  setSettings, saveClient, saveProducts, markPaid, markSent, convertToInvoice, restorePaymentState, setDocFields, normalizeDoc,
+  DOC_TYPES, STATUS_BY_TYPE, QUOTE_TYPES, NO_DUE_TYPES, sentStatus, createCreditNote, createDeliveryNote
 } from "../state.js";
+import { openReminderSheet, canRemind } from "../reminders.js";
 import { totals, statusOf, lineAmount } from "../calc.js";
 import { formatMoney, formatNumber, formatDate, parseNumber, addDays, daysBetween, todayISO, DATE_FORMATS, NUMBER_FORMATS, decimalsOf } from "../format.js";
 import { CURRENCIES, COMMON_CURRENCIES } from "../currencies.js";
@@ -48,7 +51,9 @@ const PAY_METHODS = ["bank", "card", "cash", "cheque", "online"];
 let customProvider = false, customMethod = false;
 const TERMS = ["", 0, 7, 14, 15, 30, 45, 60, 90];
 const COLORS = ["#292524", "#1f3a5f", "#2f6b4f", "#b5532a", "#2b59c3", "#7a5a12", "#8b2a4b"];
-const STATUS_OPTS = { invoice: ["draft", "sent", "paid", "void"], estimate: ["draft", "sent", "accepted", "declined"], receipt: [] };
+const statusOpts = ty => (ty === "receipt" ? [] : STATUS_BY_TYPE[ty] || []);
+// Types that take money up front or online (deposit, payment link and QR code).
+const PAYABLE = ["invoice", "estimate", "proforma"];
 
 /* ---------------- helpers ---------------- */
 const getPath = (o, p) => p.split(".").reduce((a, k) => (a == null ? a : a[k]), o);
@@ -96,10 +101,10 @@ function sections() {
   return [
     ["doc", t("ed.sec.document")],
     ["biz", t("ed.sec.business")],
-    ["client", t("ed.sec.client")],
+    ["client", t(ty === "purchaseOrder" ? "ed.sec.supplier" : "ed.sec.client")],
     ["items", t("ed.sec.items")],
-    ["totals", t("ed.sec.totals")],
-    ["payment", t(ty === "receipt" ? "ed.sec.notes" : "ed.sec.payment")],
+    ...(ty === "deliveryNote" ? [] : [["totals", t("ed.sec.totals")]]),
+    ["payment", t(PAYABLE.includes(ty) ? "ed.sec.payment" : "ed.sec.notes")],
     ["brand", t("ed.sec.brand")],
     ["layout", t("ed.sec.layout")],
     ...(ty === "invoice" ? [["recurring", t("ed.sec.recurring")]] : [])
@@ -112,7 +117,7 @@ function summary(id) {
     case "doc": return `${typeName(doc.type)} ${doc.no}`;
     case "biz": return doc.business.name || t("ed.addDetails");
     case "client": return doc.client.name || t("ed.addClient");
-    case "items": return t("ed.itemsSum", { n: doc.items.length, amount: dmoney(tt.subtotal) });
+    case "items": return doc.type === "deliveryNote" ? t("cl.itemCount", { n: doc.items.length }) : t("ed.itemsSum", { n: doc.items.length, amount: dmoney(tt.subtotal) });
     case "totals": return `${doc.tax.name || dl(doc.lang, "tax")} ${formatNumber(doc.tax.rate, Number.isInteger(+doc.tax.rate) ? 0 : 2, "auto", getLanguage())}%`;
     case "payment": return [doc.deposit.on && t("ed.deposit"), doc.lateFee.on && t("ed.lateFee"), normalizeUrl(doc.payLink) && t("ed.payLinkShort")].filter(Boolean).join(" · ") || (doc.notes.trim() ? t("ed.hasNotes") : t("ed.none"));
     case "brand": return [doc.business.logo && t("ed.logo"), doc.signature.on && t("ed.signature")].filter(Boolean).join(" · ") || t("ed.none");
@@ -131,15 +136,16 @@ function body(id) {
         ["", "", `</optgroup><optgroup label="${esc(t("ed.allCurrencies"))}">`],
         ...CURRENCIES.slice().sort((a, b) => a[0].localeCompare(b[0])).map(([c, sym, en]) => [c, `${c} · ${sym} · ${currencyName(c, en)}`]),
         ["", "", "</optgroup>"]];
-      const status = STATUS_OPTS[ty].length ? field(t("ed.status"), "status", { options: STATUS_OPTS[ty].map(v => [v, t(`status.${v}`)]), kind: "status" }) : "";
-      const dueLabel = ty === "estimate" ? t("ed.validUntil") : t("ed.due");
+      const status = statusOpts(ty).length ? field(t("ed.status"), "status", { options: statusOpts(ty).map(v => [v, t(`status.${v}`)]), kind: "status" }) : "";
+      const dueLabel = QUOTE_TYPES.includes(ty) ? t("ed.validUntil") : ty === "purchaseOrder" ? t("ed.deliverBy") : t("ed.due");
       return `<div class="ed-grid">
-        ${seg(t("ed.docType"), "type", ["invoice", "estimate", "receipt"].map(v => [v, typeName(v)]), "all")}
+        ${field(t("ed.docType"), "type", { options: DOC_TYPES.map(v => [v, typeName(v)]), rerender: "all", span: true })}
+        ${ty === "creditNote" ? creditForField() : ""}
         ${field(t("ed.number"), "no", { max: 60 })}
         ${status}
         ${field(t("ed.issued"), "issued", { type: "date", kind: "date" })}
         ${ty === "invoice" ? field(t("ed.terms"), "termsDays", { kind: "terms", options: TERMS.map(n => [n, n === "" ? t("ed.termsCustom") : n === 0 ? t("ed.termsReceipt") : t("ed.termsNet", { n })]) }) : ""}
-        ${ty !== "receipt" ? field(dueLabel, "due", { type: "date", kind: "date" }) : methodField()}
+        ${!NO_DUE_TYPES.includes(ty) ? field(dueLabel, "due", { type: "date", kind: "date" }) : ty === "receipt" ? methodField() : ""}
         ${field(t("ed.currency"), "currency", { options: curOpts, span: true, currency: true })}
         ${field(t("ed.reference"), "reference", { span: true, max: 200 })}
         </div>
@@ -184,19 +190,19 @@ function body(id) {
         ${details(t("ed.secondTax"), `<div class="span2">${toggle(t("ed.secondTaxOn"), "tax2.on", { rerender: "totals" })}</div>
           ${doc.tax2.on ? field(t("ed.taxName"), "tax2.name", { max: 40 }) + field(t("ed.taxRate"), "tax2.rate", { kind: "num" }) : ""}`, doc.tax2.on)}`;
     case "payment": {
-      const isInv = ty === "invoice";
+      const isInv = ty === "invoice", payable = PAYABLE.includes(ty);
       const pays = isInv ? paymentsList() : "";
-      return `${ty !== "receipt" ? details(t("ed.depositLate"), `
+      return `${payable ? details(t(isInv ? "ed.depositLate" : "ed.deposit"), `
           <div class="span2">${toggle(t("ed.depositOn"), "deposit.on", { hint: t("ed.depositHint"), rerender: "payment" })}</div>
           ${doc.deposit.on ? field(t("ed.depositType"), "deposit.type", { options: [["percent", t("ed.percent")], ["amount", t("ed.fixedAmount")]] }) + field(t("ed.depositValue"), "deposit.value", { kind: "num" }) : ""}
           ${isInv ? `<div class="span2">${toggle(t("ed.lateOn"), "lateFee.on", { hint: t("ed.lateHint"), rerender: "payment" })}</div>
           ${doc.lateFee.on ? field(t("ed.lateType"), "lateFee.type", { options: [["percent", t("ed.percentOfUnpaid")], ["amount", t("ed.fixedAmount")]] }) + field(t("ed.lateValue"), "lateFee.value", { kind: "num" }) + field(t("ed.graceDays"), "lateFee.graceDays", { kind: "int" }) + field(t("ed.lateRepeat"), "lateFee.repeat", { options: [["once", t("ed.once")], ["monthly", t("ed.every30")]] }) : ""}` : ""}`, doc.deposit.on || doc.lateFee.on) : ""}
-        ${ty !== "receipt" ? details(t("ed.payOnline"), `
+        ${payable ? details(t("ed.payOnline"), `
           ${providerField()}
           ${field(t("ed.payLink"), "payLink", { type: "url", placeholder: "https://", hint: t("ed.payLinkHint"), kind: "url" })}
           <div class="span2">${toggle(t("ed.showQr"), "show.qr")}</div>`, !!(doc.payLink || doc.payProvider)) : ""}
         <div class="ed-grid">
-          ${ty !== "receipt" ? field(t("ed.payInstructions"), "terms", { textarea: true, rows: 3, span: true, placeholder: t("ed.payInstructionsPh") }) : ""}
+          ${ty !== "receipt" && ty !== "deliveryNote" ? field(t(ty === "purchaseOrder" ? "ed.orderTerms" : "ed.payInstructions"), "terms", { textarea: true, rows: 3, span: true, placeholder: ty === "purchaseOrder" ? "" : t("ed.payInstructionsPh") }) : ""}
           ${field(t("ed.notes"), "notes", { textarea: true, rows: 3, span: true })}
           ${field(t("ed.footer"), "footer", { span: true, max: 300 })}
         </div>${pays}`;
@@ -229,7 +235,8 @@ function itemsBody() {
   const lopt = lineOptions(cols);
   // Every column except Description and Amount gets a box on each line, in column order.
   // Price is always shown here (the amount needs it), even when hidden on the document.
-  const boxes = cols.filter(c => c.id !== "desc" && c.id !== "amount" && (c.on || c.id === "rate"));
+  const noPrices = doc.type === "deliveryNote";
+  const boxes = cols.filter(c => c.id !== "desc" && c.id !== "amount" && (c.on || c.id === "rate") && !(noPrices && ["rate", "disc", "tax"].includes(c.id)));
   const cards = doc.items.map((it, i) => {
     const p = `items.${i}`;
     const box = c => {
@@ -247,7 +254,7 @@ function itemsBody() {
       </div>
       <div class="item-grid">
         ${boxes.map(box).join("")}
-        <div class="field"><span class="label">${esc(colName(cols.find(c => c.id === "amount")))}</span><output class="item-amt num" data-amt="${i}"><bdi class="ltr">${esc(dmoney(lineAmount(it, decimalsOf(doc.currency), lopt)))}</bdi></output></div>
+        ${noPrices ? "" : `<div class="field"><span class="label">${esc(colName(cols.find(c => c.id === "amount")))}</span><output class="item-amt num" data-amt="${i}"><bdi class="ltr">${esc(dmoney(lineAmount(it, decimalsOf(doc.currency), lopt)))}</bdi></output></div>`}
       </div>
       ${it.details || it._details ? `<div class="field"><label for="${fid(p + ".details")}">${esc(t("ed.details"))}</label><textarea class="input textarea" rows="2" id="${fid(p + ".details")}" data-f="${p}.details" data-k="text" dir="auto">${esc(it.details)}</textarea></div>`
         : `<button type="button" class="link-btn" data-act="add-details" data-i="${i}">${icon("plus", 16)}${esc(t("ed.addDetails2"))}</button>`}
@@ -277,9 +284,15 @@ function paymentsList() {
   const rows = doc.payments.map(p => `<li class="pay-row"><span><bdi>${esc(formatDate(p.date, settings().dateFormat, getLanguage()))}</bdi>${p.method ? ` · ${esc(p.method)}` : ""}${p.note ? ` · ${esc(p.note)}` : ""}</span>
       <span class="num"><bdi class="ltr">${esc(dmoney(p.amount))}</bdi></span>
       <button type="button" class="icon-btn" data-act="del-payment" data-id="${esc(p.id)}" aria-label="${esc(t("ed.removePayment"))}">${icon("x", 18)}</button></li>`).join("");
+  // Issued credit notes for this invoice (open them to change or cancel).
+  const credits = (getDoc(doc.id) || doc).credits || [];
+  const crows = credits.map(c => `<li class="pay-row"><span><a href="#/edit/${encodeURIComponent(c.id)}">${esc(t("type.creditNote"))} <bdi class="ltr">${esc(c.no)}</bdi></a> · <bdi>${esc(formatDate(c.date, settings().dateFormat, getLanguage()))}</bdi></span>
+      <span class="num"><bdi class="ltr">−${esc(dmoney(c.amount))}</bdi></span></li>`).join("");
   return `<div class="ed-payments"><h3 class="eyebrow">${esc(t("ed.payments"))}</h3>
     ${rows ? `<ul class="pay-list">${rows}</ul>` : `<p class="hint">${esc(t("ed.noPayments"))}</p>`}
+    ${crows ? `<h3 class="eyebrow">${esc(t("ed.credits"))}</h3><ul class="pay-list">${crows}</ul>` : ""}
     <p class="pay-sum">${esc(t("ed.balanceNow"))}: <strong><bdi class="ltr">${esc(dmoney(tt.balance))}</bdi></strong></p>
+    ${tt.refundDue > 0 ? `<p class="hint">${esc(t("ed.refundDue", { amount: dmoney(tt.refundDue) }))}</p>` : ""}
     ${tt.balance > 0 ? `<button type="button" class="btn btn-outline" data-act="payment">${icon("banknote", 18)}${esc(t("docs.act.recordPayment"))}</button>` : ""}</div>`;
 }
 
@@ -491,6 +504,15 @@ function applyValue(path, raw, kind) {
   if (path === "qty" || /\.qty$/.test(path)) v = raw === "" ? "" : parseNumber(raw);
   if (kind === "status") return applyStatus(raw, before);
   setPath(doc, path, v);
+  if (path === "sourceId") {
+    // Linking a credit note to an invoice: same client and currency, and its number as reference.
+    const inv = getDoc(v);
+    if (inv) {
+      doc.reference = inv.no;
+      doc.currency = inv.currency;
+      if (!doc.client.name.trim()) doc.client = { ...inv.client };
+    }
+  }
 
   // Side effects
   if (path === "termsDays" && v !== "") doc.due = addDays(doc.issued, v);
@@ -520,7 +542,7 @@ function applyStatus(v, before) {
   } else {
     if (before === "paid" && doc.type === "invoice") doc.payments = [];
     doc.status = v;
-    if (v === "sent" && !doc.sentAt) doc.sentAt = Date.now();
+    if ((v === "sent" || v === "issued") && !doc.sentAt) doc.sentAt = Date.now();
   }
   if (prev.payments.length !== doc.payments.length) toast(t(v === "paid" ? "docs.toast.markedPaid" : "docs.toast.markedUnpaid", { doc: `${typeName(doc.type)} ${doc.no}` }), {
     action: t("common.undo"), onAction: () => { doc.status = prev.status; doc.payments = prev.payments; renderForm(); changed(); }
@@ -534,10 +556,12 @@ function onTypeChange(prevType) {
   typeNos[prevType] = typeNos[prevType] || doc.no;
   doc.no = typeNos[ty] || nextNumber(ty).no;
   doc.status = ty === "receipt" ? "paid" : "draft";
-  if (ty === "receipt") { doc.due = ""; doc.recurring.on = false; }
-  else if (!doc.due) doc.due = addDays(doc.issued, ty === "estimate" ? settings().estimateValidDays : settings().termsDays);
-  if (ty !== "invoice") { doc.termsDays = ""; doc.lateFee.on = false; }
+  if (NO_DUE_TYPES.includes(ty)) doc.due = "";
+  else if (!doc.due) doc.due = addDays(doc.issued, QUOTE_TYPES.includes(ty) ? settings().estimateValidDays : settings().termsDays);
+  if (ty !== "invoice") { doc.termsDays = ""; doc.lateFee.on = false; doc.recurring.on = false; }
   else if (prevType !== "invoice") doc.termsDays = settings().termsDays;
+  if (!PAYABLE.includes(ty)) doc.deposit.on = false;
+  if (ty !== "creditNote" && prevType === "creditNote") doc.sourceId = "";
 }
 function nextRecurDate() {
   const u = doc.recurring.unit, n = doc.recurring.every || 1;
@@ -905,6 +929,16 @@ function methodField() {
         <option value="__custom"${custom ? " selected" : ""}>${esc(t("pay.customOpt"))}</option></select></div>
     ${custom ? field(t("pay.customMethod"), "payMethod", { max: 40, placeholder: t("pay.customMethodPh") }) : ""}`;
 }
+// Credit note: which invoice it credits. Once issued, its total comes off that invoice.
+function creditForField() {
+  const inv = getState().docs.filter(d => d.type === "invoice" && d.status !== "draft" && d.status !== "void")
+    .sort((a, b) => b.issued.localeCompare(a.issued) || b.createdAt - a.createdAt).slice(0, 300);
+  const cur = inv.find(d => d.id === doc.sourceId);
+  const opts = [["", t("ed.creditForNone")], ...inv.map(d => [d.id, `${d.no} · ${d.client.name || t("docs.noClient")} · ${formatMoney(totals(d).total, d.currency, appFmt())}`])];
+  if (doc.sourceId && !cur) opts.push([doc.sourceId, doc.reference || doc.sourceId]);
+  return field(t("ed.creditFor"), "sourceId", { options: opts, span: true, kind: "link", rerender: "all", hint: t("ed.creditForHint") });
+}
+
 function onPick(el) {
   const isProv = el.dataset.pick === "provider", key = isProv ? "payProvider" : "payMethod";
   const listed = isProv ? PAY_PROVIDERS : methodLabels();
@@ -1086,13 +1120,20 @@ function openDesign() {
 function openMore() {
   flushNow();
   const st = statusOf(doc), ty = doc.type, saved = !isNew;
-  const items = [["pdf", "download", t("ed.downloadPdf")], ["print", "file-text", t("ed.print")], ["pos", "receipt", t("ed.posPrint")]];
+  const items = [["pdf", "download", t("ed.downloadPdf")], ["print", "file-text", t("ed.print")]];
+  if (ty !== "deliveryNote" && ty !== "purchaseOrder") items.push(["pos", "receipt", t("ed.posPrint")]);
   if (saved) items.push(["duplicate", "copy", t("docs.act.duplicate")]);
-  if (saved && ty !== "receipt" && st === "draft") items.push(["sent", "send", t("docs.act.markSent")]);
+  if (saved && ty !== "receipt" && st === "draft") items.push(["sent", "send", t(ty === "creditNote" ? "docs.act.issue" : "docs.act.markSent")]);
+  if (saved && canRemind(doc, st)) items.push(["remind", "bell", t("docs.act.remind")]);
   if (saved && ty === "invoice" && ["draft", "sent", "partial", "overdue"].includes(st)) items.push(["payment", "banknote", t("docs.act.recordPayment")], ["paid", "circle-check", t("docs.act.markPaid")]);
   if (saved && ty === "invoice" && (st === "paid" || totals(doc).paid > 0)) items.push(["unpaid", "undo-2", t("docs.act.markUnpaid")]);
-  if (saved && ty === "estimate") items.push(["convert", "arrow-right-left", t("docs.act.convert")]);
+  if (saved && QUOTE_TYPES.includes(ty)) items.push(["convert", "arrow-right-left", t("docs.act.convert")]);
   if (saved && ty === "invoice" && st === "paid") items.push(["toReceipt", "receipt", t("ed.toReceipt")]);
+  if (saved && ty === "invoice" && !["draft", "void", "credited"].includes(st)) items.push(["credit", "file-minus", t("docs.act.creditNote")]);
+  if (saved && ["invoice", "proforma", "purchaseOrder"].includes(ty) && st !== "void") items.push(["delivery", "truck", t("docs.act.deliveryNote")]);
+  if (saved && ty === "purchaseOrder" && st === "sent") items.push(["received", "circle-check", t("docs.act.markReceived")]);
+  if (saved && ty === "deliveryNote" && st !== "delivered") items.push(["delivered", "circle-check", t("docs.act.markDelivered")]);
+  if (ty === "creditNote" && doc.sourceId && getDoc(doc.sourceId)) items.push(["source", "file-text", t("docs.act.openInvoice", { no: getDoc(doc.sourceId).no })]);
   if (saved) items.push(["delete", "trash-2", t("docs.act.delete")]);
   openSheet({
     title: t("ed.moreActions"),
@@ -1111,8 +1152,13 @@ function runMore(a) {
       if (c) { toast(t("docs.toast.duplicated", { doc: label, copy: c.no })); location.hash = `#/edit/${encodeURIComponent(c.id)}`; }
       return;
     }
-    case "sent": markSent(doc.id); reloadFromState(); return toast(t("docs.toast.markedSent", { doc: label }));
+    case "sent": markSent(doc.id); reloadFromState(); return toast(t(doc.type === "creditNote" ? "docs.toast.issued" : "docs.toast.markedSent", { doc: label }));
     case "payment": return openPaymentSheet(doc.id, { onDone: reloadFromState });
+    case "remind": return openReminderSheet(doc.id, { onDone: reloadFromState });
+    case "received": case "delivered": { setDocFields(doc.id, { status: a }); reloadFromState(); return toast(t(`docs.toast.${a}`, { doc: label })); }
+    case "credit": { const cn = createCreditNote(doc.id); if (cn) { toast(t("docs.toast.creditMade", { no: cn.no, doc: label })); location.hash = `#/edit/${encodeURIComponent(cn.id)}`; } return; }
+    case "delivery": { const dn = createDeliveryNote(doc.id); if (dn) { toast(t("docs.toast.deliveryMade", { no: dn.no, doc: label })); location.hash = `#/edit/${encodeURIComponent(dn.id)}`; } return; }
+    case "source": location.hash = `#/edit/${encodeURIComponent(doc.sourceId)}`; return;
     case "paid": { const prev = markPaid(doc.id); reloadFromState(); return toast(t("docs.toast.markedPaid", { doc: label }), { action: t("common.undo"), onAction: () => { restorePaymentState(doc.id, prev); reloadFromState(); } }); }
     case "unpaid": { const p = { status: doc.status, payments: structuredClone(doc.payments) }; setDocFields(doc.id, { status: "sent", payments: [] }); reloadFromState(); return toast(t("docs.toast.markedUnpaid", { doc: label }), { action: t("common.undo"), onAction: () => { restorePaymentState(doc.id, p); reloadFromState(); } }); }
     case "convert": { const inv = convertToInvoice(doc.id); if (inv) { toast(t("docs.toast.converted", { doc: label, inv: inv.no })); location.hash = `#/edit/${encodeURIComponent(inv.id)}`; } return; }
@@ -1132,8 +1178,8 @@ function openSend() {
   const tt = totals(doc);
   const amount = formatMoney(doc.type === "invoice" ? tt.balance : tt.total, doc.currency, { fmt: doc.numberFormat, lang: doc.lang });
   const subject = `${dl(doc.lang, "noun", doc.type)} ${doc.no}${doc.business.name ? " – " + doc.business.name : ""}`;
-  const due = doc.type !== "receipt" && doc.due ? formatDate(doc.due, doc.dateFormat, doc.lang) : "";
-  const body = t(`send.body.${doc.type}`, { name: doc.client.contact || doc.client.name || "", doc: `${typeName(doc.type)} ${doc.no}`, amount, due, biz: doc.business.name || "" }).replace(/[ \t]+\n/g, "\n");
+  const due = !NO_DUE_TYPES.includes(doc.type) && doc.due ? formatDate(doc.due, doc.dateFormat, doc.lang) : "";
+  const body = t(`send.body.${doc.type}${doc.type === "purchaseOrder" && !due ? "NoDate" : ""}`, { name: doc.client.contact || doc.client.name || "", doc: `${typeName(doc.type)} ${doc.no}`, amount, due, biz: doc.business.name || "", inv: doc.reference || "" }).replace(/[ \t]+\n/g, "\n");
   const canShare = !!navigator.share;
   openSheet({
     title: t("send.title"),
@@ -1167,9 +1213,9 @@ function openSend() {
 }
 function markAsSentAfterSend() {
   if (doc.type !== "receipt" && doc.status === "draft") {
-    doc.status = "sent"; doc.sentAt = Date.now();
+    doc.status = sentStatus(doc.type); doc.sentAt = Date.now();
     renderSection("doc"); changed();
-    toast(t("docs.toast.markedSent", { doc: `${typeName(doc.type)} ${doc.no}` }), { action: t("common.undo"), onAction: () => { doc.status = "draft"; doc.sentAt = 0; renderSection("doc"); changed(); } });
+    toast(t(doc.type === "creditNote" ? "docs.toast.issued" : "docs.toast.markedSent", { doc: `${typeName(doc.type)} ${doc.no}` }), { action: t("common.undo"), onAction: () => { doc.status = "draft"; doc.sentAt = 0; renderSection("doc"); changed(); } });
   }
 }
 
@@ -1190,7 +1236,7 @@ export function mount(el, params) {
     doc = structuredClone(d); isNew = false;
   } else {
     const q = params.query || new URLSearchParams();
-    const type = ["invoice", "estimate", "receipt"].includes(q.get("type")) ? q.get("type") : "invoice";
+    const type = DOC_TYPES.includes(q.get("type")) ? q.get("type") : "invoice";
     doc = newDoc(type);
     const cid = q.get("client");
     const c = cid && getState().clients.find(x => x.id === cid);

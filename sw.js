@@ -2,7 +2,7 @@
 //
 // RELEASING A NEW VERSION: change VERSION below (e.g. "v4.0.1"). Returning visitors
 // then download the new files once, and the app offers a "Reload" button.
-const VERSION = "v4.0.11";
+const VERSION = "v4.1.0";
 const CACHE = `invogen-${VERSION}`;
 
 // Every file the app needs, downloaded on install so it runs with no connection.
@@ -101,6 +101,7 @@ const ASSETS = [
   "./icons/icon-maskable-512.png",
   "./icons/icon.svg",
   "./js/backup.js",
+  "./js/autoBackup.js",
   "./js/calc.js",
   "./js/columns.js",
   "./js/countries.js",
@@ -115,6 +116,7 @@ const ASSETS = [
   "./js/importSheet.js",
   "./js/install.js",
   "./js/layout.js",
+  "./js/lock.js",
   "./js/main.js",
   "./js/migrate.js",
   "./js/payments.js",
@@ -124,6 +126,8 @@ const ASSETS = [
   "./js/pos.js",
   "./js/preview.js",
   "./js/print.js",
+  "./js/reminders.js",
+  "./js/reports.js",
   "./js/sample.js",
   "./js/sheet.js",
   "./js/state.js",
@@ -139,6 +143,7 @@ const ASSETS = [
   "./js/screens/editor.js",
   "./js/screens/guide.js",
   "./js/screens/help.js",
+  "./js/screens/reports.js",
   "./js/screens/settings.js",
   "./js/screens/templates.js",
   "./js/vendor/jspdf.umd.min.js",

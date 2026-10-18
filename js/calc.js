@@ -42,10 +42,15 @@ export function totals(doc, today = todayISO()) {
   const dep = doc.deposit || {};
   const deposit = dep.on ? round(Math.min(total, dep.type === "amount" ? Math.max(0, n(dep.value)) : total * Math.max(0, Math.min(100, n(dep.value))) / 100), d) : 0;
 
-  const lateFee = lateFeeFor(doc, total, paid, today, d);
-  const balance = round(Math.max(0, total + lateFee - paid), d);
+  // Issued credit notes for this invoice (see syncCredits in state.js).
+  const credited = doc.type === "invoice" && Array.isArray(doc.credits) ? round(doc.credits.reduce((s, c) => s + Math.max(0, n(c.amount)), 0), d) : 0;
+
+  const lateFee = lateFeeFor(doc, total, paid + credited, today, d);
+  const balance = round(Math.max(0, total + lateFee - paid - credited), d);
+  // More paid and credited than owed: the difference goes back to the client.
+  const refundDue = round(Math.max(0, paid + credited - total - lateFee), d);
   const depositDue = round(Math.max(0, deposit - paid), d);
-  return { subtotal, discount, taxable, tax, tax2, shipping, total, paid, deposit, depositDue, lateFee, balance, decimals: d };
+  return { subtotal, discount, taxable, tax, tax2, shipping, total, paid, credited, refundDue, deposit, depositDue, lateFee, balance, decimals: d };
 }
 
 // Late fee: a percentage of the unpaid amount or a fixed amount, charged once or
@@ -63,20 +68,26 @@ export function lateFeeFor(doc, total, paid, today, d) {
 }
 
 /* ---------------- Status ---------------- */
-// Invoice:  draft · sent · partial · paid · overdue · void
-// Estimate: draft · sent · accepted · declined · expired
-// Receipt:  paid
+// Invoice:           draft · sent · partial · paid · overdue · credited · void
+// Estimate/proforma: draft · sent · accepted · declined · expired
+// Receipt:           paid
+// Credit note:       draft · issued · void
+// Purchase order:    draft · sent · received · void
+// Delivery note:     draft · sent · delivered
 export function statusOf(doc, today = todayISO()) {
   if (doc.type === "receipt") return "paid";
   if (doc.status === "void") return "void";
-  if (doc.type === "estimate") {
+  if (doc.type === "estimate" || doc.type === "proforma") {
     if (doc.status === "accepted" || doc.status === "declined") return doc.status;
     if (doc.status === "sent" && doc.due && doc.due < today) return "expired";
     return doc.status === "sent" ? "sent" : "draft";
   }
+  if (doc.type === "creditNote") return doc.status === "issued" ? "issued" : "draft";
+  if (doc.type === "purchaseOrder") return ["sent", "received"].includes(doc.status) ? doc.status : "draft";
+  if (doc.type === "deliveryNote") return ["sent", "delivered"].includes(doc.status) ? doc.status : "draft";
   const t = totals(doc, today);
-  if (doc.status === "paid" && t.paid === 0 && !(doc.payments || []).length) return "paid"; // marked paid without a payment record (imported data)
-  if (t.total > 0 && t.balance <= 0) return "paid";
+  if (doc.status === "paid" && t.paid === 0 && !(doc.payments || []).length && !t.credited) return "paid"; // marked paid without a payment record (imported data)
+  if (t.total > 0 && t.balance <= 0) return t.credited >= t.total ? "credited" : "paid";
   if (t.total === 0 && doc.status === "paid") return "paid";
   if (doc.status === "draft" && t.paid === 0) return "draft";
   if (doc.due && doc.due < today && t.balance > 0) return "overdue";
@@ -84,10 +95,10 @@ export function statusOf(doc, today = todayISO()) {
   return doc.status === "draft" ? "draft" : "sent";
 }
 
-// Amount still owed (0 for drafts, estimates, receipts, void and paid docs).
+// Amount still owed (0 for drafts, other document types, void, paid and credited invoices).
 export function outstandingOf(doc, today = todayISO()) {
   if (doc.type !== "invoice") return 0;
   const st = statusOf(doc, today);
-  if (st === "draft" || st === "void" || st === "paid") return 0;
+  if (st === "draft" || st === "void" || st === "paid" || st === "credited") return 0;
   return totals(doc, today).balance;
 }

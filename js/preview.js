@@ -52,6 +52,9 @@ const editAttr = (on, path, multiline = false) => on ? ` data-edit="${path}" con
 // renderDocument(doc, { editable, today, labelFor }) → HTML string of one paper page flow.
 export function renderDocument(doc, { editable = false, today, placeholders = null } = {}) {
   const L = doc.lang || "en", type = doc.type;
+  const noPrices = type === "deliveryNote";                 // a delivery note lists goods, not money
+  const hasDue = ["invoice", "estimate", "proforma", "purchaseOrder"].includes(type);
+  const canPayOnline = ["invoice", "estimate", "proforma"].includes(type);
   const rtl = isRtlLang(L);
   const t = totals(doc, today);
   const nf = { fmt: doc.numberFormat, lang: L };
@@ -84,14 +87,14 @@ export function renderDocument(doc, { editable = false, today, placeholders = nu
   const cLines = [c.contact && esc(c.contact), c.address && lines(c.address), [c.email, c.phone].filter(Boolean).map(esc).join(" · "), c.taxId && esc(c.taxId)].filter(Boolean);
   const showBill = doc.show.billTo !== false;
   const dates = [[dl(L, "date", type), d(doc.issued)]];
-  if (type !== "receipt" && doc.due && doc.show.dueDate !== false) dates.push([dl(L, "due", type), d(doc.due)]);
+  if (hasDue && doc.due && doc.show.dueDate !== false) dates.push([dl(L, "due", type), d(doc.due)]);
   if (type === "receipt") {
     const last = (doc.payments || []).map(p => p.date).sort().pop();
     if (doc.payMethod) dates.push([dl(L, "method"), esc(doc.payMethod)]);
     if (last && last !== doc.issued) dates.push([dl(L, "due", "receipt"), d(last)]);
   }
   if (type === "invoice" && doc.termsDays !== "" && doc.termsDays != null) dates.push([dl(L, "payTerms"), esc(Number(doc.termsDays) === 0 ? dl(L, "receipt") : netTerms(L, doc.termsDays))]);
-  if (doc.reference) dates.push([dl(L, "ref"), `<bdi>${esc(doc.reference)}</bdi>`]);
+  if (doc.reference) dates.push([type === "creditNote" && doc.sourceId ? dl(L, "origInvoice") : dl(L, "ref"), `<bdi>${esc(doc.reference)}</bdi>`]);
   const parties = `<section class="doc-parties">
       ${showBill ? `<div class="doc-billto"><div class="doc-label">${esc(dl(L, "bill", type))}</div>
         <div class="doc-client" dir="auto"${editAttr(editable, "client.name")}>${esc(c.name) || (placeholders ? `<span class="doc-ph">${esc(placeholders.client)}</span>` : "")}</div>
@@ -101,7 +104,8 @@ export function renderDocument(doc, { editable = false, today, placeholders = nu
 
   /* ---- items ---- */
   // Columns come from the document's column settings (js/columns.js): order, names, widths.
-  const columns = (Array.isArray(doc.columns) && doc.columns.length ? doc.columns : normalizeColumns(null, doc.cols)).filter(c => c.on);
+  const columns = (Array.isArray(doc.columns) && doc.columns.length ? doc.columns : normalizeColumns(null, doc.cols))
+    .filter(c => c.on && !(noPrices && ["rate", "amount", "disc", "tax"].includes(c.id)));
   const lopt = lineOptions(doc.columns);
   const dec = decimalsOf(doc.currency);
   const qtyFmt = q => esc(formatNumber(q, Number.isInteger(Number(q)) ? 0 : Math.min(3, (String(q).split(".")[1] || "").length || 2), doc.numberFormat, L));
@@ -118,7 +122,8 @@ export function renderDocument(doc, { editable = false, today, placeholders = nu
     const v = cellValue(it, c);
     if (c.id === "desc") return `<td class="c-desc"><div class="doc-desc" dir="auto"${editAttr(editable, `items.${i}.desc`)}>${esc(it.desc)}</div>${it.details ? `<div class="doc-details" dir="auto">${lines(it.details)}</div>` : ""}</td>`;
     if (c.id === "amount") return `<td class="c-num c-amt">${m(lineAmount(it, dec, lopt))}</td>`;
-    if (c.id === "qty") return `<td class="${cls(c)}">${qtyFmt(it.qty === "" ? 1 : it.qty)}</td>`;
+    // Without a price after it, a narrow delivery note labels the quantity ("Qty: 3").
+    if (c.id === "qty") return `<td class="${cls(c)}"${noPrices ? ` data-label="${esc(headLabel(c))}"` : ""}>${qtyFmt(it.qty === "" ? 1 : it.qty)}</td>`;
     if (c.id === "rate") return `<td class="${cls(c)}">${m(it.rate)}</td>`;
     const empty = v === "" || v == null;
     const shown = c.role === "disc" || c.role === "tax" ? pctFmt(v) : c.role === "number" && !empty && Number.isFinite(Number(v)) ? qtyFmt(Number(v)) : `<bdi>${esc(v)}</bdi>`;
@@ -135,22 +140,23 @@ export function renderDocument(doc, { editable = false, today, placeholders = nu
   if (t.tax || Number(doc.tax.rate)) rowsT.push(tr(`${esc(doc.tax.name || dl(L, "tax"))} ${pct(doc.tax.rate)}`, m(t.tax), doc.tax.inclusive ? "is-incl" : ""));
   if (t.tax2) rowsT.push(tr(`${esc(doc.tax2.name || dl(L, "tax"))} ${pct(doc.tax2.rate)}`, m(t.tax2)));
   if (t.shipping) rowsT.push(tr(esc(dl(L, "shipping")), m(t.shipping)));
-  if (t.subtotal !== t.total || t.paid || t.lateFee) rowsT.push(tr(esc(dl(L, "total")), m(t.total), "is-total"));
+  if (t.subtotal !== t.total || t.paid || t.lateFee || t.credited) rowsT.push(tr(esc(dl(L, "total")), m(t.total), "is-total"));
   if (type === "invoice" && t.lateFee) rowsT.push(tr(esc(dl(L, "lateFee")), m(t.lateFee)));
   if (type === "invoice" && t.paid) rowsT.push(tr(esc(dl(L, "paid", type)), `−${m(t.paid)}`));
+  if (type === "invoice" && t.credited) rowsT.push(tr(`${esc(dl(L, "credited"))} <bdi class="doc-credit-nos">${esc(doc.credits.map(c => c.no).join(", "))}</bdi>`, `−${m(t.credited)}`));
   const big = type === "invoice" ? t.balance : t.total;
   const balance = `<div class="doc-balance"><span class="doc-balance-label">${esc(dl(L, "balance", type))}</span><span class="doc-balance-amt">${m(big)}</span></div>`;
-  const deposit = type !== "receipt" && doc.deposit.on && t.depositDue > 0
+  const deposit = canPayOnline && doc.deposit.on && t.depositDue > 0
     ? `<div class="doc-deposit"><span>${esc(dl(L, "deposit"))}</span><span>${m(t.depositDue)}</span></div>` : "";
   const words = doc.show.words ? `<div class="doc-words"><div class="doc-label">${esc(dl(L, "words"))}</div><div>${esc(amountInWords(big, doc.currency))}</div></div>` : "<div></div>";
-  const summary = `<section class="doc-summary">${words}<div class="doc-sum"><table class="doc-totals">${rowsT.join("")}</table>${balance}${deposit}</div></section>`;
+  const summary = noPrices ? "" : `<section class="doc-summary">${words}<div class="doc-sum"><table class="doc-totals">${rowsT.join("")}</table>${balance}${deposit}</div></section>`;
 
   /* ---- notes, payment, signature ---- */
   const link = normalizeUrl(doc.payLink);
   const blocks = [];
   if (doc.notes.trim() || editable) blocks.push(`<div class="doc-block"><div class="doc-label">${esc(dl(L, "note"))}</div><div class="doc-text" dir="auto"${editAttr(editable, "notes", true)}>${lines(doc.notes)}</div></div>`);
   if (doc.terms.trim()) blocks.push(`<div class="doc-block"><div class="doc-label">${esc(dl(L, "payment"))}</div><div class="doc-text" dir="auto">${lines(doc.terms)}</div></div>`);
-  if (link && type !== "receipt") {
+  if (link && canPayOnline) {
     const label = doc.payProvider ? `${dl(L, "payOnline")} · ${doc.payProvider}` : dl(L, "payOnline");
     blocks.push(`<div class="doc-block doc-pay"><div class="doc-label">${esc(label)}</div>
       <div class="doc-pay-row">${doc.show.qr ? `<div class="doc-qr">${qrSvg(link)}</div>` : ""}
@@ -165,6 +171,8 @@ export function renderDocument(doc, { editable = false, today, placeholders = nu
       : (img ? `<img class="doc-sig-img" src="${img}" alt="">` : "");
     sigHtml = `<div class="doc-sig">${mark}<div class="doc-sig-line">${esc(dl(L, "sign"))}</div></div>`;
   }
+  // A delivery note has a line for the person who receives the goods to sign.
+  if (noPrices) sigHtml = `<div class="doc-sigs">${sigHtml}<div class="doc-sig"><div class="doc-sig-space"></div><div class="doc-sig-line">${esc(dl(L, "receivedBy"))}</div></div></div>`;
   const extra = blocks.length || sigHtml ? `<section class="doc-extra"><div class="doc-blocks">${blocks.join("")}</div>${sigHtml}</section>` : "";
 
   const footerText = doc.footer.trim();

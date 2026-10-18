@@ -1,6 +1,6 @@
 // docLabels.js — words printed ON the document (title, Bill to, Subtotal, Balance due …) in
 // 24 document languages. Separate from the app's own interface language, so you can run
-// the app in English and send a document in Arabic or Bangla. Arrays are [invoice, estimate, receipt].
+// the app in English and send a document in Arabic or Bangla. Arrays are [invoice, estimate, receipt, creditNote, proforma, purchaseOrder, deliveryNote].
 
 export const DOC_LANGS = [["en", "English", "ltr"], ["zh", "中文", "ltr"], ["es", "Español", "ltr"], ["hi", "हिन्दी", "ltr"], ["ar", "العربية", "rtl"], ["bn", "বাংলা", "ltr"], ["pt", "Português", "ltr"], ["ru", "Русский", "ltr"], ["ja", "日本語", "ltr"], ["de", "Deutsch", "ltr"], ["fr", "Français", "ltr"], ["ur", "اردو", "rtl"], ["id", "Bahasa Indonesia", "ltr"], ["tr", "Türkçe", "ltr"], ["ko", "한국어", "ltr"], ["vi", "Tiếng Việt", "ltr"], ["it", "Italiano", "ltr"], ["fa", "فارسی", "rtl"], ["th", "ไทย", "ltr"], ["pl", "Polski", "ltr"], ["uk", "Українська", "ltr"], ["nl", "Nederlands", "ltr"], ["ms", "Bahasa Melayu", "ltr"], ["sw", "Kiswahili", "ltr"]];
 
@@ -9,32 +9,56 @@ const T = {
   "title": [
    "INVOICE",
    "ESTIMATE",
-   "RECEIPT"
+   "RECEIPT",
+   "CREDIT NOTE",
+   "PROFORMA INVOICE",
+   "PURCHASE ORDER",
+   "DELIVERY NOTE"
   ],
   "bill": [
    "BILL TO",
    "PREPARED FOR",
-   "RECEIVED FROM"
+   "RECEIVED FROM",
+   "CREDIT TO",
+   "BILL TO",
+   "SUPPLIER",
+   "DELIVER TO"
   ],
   "date": [
    "Invoice date",
    "Estimate date",
-   "Receipt date"
+   "Receipt date",
+   "Credit note date",
+   "Proforma date",
+   "Order date",
+   "Delivery date"
   ],
   "due": [
    "Due date",
    "Valid until",
-   "Payment date"
+   "Payment date",
+   "Date",
+   "Valid until",
+   "Deliver by",
+   "Delivery date"
   ],
   "balance": [
    "Balance due",
    "Estimated total",
-   "Amount paid"
+   "Amount paid",
+   "Total credit",
+   "Total due",
+   "Order total",
+   "Total"
   ],
   "noun": [
    "Invoice",
    "Estimate",
-   "Receipt"
+   "Receipt",
+   "Credit note",
+   "Proforma invoice",
+   "Purchase order",
+   "Delivery note"
   ],
   "ref": "Reference",
   "note": "NOTE",
@@ -68,38 +92,65 @@ const T = {
   "method": "Payment method",
   "wmDraft": "DRAFT",
   "wmPaid": "PAID",
-  "wmCopy": "COPY"
+  "wmCopy": "COPY",
+  "credited": "Credit applied",
+  "receivedBy": "Received by",
+  "origInvoice": "Original invoice"
  },
  "zh": {
   "title": [
    "发票",
    "报价单",
-   "收据"
+   "收据",
+   "贷项通知单",
+   "形式发票",
+   "采购订单",
+   "送货单"
   ],
   "bill": [
    "收票方",
    "报价对象",
-   "付款方"
+   "付款方",
+   "贷记对象",
+   "收票方",
+   "供应商",
+   "收货方"
   ],
   "date": [
    "开票日期",
    "报价日期",
-   "收据日期"
+   "收据日期",
+   "贷项通知单日期",
+   "形式发票日期",
+   "订单日期",
+   "送货日期"
   ],
   "due": [
    "到期日",
    "有效期至",
-   "付款日期"
+   "付款日期",
+   "日期",
+   "有效期至",
+   "交货日期",
+   "送货日期"
   ],
   "balance": [
    "应付余额",
    "预估总额",
-   "已付金额"
+   "已付金额",
+   "贷记总额",
+   "应付总额",
+   "订单总额",
+   "合计"
   ],
   "noun": [
    "发票",
    "报价单",
-   "收据"
+   "收据",
+   "贷项通知单",
+   "形式发票",
+   "采购订单",
+   "送货单"
   ],
   "ref": "参考编号",
   "note": "备注",
@@ -133,38 +184,65 @@ const T = {
   "method": "付款方式",
   "wmDraft": "草稿",
   "wmPaid": "已付款",
-  "wmCopy": "副本"
+  "wmCopy": "副本",
+  "credited": "已抵扣贷项",
+  "receivedBy": "签收人",
+  "origInvoice": "原发票"
  },
  "es": {
   "title": [
    "FACTURA",
    "PRESUPUESTO",
-   "RECIBO"
+   "RECIBO",
+   "NOTA DE CRÉDITO",
+   "FACTURA PROFORMA",
+   "ORDEN DE COMPRA",
+   "NOTA DE ENTREGA"
   ],
   "bill": [
    "FACTURAR A",
    "PREPARADO PARA",
-   "RECIBIDO DE"
+   "RECIBIDO DE",
+   "ABONAR A",
+   "FACTURAR A",
+   "PROVEEDOR",
+   "ENTREGAR A"
   ],
   "date": [
    "Fecha de factura",
    "Fecha del presupuesto",
-   "Fecha del recibo"
+   "Fecha del recibo",
+   "Fecha de la nota",
+   "Fecha de la proforma",
+   "Fecha del pedido",
+   "Fecha de entrega"
   ],
   "due": [
    "Fecha de vencimiento",
    "Válido hasta",
-   "Fecha de pago"
+   "Fecha de pago",
+   "Fecha",
+   "Válida hasta",
+   "Entregar antes del",
+   "Fecha de entrega"
   ],
   "balance": [
    "Saldo pendiente",
    "Total estimado",
-   "Importe pagado"
+   "Importe pagado",
+   "Total del crédito",
+   "Total a pagar",
+   "Total del pedido",
+   "Total"
   ],
   "noun": [
    "Factura",
    "Presupuesto",
-   "Recibo"
+   "Recibo",
+   "Nota de crédito",
+   "Factura proforma",
+   "Orden de compra",
+   "Nota de entrega"
   ],
   "ref": "Referencia",
   "note": "NOTA",
@@ -198,38 +276,65 @@ const T = {
   "method": "Forma de pago",
   "wmDraft": "BORRADOR",
   "wmPaid": "PAGADO",
-  "wmCopy": "COPIA"
+  "wmCopy": "COPIA",
+  "credited": "Crédito aplicado",
+  "receivedBy": "Recibido por",
+  "origInvoice": "Factura original"
  },
  "hi": {
   "title": [
    "इनवॉइस",
    "अनुमान",
-   "रसीद"
+   "रसीद",
+   "क्रेडिट नोट",
+   "प्रोफ़ॉर्मा इनवॉइस",
+   "खरीद आदेश",
+   "डिलीवरी नोट"
   ],
   "bill": [
    "बिल प्राप्तकर्ता",
    "किसके लिए",
-   "प्राप्त किया"
+   "प्राप्त किया",
+   "क्रेडिट प्राप्तकर्ता",
+   "बिल प्राप्तकर्ता",
+   "आपूर्तिकर्ता",
+   "डिलीवरी प्राप्तकर्ता"
   ],
   "date": [
    "इनवॉइस तिथि",
    "अनुमान तिथि",
-   "रसीद तिथि"
+   "रसीद तिथि",
+   "क्रेडिट नोट तिथि",
+   "प्रोफ़ॉर्मा तिथि",
+   "आदेश तिथि",
+   "डिलीवरी तिथि"
   ],
   "due": [
    "देय तिथि",
    "मान्य तिथि तक",
-   "भुगतान तिथि"
+   "भुगतान तिथि",
+   "तिथि",
+   "मान्य तिथि तक",
+   "डिलीवरी की अंतिम तिथि",
+   "डिलीवरी तिथि"
   ],
   "balance": [
    "देय राशि",
    "अनुमानित कुल",
-   "भुगतान की गई राशि"
+   "भुगतान की गई राशि",
+   "कुल क्रेडिट",
+   "कुल देय",
+   "आदेश की कुल राशि",
+   "कुल"
   ],
   "noun": [
    "इनवॉइस",
    "अनुमान",
-   "रसीद"
+   "रसीद",
+   "क्रेडिट नोट",
+   "प्रोफ़ॉर्मा इनवॉइस",
+   "खरीद आदेश",
+   "डिलीवरी नोट"
   ],
   "ref": "संदर्भ",
   "note": "नोट",
@@ -263,38 +368,65 @@ const T = {
   "method": "भुगतान का तरीका",
   "wmDraft": "ड्राफ़्ट",
   "wmPaid": "भुगतान हो गया",
-  "wmCopy": "प्रति"
+  "wmCopy": "प्रति",
+  "credited": "समायोजित क्रेडिट",
+  "receivedBy": "प्राप्तकर्ता",
+  "origInvoice": "मूल इनवॉइस"
  },
  "ar": {
   "title": [
    "فاتورة",
    "عرض سعر",
-   "إيصال"
+   "إيصال",
+   "إشعار دائن",
+   "فاتورة مبدئية",
+   "أمر شراء",
+   "إشعار تسليم"
   ],
   "bill": [
    "فاتورة إلى",
    "مُعدّ لـ",
-   "مستلم من"
+   "مستلم من",
+   "لصالح",
+   "فاتورة إلى",
+   "المورّد",
+   "التسليم إلى"
   ],
   "date": [
    "تاريخ الفاتورة",
    "تاريخ العرض",
-   "تاريخ الإيصال"
+   "تاريخ الإيصال",
+   "تاريخ الإشعار",
+   "تاريخ الفاتورة المبدئية",
+   "تاريخ الطلب",
+   "تاريخ التسليم"
   ],
   "due": [
    "تاريخ الاستحقاق",
    "صالح حتى",
-   "تاريخ الدفع"
+   "تاريخ الدفع",
+   "التاريخ",
+   "صالحة حتى",
+   "التسليم قبل",
+   "تاريخ التسليم"
   ],
   "balance": [
    "الرصيد المستحق",
    "الإجمالي التقديري",
-   "المبلغ المدفوع"
+   "المبلغ المدفوع",
+   "إجمالي الرصيد الدائن",
+   "الإجمالي المستحق",
+   "إجمالي الطلب",
+   "الإجمالي"
   ],
   "noun": [
    "فاتورة",
    "عرض سعر",
-   "إيصال"
+   "إيصال",
+   "إشعار دائن",
+   "فاتورة مبدئية",
+   "أمر شراء",
+   "إشعار تسليم"
   ],
   "ref": "المرجع",
   "note": "ملاحظة",
@@ -328,38 +460,65 @@ const T = {
   "method": "طريقة الدفع",
   "wmDraft": "مسودة",
   "wmPaid": "مدفوع",
-  "wmCopy": "نسخة"
+  "wmCopy": "نسخة",
+  "credited": "الرصيد الدائن المطبّق",
+  "receivedBy": "استلمه",
+  "origInvoice": "الفاتورة الأصلية"
  },
  "bn": {
   "title": [
    "ইনভয়েস",
    "এস্টিমেট",
-   "রসিদ"
+   "রসিদ",
+   "ক্রেডিট নোট",
+   "প্রোফর্মা ইনভয়েস",
+   "ক্রয় আদেশ",
+   "ডেলিভারি নোট"
   ],
   "bill": [
    "বিল প্রাপক",
    "যার জন্য প্রস্তুত",
-   "যার কাছ থেকে প্রাপ্ত"
+   "যার কাছ থেকে প্রাপ্ত",
+   "ক্রেডিট প্রাপক",
+   "বিল প্রাপক",
+   "সরবরাহকারী",
+   "ডেলিভারি প্রাপক"
   ],
   "date": [
    "ইনভয়েসের তারিখ",
    "এস্টিমেটের তারিখ",
-   "রসিদের তারিখ"
+   "রসিদের তারিখ",
+   "ক্রেডিট নোটের তারিখ",
+   "প্রোফর্মার তারিখ",
+   "আদেশের তারিখ",
+   "ডেলিভারির তারিখ"
   ],
   "due": [
    "পরিশোধের শেষ তারিখ",
    "মেয়াদ শেষ",
-   "পরিশোধের তারিখ"
+   "পরিশোধের তারিখ",
+   "তারিখ",
+   "মেয়াদ",
+   "ডেলিভারির শেষ তারিখ",
+   "ডেলিভারির তারিখ"
   ],
   "balance": [
    "বকেয়া",
    "আনুমানিক মোট",
-   "পরিশোধিত"
+   "পরিশোধিত",
+   "মোট ক্রেডিট",
+   "মোট প্রদেয়",
+   "আদেশের মোট",
+   "মোট"
   ],
   "noun": [
    "ইনভয়েস",
    "এস্টিমেট",
-   "রসিদ"
+   "রসিদ",
+   "ক্রেডিট নোট",
+   "প্রোফর্মা ইনভয়েস",
+   "ক্রয় আদেশ",
+   "ডেলিভারি নোট"
   ],
   "ref": "রেফারেন্স",
   "note": "নোট",
@@ -393,38 +552,65 @@ const T = {
   "method": "পরিশোধের পদ্ধতি",
   "wmDraft": "খসড়া",
   "wmPaid": "পরিশোধিত",
-  "wmCopy": "কপি"
+  "wmCopy": "কপি",
+  "credited": "সমন্বিত ক্রেডিট",
+  "receivedBy": "গ্রহণকারী",
+  "origInvoice": "মূল ইনভয়েস"
  },
  "pt": {
   "title": [
    "FATURA",
    "ORÇAMENTO",
-   "RECIBO"
+   "RECIBO",
+   "NOTA DE CRÉDITO",
+   "FATURA PRÓ-FORMA",
+   "ORDEM DE COMPRA",
+   "GUIA DE REMESSA"
   ],
   "bill": [
    "FATURAR A",
    "PREPARADO PARA",
-   "RECEBIDO DE"
+   "RECEBIDO DE",
+   "CREDITAR A",
+   "FATURAR A",
+   "FORNECEDOR",
+   "ENTREGAR A"
   ],
   "date": [
    "Data da fatura",
    "Data do orçamento",
-   "Data do recibo"
+   "Data do recibo",
+   "Data da nota de crédito",
+   "Data da pró-forma",
+   "Data do pedido",
+   "Data de entrega"
   ],
   "due": [
    "Data de vencimento",
    "Válido até",
-   "Data de pagamento"
+   "Data de pagamento",
+   "Data",
+   "Válida até",
+   "Entrega até",
+   "Data de entrega"
   ],
   "balance": [
    "Saldo devedor",
    "Total estimado",
-   "Valor pago"
+   "Valor pago",
+   "Total do crédito",
+   "Total a pagar",
+   "Total do pedido",
+   "Total"
   ],
   "noun": [
    "Fatura",
    "Orçamento",
-   "Recibo"
+   "Recibo",
+   "Nota de crédito",
+   "Fatura pró-forma",
+   "Ordem de compra",
+   "Guia de remessa"
   ],
   "ref": "Referência",
   "note": "NOTA",
@@ -458,38 +644,65 @@ const T = {
   "method": "Forma de pagamento",
   "wmDraft": "RASCUNHO",
   "wmPaid": "PAGO",
-  "wmCopy": "CÓPIA"
+  "wmCopy": "CÓPIA",
+  "credited": "Crédito aplicado",
+  "receivedBy": "Recebido por",
+  "origInvoice": "Fatura original"
  },
  "ru": {
   "title": [
    "СЧЁТ",
    "СМЕТА",
-   "КВИТАНЦИЯ"
+   "КВИТАНЦИЯ",
+   "КРЕДИТ-НОТА",
+   "СЧЁТ-ПРОФОРМА",
+   "ЗАКАЗ НА ПОКУПКУ",
+   "НАКЛАДНАЯ"
   ],
   "bill": [
    "ПЛАТЕЛЬЩИК",
    "ПОДГОТОВЛЕНО ДЛЯ",
-   "ПОЛУЧЕНО ОТ"
+   "ПОЛУЧЕНО ОТ",
+   "КОМУ",
+   "ПЛАТЕЛЬЩИК",
+   "ПОСТАВЩИК",
+   "ПОЛУЧАТЕЛЬ"
   ],
   "date": [
    "Дата счёта",
    "Дата сметы",
-   "Дата квитанции"
+   "Дата квитанции",
+   "Дата кредит-ноты",
+   "Дата проформы",
+   "Дата заказа",
+   "Дата доставки"
   ],
   "due": [
    "Срок оплаты",
    "Действительно до",
-   "Дата оплаты"
+   "Дата оплаты",
+   "Дата",
+   "Действителен до",
+   "Срок поставки",
+   "Дата доставки"
   ],
   "balance": [
    "К оплате",
    "Итого по смете",
-   "Оплачено"
+   "Оплачено",
+   "Сумма кредита",
+   "Итого к оплате",
+   "Сумма заказа",
+   "Итого"
   ],
   "noun": [
    "Счёт",
    "Смета",
-   "Квитанция"
+   "Квитанция",
+   "Кредит-нота",
+   "Счёт-проформа",
+   "Заказ на покупку",
+   "Накладная"
   ],
   "ref": "Номер заказа",
   "note": "ПРИМЕЧАНИЕ",
@@ -523,38 +736,65 @@ const T = {
   "method": "Способ оплаты",
   "wmDraft": "ЧЕРНОВИК",
   "wmPaid": "ОПЛАЧЕНО",
-  "wmCopy": "КОПИЯ"
+  "wmCopy": "КОПИЯ",
+  "credited": "Зачтено по кредит-ноте",
+  "receivedBy": "Получил",
+  "origInvoice": "Исходный счёт"
  },
  "ja": {
   "title": [
    "請求書",
    "見積書",
-   "領収書"
+   "領収書",
+   "クレジットノート",
+   "プロフォーマ請求書",
+   "発注書",
+   "納品書"
   ],
   "bill": [
    "請求先",
    "見積先",
-   "お支払者"
+   "お支払者",
+   "返金先",
+   "請求先",
+   "仕入先",
+   "納品先"
   ],
   "date": [
    "請求日",
    "見積日",
-   "領収日"
+   "領収日",
+   "発行日",
+   "発行日",
+   "発注日",
+   "納品日"
   ],
   "due": [
    "支払期限",
    "有効期限",
-   "支払日"
+   "支払日",
+   "日付",
+   "有効期限",
+   "納期",
+   "納品日"
   ],
   "balance": [
    "ご請求金額",
    "見積合計",
-   "お支払金額"
+   "お支払金額",
+   "返金合計",
+   "ご請求金額",
+   "発注合計",
+   "合計"
   ],
   "noun": [
    "請求書",
    "見積書",
-   "領収書"
+   "領収書",
+   "クレジットノート",
+   "プロフォーマ請求書",
+   "発注書",
+   "納品書"
   ],
   "ref": "参照番号",
   "note": "備考",
@@ -588,38 +828,65 @@ const T = {
   "method": "支払方法",
   "wmDraft": "下書き",
   "wmPaid": "支払済",
-  "wmCopy": "控え"
+  "wmCopy": "控え",
+  "credited": "クレジット充当額",
+  "receivedBy": "受領者",
+  "origInvoice": "元の請求書"
  },
  "de": {
   "title": [
    "RECHNUNG",
    "ANGEBOT",
-   "QUITTUNG"
+   "QUITTUNG",
+   "GUTSCHRIFT",
+   "PROFORMARECHNUNG",
+   "BESTELLUNG",
+   "LIEFERSCHEIN"
   ],
   "bill": [
    "RECHNUNG AN",
    "ERSTELLT FÜR",
-   "ERHALTEN VON"
+   "ERHALTEN VON",
+   "GUTSCHRIFT AN",
+   "RECHNUNG AN",
+   "LIEFERANT",
+   "LIEFERN AN"
   ],
   "date": [
    "Rechnungsdatum",
    "Angebotsdatum",
-   "Quittungsdatum"
+   "Quittungsdatum",
+   "Datum der Gutschrift",
+   "Datum der Proformarechnung",
+   "Bestelldatum",
+   "Lieferdatum"
   ],
   "due": [
    "Fälligkeitsdatum",
    "Gültig bis",
-   "Zahlungsdatum"
+   "Zahlungsdatum",
+   "Datum",
+   "Gültig bis",
+   "Liefertermin",
+   "Lieferdatum"
   ],
   "balance": [
    "Offener Betrag",
    "Geschätzte Summe",
-   "Bezahlter Betrag"
+   "Bezahlter Betrag",
+   "Gutschriftsbetrag",
+   "Zu zahlender Betrag",
+   "Bestellsumme",
+   "Gesamt"
   ],
   "noun": [
    "Rechnung",
    "Angebot",
-   "Quittung"
+   "Quittung",
+   "Gutschrift",
+   "Proformarechnung",
+   "Bestellung",
+   "Lieferschein"
   ],
   "ref": "Referenz",
   "note": "HINWEIS",
@@ -653,38 +920,65 @@ const T = {
   "method": "Zahlungsart",
   "wmDraft": "ENTWURF",
   "wmPaid": "BEZAHLT",
-  "wmCopy": "KOPIE"
+  "wmCopy": "KOPIE",
+  "credited": "Gutschrift verrechnet",
+  "receivedBy": "Empfangen von",
+  "origInvoice": "Ursprüngliche Rechnung"
  },
  "fr": {
   "title": [
    "FACTURE",
    "DEVIS",
-   "REÇU"
+   "REÇU",
+   "AVOIR",
+   "FACTURE PROFORMA",
+   "BON DE COMMANDE",
+   "BON DE LIVRAISON"
   ],
   "bill": [
    "FACTURÉ À",
    "PRÉPARÉ POUR",
-   "REÇU DE"
+   "REÇU DE",
+   "AVOIR À",
+   "FACTURÉ À",
+   "FOURNISSEUR",
+   "LIVRÉ À"
   ],
   "date": [
    "Date de facture",
    "Date du devis",
-   "Date du reçu"
+   "Date du reçu",
+   "Date de l'avoir",
+   "Date de la proforma",
+   "Date de commande",
+   "Date de livraison"
   ],
   "due": [
    "Date d'échéance",
    "Valable jusqu'au",
-   "Date de paiement"
+   "Date de paiement",
+   "Date",
+   "Valable jusqu'au",
+   "Livraison avant le",
+   "Date de livraison"
   ],
   "balance": [
    "Solde dû",
    "Total estimé",
-   "Montant payé"
+   "Montant payé",
+   "Total de l'avoir",
+   "Total à payer",
+   "Total de la commande",
+   "Total"
   ],
   "noun": [
    "Facture",
    "Devis",
-   "Reçu"
+   "Reçu",
+   "Avoir",
+   "Facture proforma",
+   "Bon de commande",
+   "Bon de livraison"
   ],
   "ref": "Référence",
   "note": "NOTE",
@@ -718,38 +1012,65 @@ const T = {
   "method": "Mode de paiement",
   "wmDraft": "BROUILLON",
   "wmPaid": "PAYÉ",
-  "wmCopy": "COPIE"
+  "wmCopy": "COPIE",
+  "credited": "Avoir déduit",
+  "receivedBy": "Reçu par",
+  "origInvoice": "Facture d'origine"
  },
  "ur": {
   "title": [
    "انوائس",
    "تخمینہ",
-   "رسید"
+   "رسید",
+   "کریڈٹ نوٹ",
+   "پروفارما انوائس",
+   "خریداری آرڈر",
+   "ڈلیوری نوٹ"
   ],
   "bill": [
    "بل بنام",
    "برائے",
-   "منجانب"
+   "منجانب",
+   "کریڈٹ بنام",
+   "بل بنام",
+   "سپلائر",
+   "ڈلیوری بنام"
   ],
   "date": [
    "انوائس کی تاریخ",
    "تخمینے کی تاریخ",
-   "رسید کی تاریخ"
+   "رسید کی تاریخ",
+   "کریڈٹ نوٹ کی تاریخ",
+   "پروفارما کی تاریخ",
+   "آرڈر کی تاریخ",
+   "ڈلیوری کی تاریخ"
   ],
   "due": [
    "آخری تاریخِ ادائیگی",
    "تک کارآمد",
-   "ادائیگی کی تاریخ"
+   "ادائیگی کی تاریخ",
+   "تاریخ",
+   "کارآمد تا",
+   "ڈلیوری کی آخری تاریخ",
+   "ڈلیوری کی تاریخ"
   ],
   "balance": [
    "واجب الادا رقم",
    "تخمینی کل",
-   "ادا شدہ رقم"
+   "ادا شدہ رقم",
+   "کل کریڈٹ",
+   "کل واجب الادا",
+   "آرڈر کی کل رقم",
+   "کل"
   ],
   "noun": [
    "انوائس",
    "تخمینہ",
-   "رسید"
+   "رسید",
+   "کریڈٹ نوٹ",
+   "پروفارما انوائس",
+   "خریداری آرڈر",
+   "ڈلیوری نوٹ"
   ],
   "ref": "حوالہ",
   "note": "نوٹ",
@@ -783,38 +1104,65 @@ const T = {
   "method": "ادائیگی کا طریقہ",
   "wmDraft": "مسودہ",
   "wmPaid": "ادا شدہ",
-  "wmCopy": "نقل"
+  "wmCopy": "نقل",
+  "credited": "منہا کیا گیا کریڈٹ",
+  "receivedBy": "وصول کنندہ",
+  "origInvoice": "اصل انوائس"
  },
  "id": {
   "title": [
    "FAKTUR",
    "PENAWARAN",
-   "KUITANSI"
+   "KUITANSI",
+   "NOTA KREDIT",
+   "FAKTUR PROFORMA",
+   "PESANAN PEMBELIAN",
+   "SURAT JALAN"
   ],
   "bill": [
    "DITAGIHKAN KEPADA",
    "DISIAPKAN UNTUK",
-   "DITERIMA DARI"
+   "DITERIMA DARI",
+   "KREDIT UNTUK",
+   "DITAGIHKAN KEPADA",
+   "PEMASOK",
+   "DIKIRIM KEPADA"
   ],
   "date": [
    "Tanggal faktur",
    "Tanggal penawaran",
-   "Tanggal kuitansi"
+   "Tanggal kuitansi",
+   "Tanggal nota kredit",
+   "Tanggal proforma",
+   "Tanggal pesanan",
+   "Tanggal pengiriman"
   ],
   "due": [
    "Jatuh tempo",
    "Berlaku hingga",
-   "Tanggal pembayaran"
+   "Tanggal pembayaran",
+   "Tanggal",
+   "Berlaku hingga",
+   "Dikirim paling lambat",
+   "Tanggal pengiriman"
   ],
   "balance": [
    "Sisa tagihan",
    "Perkiraan total",
-   "Jumlah dibayar"
+   "Jumlah dibayar",
+   "Total kredit",
+   "Total tagihan",
+   "Total pesanan",
+   "Total"
   ],
   "noun": [
    "Faktur",
    "Penawaran",
-   "Kuitansi"
+   "Kuitansi",
+   "Nota kredit",
+   "Faktur proforma",
+   "Pesanan pembelian",
+   "Surat jalan"
   ],
   "ref": "Referensi",
   "note": "CATATAN",
@@ -848,38 +1196,65 @@ const T = {
   "method": "Metode pembayaran",
   "wmDraft": "DRAF",
   "wmPaid": "LUNAS",
-  "wmCopy": "SALINAN"
+  "wmCopy": "SALINAN",
+  "credited": "Kredit diterapkan",
+  "receivedBy": "Diterima oleh",
+  "origInvoice": "Faktur asli"
  },
  "tr": {
   "title": [
    "FATURA",
    "TEKLİF",
-   "MAKBUZ"
+   "MAKBUZ",
+   "ALACAK DEKONTU",
+   "PROFORMA FATURA",
+   "SATIN ALMA SİPARİŞİ",
+   "İRSALİYE"
   ],
   "bill": [
    "FATURA EDİLEN",
    "HAZIRLANAN",
-   "ÖDEYEN"
+   "ÖDEYEN",
+   "ALACAKLANDIRILAN",
+   "FATURA EDİLEN",
+   "TEDARİKÇİ",
+   "TESLİM EDİLECEK"
   ],
   "date": [
    "Fatura tarihi",
    "Teklif tarihi",
-   "Makbuz tarihi"
+   "Makbuz tarihi",
+   "Dekont tarihi",
+   "Proforma tarihi",
+   "Sipariş tarihi",
+   "Teslim tarihi"
   ],
   "due": [
    "Son ödeme tarihi",
    "Geçerlilik tarihi",
-   "Ödeme tarihi"
+   "Ödeme tarihi",
+   "Tarih",
+   "Geçerlilik tarihi",
+   "Son teslim tarihi",
+   "Teslim tarihi"
   ],
   "balance": [
    "Ödenecek tutar",
    "Tahmini toplam",
-   "Ödenen tutar"
+   "Ödenen tutar",
+   "Toplam alacak",
+   "Ödenecek toplam",
+   "Sipariş toplamı",
+   "Toplam"
   ],
   "noun": [
    "Fatura",
    "Teklif",
-   "Makbuz"
+   "Makbuz",
+   "Alacak dekontu",
+   "Proforma fatura",
+   "Satın alma siparişi",
+   "İrsaliye"
   ],
   "ref": "Referans",
   "note": "NOT",
@@ -913,38 +1288,65 @@ const T = {
   "method": "Ödeme yöntemi",
   "wmDraft": "TASLAK",
   "wmPaid": "ÖDENDİ",
-  "wmCopy": "KOPYA"
+  "wmCopy": "KOPYA",
+  "credited": "Uygulanan alacak",
+  "receivedBy": "Teslim alan",
+  "origInvoice": "Asıl fatura"
  },
  "ko": {
   "title": [
    "청구서",
    "견적서",
-   "영수증"
+   "영수증",
+   "크레딧 노트",
+   "견적 송장",
+   "구매 주문서",
+   "납품서"
   ],
   "bill": [
    "청구 대상",
    "견적 대상",
-   "지불인"
+   "지불인",
+   "환급 대상",
+   "청구 대상",
+   "공급업체",
+   "납품처"
   ],
   "date": [
    "청구일",
    "견적일",
-   "영수일"
+   "영수일",
+   "발행일",
+   "발행일",
+   "주문일",
+   "납품일"
   ],
   "due": [
    "지급 기한",
    "유효 기한",
-   "지급일"
+   "지급일",
+   "날짜",
+   "유효 기한",
+   "납품 기한",
+   "납품일"
   ],
   "balance": [
    "청구 금액",
    "예상 합계",
-   "지급 금액"
+   "지급 금액",
+   "크레딧 합계",
+   "청구 금액",
+   "주문 합계",
+   "합계"
   ],
   "noun": [
    "청구서",
    "견적서",
-   "영수증"
+   "영수증",
+   "크레딧 노트",
+   "견적 송장",
+   "구매 주문서",
+   "납품서"
   ],
   "ref": "참조 번호",
   "note": "메모",
@@ -978,38 +1380,65 @@ const T = {
   "method": "결제 방법",
   "wmDraft": "초안",
   "wmPaid": "결제 완료",
-  "wmCopy": "사본"
+  "wmCopy": "사본",
+  "credited": "적용된 크레딧",
+  "receivedBy": "수령인",
+  "origInvoice": "원래 청구서"
  },
  "vi": {
   "title": [
    "HÓA ĐƠN",
    "BÁO GIÁ",
-   "BIÊN NHẬN"
+   "BIÊN NHẬN",
+   "GIẤY BÁO CÓ",
+   "HÓA ĐƠN CHIẾU LỆ",
+   "ĐƠN ĐẶT HÀNG",
+   "PHIẾU GIAO HÀNG"
   ],
   "bill": [
    "KHÁCH HÀNG",
    "GỬI ĐẾN",
-   "NHẬN TỪ"
+   "NHẬN TỪ",
+   "GHI CÓ CHO",
+   "KHÁCH HÀNG",
+   "NHÀ CUNG CẤP",
+   "GIAO ĐẾN"
   ],
   "date": [
    "Ngày lập",
    "Ngày báo giá",
-   "Ngày biên nhận"
+   "Ngày biên nhận",
+   "Ngày lập",
+   "Ngày lập",
+   "Ngày đặt hàng",
+   "Ngày giao hàng"
   ],
   "due": [
    "Hạn thanh toán",
    "Có hiệu lực đến",
-   "Ngày thanh toán"
+   "Ngày thanh toán",
+   "Ngày",
+   "Có hiệu lực đến",
+   "Giao hàng trước",
+   "Ngày giao hàng"
   ],
   "balance": [
    "Số tiền phải trả",
    "Tổng dự kiến",
-   "Số tiền đã trả"
+   "Số tiền đã trả",
+   "Tổng số ghi có",
+   "Tổng phải trả",
+   "Tổng đơn hàng",
+   "Tổng cộng"
   ],
   "noun": [
    "Hóa đơn",
    "Báo giá",
-   "Biên nhận"
+   "Biên nhận",
+   "Giấy báo có",
+   "Hóa đơn chiếu lệ",
+   "Đơn đặt hàng",
+   "Phiếu giao hàng"
   ],
   "ref": "Mã tham chiếu",
   "note": "GHI CHÚ",
@@ -1043,38 +1472,65 @@ const T = {
   "method": "Phương thức thanh toán",
   "wmDraft": "BẢN NHÁP",
   "wmPaid": "ĐÃ THANH TOÁN",
-  "wmCopy": "BẢN SAO"
+  "wmCopy": "BẢN SAO",
+  "credited": "Đã trừ ghi có",
+  "receivedBy": "Người nhận",
+  "origInvoice": "Hóa đơn gốc"
  },
  "it": {
   "title": [
    "FATTURA",
    "PREVENTIVO",
-   "RICEVUTA"
+   "RICEVUTA",
+   "NOTA DI CREDITO",
+   "FATTURA PROFORMA",
+   "ORDINE D'ACQUISTO",
+   "DOCUMENTO DI TRASPORTO"
   ],
   "bill": [
    "INTESTATARIO",
    "PREPARATO PER",
-   "RICEVUTO DA"
+   "RICEVUTO DA",
+   "ACCREDITARE A",
+   "INTESTATARIO",
+   "FORNITORE",
+   "DESTINATARIO"
   ],
   "date": [
    "Data fattura",
    "Data preventivo",
-   "Data ricevuta"
+   "Data ricevuta",
+   "Data nota di credito",
+   "Data proforma",
+   "Data ordine",
+   "Data di consegna"
   ],
   "due": [
    "Scadenza",
    "Valido fino al",
-   "Data di pagamento"
+   "Data di pagamento",
+   "Data",
+   "Valida fino al",
+   "Consegna entro",
+   "Data di consegna"
   ],
   "balance": [
    "Saldo dovuto",
    "Totale stimato",
-   "Importo pagato"
+   "Importo pagato",
+   "Totale accredito",
+   "Totale da pagare",
+   "Totale ordine",
+   "Totale"
   ],
   "noun": [
    "Fattura",
    "Preventivo",
-   "Ricevuta"
+   "Ricevuta",
+   "Nota di credito",
+   "Fattura proforma",
+   "Ordine d'acquisto",
+   "Documento di trasporto"
   ],
   "ref": "Riferimento",
   "note": "NOTA",
@@ -1108,38 +1564,65 @@ const T = {
   "method": "Metodo di pagamento",
   "wmDraft": "BOZZA",
   "wmPaid": "PAGATO",
-  "wmCopy": "COPIA"
+  "wmCopy": "COPIA",
+  "credited": "Credito applicato",
+  "receivedBy": "Ricevuto da",
+  "origInvoice": "Fattura originale"
  },
  "fa": {
   "title": [
    "فاکتور",
    "پیش‌فاکتور",
-   "رسید"
+   "رسید",
+   "یادداشت بستانکار",
+   "پیش‌فاکتور",
+   "سفارش خرید",
+   "حواله تحویل"
   ],
   "bill": [
    "صورتحساب برای",
    "تهیه‌شده برای",
-   "دریافت از"
+   "دریافت از",
+   "بستانکار برای",
+   "صورتحساب برای",
+   "تأمین‌کننده",
+   "تحویل به"
   ],
   "date": [
    "تاریخ فاکتور",
    "تاریخ پیش‌فاکتور",
-   "تاریخ رسید"
+   "تاریخ رسید",
+   "تاریخ یادداشت",
+   "تاریخ پیش‌فاکتور",
+   "تاریخ سفارش",
+   "تاریخ تحویل"
   ],
   "due": [
    "سررسید پرداخت",
    "معتبر تا",
-   "تاریخ پرداخت"
+   "تاریخ پرداخت",
+   "تاریخ",
+   "معتبر تا",
+   "مهلت تحویل",
+   "تاریخ تحویل"
   ],
   "balance": [
    "مبلغ قابل پرداخت",
    "جمع تخمینی",
-   "مبلغ پرداخت‌شده"
+   "مبلغ پرداخت‌شده",
+   "جمع بستانکاری",
+   "مبلغ قابل پرداخت",
+   "جمع سفارش",
+   "جمع کل"
   ],
   "noun": [
    "فاکتور",
    "پیش‌فاکتور",
-   "رسید"
+   "رسید",
+   "یادداشت بستانکار",
+   "پیش‌فاکتور",
+   "سفارش خرید",
+   "حواله تحویل"
   ],
   "ref": "شماره مرجع",
   "note": "یادداشت",
@@ -1173,38 +1656,65 @@ const T = {
   "method": "روش پرداخت",
   "wmDraft": "پیش‌نویس",
   "wmPaid": "پرداخت‌شده",
-  "wmCopy": "رونوشت"
+  "wmCopy": "رونوشت",
+  "credited": "بستانکاری اعمال‌شده",
+  "receivedBy": "تحویل‌گیرنده",
+  "origInvoice": "فاکتور اصلی"
  },
  "th": {
   "title": [
    "ใบแจ้งหนี้",
    "ใบเสนอราคา",
-   "ใบเสร็จรับเงิน"
+   "ใบเสร็จรับเงิน",
+   "ใบลดหนี้",
+   "ใบแจ้งหนี้ล่วงหน้า",
+   "ใบสั่งซื้อ",
+   "ใบส่งของ"
   ],
   "bill": [
    "เรียกเก็บจาก",
    "จัดทำสำหรับ",
-   "ได้รับจาก"
+   "ได้รับจาก",
+   "ลดหนี้ให้",
+   "เรียกเก็บจาก",
+   "ผู้ขาย",
+   "ส่งถึง"
   ],
   "date": [
    "วันที่ออกใบแจ้งหนี้",
    "วันที่เสนอราคา",
-   "วันที่ออกใบเสร็จ"
+   "วันที่ออกใบเสร็จ",
+   "วันที่ออกใบลดหนี้",
+   "วันที่ออก",
+   "วันที่สั่งซื้อ",
+   "วันที่ส่งของ"
   ],
   "due": [
    "วันครบกำหนดชำระ",
    "ใช้ได้ถึง",
-   "วันที่ชำระเงิน"
+   "วันที่ชำระเงิน",
+   "วันที่",
+   "ใช้ได้ถึง",
+   "กำหนดส่ง",
+   "วันที่ส่งของ"
   ],
   "balance": [
    "ยอดค้างชำระ",
    "ยอดรวมโดยประมาณ",
-   "ยอดที่ชำระแล้ว"
+   "ยอดที่ชำระแล้ว",
+   "ยอดลดหนี้รวม",
+   "ยอดที่ต้องชำระ",
+   "ยอดสั่งซื้อรวม",
+   "ยอดรวม"
   ],
   "noun": [
    "ใบแจ้งหนี้",
    "ใบเสนอราคา",
-   "ใบเสร็จ"
+   "ใบเสร็จ",
+   "ใบลดหนี้",
+   "ใบแจ้งหนี้ล่วงหน้า",
+   "ใบสั่งซื้อ",
+   "ใบส่งของ"
   ],
   "ref": "เลขที่อ้างอิง",
   "note": "หมายเหตุ",
@@ -1238,38 +1748,65 @@ const T = {
   "method": "วิธีชำระเงิน",
   "wmDraft": "ฉบับร่าง",
   "wmPaid": "ชำระแล้ว",
-  "wmCopy": "สำเนา"
+  "wmCopy": "สำเนา",
+  "credited": "หักลดหนี้แล้ว",
+  "receivedBy": "ผู้รับของ",
+  "origInvoice": "ใบแจ้งหนี้เดิม"
  },
  "pl": {
   "title": [
    "FAKTURA",
    "OFERTA",
-   "POKWITOWANIE"
+   "POKWITOWANIE",
+   "FAKTURA KORYGUJĄCA",
+   "FAKTURA PRO FORMA",
+   "ZAMÓWIENIE",
+   "DOWÓD DOSTAWY"
   ],
   "bill": [
    "NABYWCA",
    "PRZYGOTOWANO DLA",
-   "OTRZYMANO OD"
+   "OTRZYMANO OD",
+   "NABYWCA",
+   "NABYWCA",
+   "DOSTAWCA",
+   "ODBIORCA"
   ],
   "date": [
    "Data wystawienia",
    "Data oferty",
-   "Data pokwitowania"
+   "Data pokwitowania",
+   "Data wystawienia",
+   "Data wystawienia",
+   "Data zamówienia",
+   "Data dostawy"
   ],
   "due": [
    "Termin płatności",
    "Ważna do",
-   "Data płatności"
+   "Data płatności",
+   "Data",
+   "Ważna do",
+   "Termin dostawy",
+   "Data dostawy"
   ],
   "balance": [
    "Do zapłaty",
    "Szacowana suma",
-   "Zapłacono"
+   "Zapłacono",
+   "Kwota korekty",
+   "Do zapłaty",
+   "Wartość zamówienia",
+   "Razem"
   ],
   "noun": [
    "Faktura",
    "Oferta",
-   "Pokwitowanie"
+   "Pokwitowanie",
+   "Faktura korygująca",
+   "Faktura pro forma",
+   "Zamówienie",
+   "Dowód dostawy"
   ],
   "ref": "Numer referencyjny",
   "note": "UWAGI",
@@ -1303,38 +1840,65 @@ const T = {
   "method": "Metoda płatności",
   "wmDraft": "SZKIC",
   "wmPaid": "OPŁACONO",
-  "wmCopy": "KOPIA"
+  "wmCopy": "KOPIA",
+  "credited": "Uwzględniona korekta",
+  "receivedBy": "Odebrał",
+  "origInvoice": "Faktura pierwotna"
  },
  "uk": {
   "title": [
    "РАХУНОК",
    "КОШТОРИС",
-   "КВИТАНЦІЯ"
+   "КВИТАНЦІЯ",
+   "КРЕДИТ-НОТА",
+   "РАХУНОК-ПРОФОРМА",
+   "ЗАМОВЛЕННЯ НА ЗАКУПІВЛЮ",
+   "НАКЛАДНА"
   ],
   "bill": [
    "ПЛАТНИК",
    "ПІДГОТОВЛЕНО ДЛЯ",
-   "ОТРИМАНО ВІД"
+   "ОТРИМАНО ВІД",
+   "КОМУ",
+   "ПЛАТНИК",
+   "ПОСТАЧАЛЬНИК",
+   "ОДЕРЖУВАЧ"
   ],
   "date": [
    "Дата рахунку",
    "Дата кошторису",
-   "Дата квитанції"
+   "Дата квитанції",
+   "Дата кредит-ноти",
+   "Дата проформи",
+   "Дата замовлення",
+   "Дата доставки"
   ],
   "due": [
    "Термін оплати",
    "Дійсний до",
-   "Дата оплати"
+   "Дата оплати",
+   "Дата",
+   "Дійсний до",
+   "Строк постачання",
+   "Дата доставки"
   ],
   "balance": [
    "До сплати",
    "Орієнтовна сума",
-   "Сплачено"
+   "Сплачено",
+   "Сума кредиту",
+   "Разом до сплати",
+   "Сума замовлення",
+   "Разом"
   ],
   "noun": [
    "Рахунок",
    "Кошторис",
-   "Квитанція"
+   "Квитанція",
+   "Кредит-нота",
+   "Рахунок-проформа",
+   "Замовлення на закупівлю",
+   "Накладна"
   ],
   "ref": "Номер замовлення",
   "note": "ПРИМІТКА",
@@ -1368,38 +1932,65 @@ const T = {
   "method": "Спосіб оплати",
   "wmDraft": "ЧЕРНЕТКА",
   "wmPaid": "ОПЛАЧЕНО",
-  "wmCopy": "КОПІЯ"
+  "wmCopy": "КОПІЯ",
+  "credited": "Зараховано за кредит-нотою",
+  "receivedBy": "Отримав",
+  "origInvoice": "Початковий рахунок"
  },
  "nl": {
   "title": [
    "FACTUUR",
    "OFFERTE",
-   "KWITANTIE"
+   "KWITANTIE",
+   "CREDITNOTA",
+   "PROFORMAFACTUUR",
+   "INKOOPORDER",
+   "PAKBON"
   ],
   "bill": [
    "FACTUUR AAN",
    "OPGESTELD VOOR",
-   "ONTVANGEN VAN"
+   "ONTVANGEN VAN",
+   "CREDIT AAN",
+   "FACTUUR AAN",
+   "LEVERANCIER",
+   "LEVEREN AAN"
   ],
   "date": [
    "Factuurdatum",
    "Offertedatum",
-   "Kwitantiedatum"
+   "Kwitantiedatum",
+   "Creditnotadatum",
+   "Proformadatum",
+   "Besteldatum",
+   "Leverdatum"
   ],
   "due": [
    "Vervaldatum",
    "Geldig tot",
-   "Betaaldatum"
+   "Betaaldatum",
+   "Datum",
+   "Geldig tot",
+   "Leveren vóór",
+   "Leverdatum"
   ],
   "balance": [
    "Openstaand bedrag",
    "Geschat totaal",
-   "Betaald bedrag"
+   "Betaald bedrag",
+   "Totaal credit",
+   "Te betalen",
+   "Ordertotaal",
+   "Totaal"
   ],
   "noun": [
    "Factuur",
    "Offerte",
-   "Kwitantie"
+   "Kwitantie",
+   "Creditnota",
+   "Proformafactuur",
+   "Inkooporder",
+   "Pakbon"
   ],
   "ref": "Referentie",
   "note": "OPMERKING",
@@ -1433,38 +2024,65 @@ const T = {
   "method": "Betaalwijze",
   "wmDraft": "CONCEPT",
   "wmPaid": "BETAALD",
-  "wmCopy": "KOPIE"
+  "wmCopy": "KOPIE",
+  "credited": "Verrekende creditnota",
+  "receivedBy": "Ontvangen door",
+  "origInvoice": "Oorspronkelijke factuur"
  },
  "ms": {
   "title": [
    "INVOIS",
    "SEBUT HARGA",
-   "RESIT"
+   "RESIT",
+   "NOTA KREDIT",
+   "INVOIS PROFORMA",
+   "PESANAN PEMBELIAN",
+   "NOTA PENGHANTARAN"
   ],
   "bill": [
    "DIBILKAN KEPADA",
    "DISEDIAKAN UNTUK",
-   "DITERIMA DARIPADA"
+   "DITERIMA DARIPADA",
+   "KREDIT KEPADA",
+   "DIBILKAN KEPADA",
+   "PEMBEKAL",
+   "DIHANTAR KEPADA"
   ],
   "date": [
    "Tarikh invois",
    "Tarikh sebut harga",
-   "Tarikh resit"
+   "Tarikh resit",
+   "Tarikh nota kredit",
+   "Tarikh proforma",
+   "Tarikh pesanan",
+   "Tarikh penghantaran"
   ],
   "due": [
    "Tarikh akhir bayaran",
    "Sah sehingga",
-   "Tarikh bayaran"
+   "Tarikh bayaran",
+   "Tarikh",
+   "Sah sehingga",
+   "Hantar sebelum",
+   "Tarikh penghantaran"
   ],
   "balance": [
    "Baki perlu dibayar",
    "Anggaran jumlah",
-   "Jumlah dibayar"
+   "Jumlah dibayar",
+   "Jumlah kredit",
+   "Jumlah perlu dibayar",
+   "Jumlah pesanan",
+   "Jumlah"
   ],
   "noun": [
    "Invois",
    "Sebut harga",
-   "Resit"
+   "Resit",
+   "Nota kredit",
+   "Invois proforma",
+   "Pesanan pembelian",
+   "Nota penghantaran"
   ],
   "ref": "Rujukan",
   "note": "NOTA",
@@ -1498,38 +2116,65 @@ const T = {
   "method": "Kaedah pembayaran",
   "wmDraft": "DRAF",
   "wmPaid": "DIBAYAR",
-  "wmCopy": "SALINAN"
+  "wmCopy": "SALINAN",
+  "credited": "Kredit digunakan",
+  "receivedBy": "Diterima oleh",
+  "origInvoice": "Invois asal"
  },
  "sw": {
   "title": [
    "ANKARA",
    "MAKADIRIO",
-   "RISITI"
+   "RISITI",
+   "HATI YA MAREJESHO",
+   "ANKARA PROFOMA",
+   "AGIZO LA UNUNUZI",
+   "HATI YA UWASILISHAJI"
   ],
   "bill": [
    "ANKARA KWA",
    "IMEANDALIWA KWA",
-   "IMEPOKELEWA KUTOKA"
+   "IMEPOKELEWA KUTOKA",
+   "MAREJESHO KWA",
+   "ANKARA KWA",
+   "MSAMBAZAJI",
+   "PELEKA KWA"
   ],
   "date": [
    "Tarehe ya ankara",
    "Tarehe ya makadirio",
-   "Tarehe ya risiti"
+   "Tarehe ya risiti",
+   "Tarehe ya hati",
+   "Tarehe ya ankara profoma",
+   "Tarehe ya agizo",
+   "Tarehe ya uwasilishaji"
   ],
   "due": [
    "Tarehe ya mwisho ya malipo",
    "Halali hadi",
-   "Tarehe ya malipo"
+   "Tarehe ya malipo",
+   "Tarehe",
+   "Halali hadi",
+   "Wasilisha kabla ya",
+   "Tarehe ya uwasilishaji"
   ],
   "balance": [
    "Kiasi kinachodaiwa",
    "Jumla inayokadiriwa",
-   "Kiasi kilicholipwa"
+   "Kiasi kilicholipwa",
+   "Jumla ya marejesho",
+   "Jumla inayodaiwa",
+   "Jumla ya agizo",
+   "Jumla"
   ],
   "noun": [
    "Ankara",
    "Makadirio",
-   "Risiti"
+   "Risiti",
+   "Hati ya marejesho",
+   "Ankara profoma",
+   "Agizo la ununuzi",
+   "Hati ya uwasilishaji"
   ],
   "ref": "Kumbukumbu",
   "note": "MAELEZO",
@@ -1563,11 +2208,14 @@ const T = {
   "method": "Njia ya malipo",
   "wmDraft": "RASIMU",
   "wmPaid": "IMELIPWA",
-  "wmCopy": "NAKALA"
+  "wmCopy": "NAKALA",
+  "credited": "Marejesho yaliyotumika",
+  "receivedBy": "Imepokelewa na",
+  "origInvoice": "Ankara asili"
  }
 };
 
-const IDX = { invoice: 0, estimate: 1, receipt: 2 };
+const IDX = { invoice: 0, estimate: 1, receipt: 2, creditNote: 3, proforma: 4, purchaseOrder: 5, deliveryNote: 6 };
 export const isRtlLang = code => (DOC_LANGS.find(l => l[0] === code) || [])[2] === "rtl";
 export function labels(code) { return T[code] || T.en; }
 // dl("bn", "title", "invoice") → "ইনভয়েস"

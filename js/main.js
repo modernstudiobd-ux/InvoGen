@@ -1,6 +1,7 @@
 // main.js — starts the app: loads saved data and the interface language, draws the
 // shell, routes between screens (#/documents, #/create, #/edit/<id>, #/clients,
-// #/templates, #/settings, #/guide), keyboard shortcuts and the service worker.
+// #/templates, #/settings, #/reports, #/guide), keyboard shortcuts, the app lock,
+// automatic folder backups and the service worker.
 
 import { $, isTyping } from "./dom.js";
 import { initState, getState, subscribe, lastSaveFailed, runRecurring, setSettings } from "./state.js";
@@ -10,6 +11,8 @@ import { renderShell, setActive, openLanguageSheet, setOfflineReady } from "./la
 import { toast } from "./toast.js";
 import "./install.js";
 import { watchPickers } from "./picker.js";
+import { initLock } from "./lock.js";
+import { initAutoBackup } from "./autoBackup.js";
 
 const SCREENS = {
   documents: () => import("./screens/documents.js"),
@@ -20,6 +23,7 @@ const SCREENS = {
   help: () => import("./screens/help.js"),
   templates: () => import("./screens/templates.js"),
   settings: () => import("./screens/settings.js"),
+  reports: () => import("./screens/reports.js"),
   guide: () => import("./screens/guide.js")
 };
 
@@ -112,6 +116,8 @@ async function boot() {
   // First visit: follow the device language; afterwards, the language chosen in the app.
   const lang = s.langChosen || s.onboarded || getState().docs.length ? s.appLang || "en" : detectLanguage();
   await setLanguage(lang);
+  // With a PIN set, the lock screen covers everything before the first screen is drawn.
+  initLock();
   if (!s.langChosen && !getState().docs.length && lang !== "en" && s.docLang === "en") setSettings({ appLang: lang, docLang: lang }, "ui");
   renderShell();
   watchPickers();
@@ -130,6 +136,7 @@ async function boot() {
   document.body.classList.remove("booting");
   if (made) toast(t("recurring.created", { n: made }));
   registerServiceWorker();
+  initAutoBackup().catch(e => console.error(e));
 }
 
 boot().catch(err => {

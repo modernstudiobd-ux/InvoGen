@@ -76,6 +76,12 @@ export async function clearData() {
 
 export const storageMode = () => mode;
 
+// Small extra values kept next to the data but never inside backups (e.g. the folder
+// chosen for automatic backups — a browser handle that only works on this device).
+export async function kvGet(key) { try { return await idb("get", key); } catch { return undefined; } }
+export async function kvSet(key, value) { try { await idb("put", value, key); return true; } catch { return false; } }
+export async function kvDelete(key) { try { await idb("delete", key); } catch {} }
+
 // Ask the browser not to clear this site's data when the device runs low on space.
 export async function requestPersistence() {
   try {

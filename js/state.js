@@ -11,7 +11,24 @@ import { CURRENCY } from "./currencies.js";
 import { normalizeColumns } from "./columns.js";
 
 export const SCHEMA = 1;
-export const DOC_TYPES = ["invoice", "estimate", "receipt"];
+export const DOC_TYPES = ["invoice", "estimate", "receipt", "creditNote", "proforma", "purchaseOrder", "deliveryNote"];
+// The statuses each document type can be set to (statusOf() in calc.js adds the derived
+// ones: Partially paid, Overdue, Expired, Credited).
+export const STATUS_BY_TYPE = {
+  invoice: ["draft", "sent", "paid", "void"],
+  estimate: ["draft", "sent", "accepted", "declined"],
+  receipt: ["paid"],
+  creditNote: ["draft", "issued", "void"],
+  proforma: ["draft", "sent", "accepted", "declined"],
+  purchaseOrder: ["draft", "sent", "received", "void"],
+  deliveryNote: ["draft", "sent", "delivered"]
+};
+// The status a draft moves to when it is sent (a credit note is "issued").
+export const sentStatus = type => (type === "creditNote" ? "issued" : "sent");
+// Types with a "valid until" date, accepted or declined by the client, convertible to an invoice.
+export const QUOTE_TYPES = ["estimate", "proforma"];
+// Types without a due date.
+export const NO_DUE_TYPES = ["receipt", "creditNote", "deliveryNote"];
 
 export function defaultSettings() {
   return {
@@ -32,7 +49,11 @@ export function defaultSettings() {
     numbering: {
       invoice: { prefix: "INV", next: 1, pad: 4 },
       estimate: { prefix: "EST", next: 1, pad: 4 },
-      receipt: { prefix: "R", next: 1, pad: 4 }
+      receipt: { prefix: "R", next: 1, pad: 4 },
+      creditNote: { prefix: "CN", next: 1, pad: 4 },
+      proforma: { prefix: "PF", next: 1, pad: 4 },
+      purchaseOrder: { prefix: "PO", next: 1, pad: 4 },
+      deliveryNote: { prefix: "DN", next: 1, pad: 4 }
     },
     template: "modern",
     accent: "",
@@ -58,7 +79,7 @@ const isoOr = (v, d = "") => (/^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? Stri
 
 export function normalizeDoc(d = {}) {
   const type = DOC_TYPES.includes(d.type) ? d.type : "invoice";
-  const okStatus = { invoice: ["draft", "sent", "paid", "void"], estimate: ["draft", "sent", "accepted", "declined"], receipt: ["paid"] }[type];
+  const okStatus = STATUS_BY_TYPE[type];
   return {
     id: str(d.id, 100) || uid(),
     type,
@@ -106,6 +127,10 @@ export function normalizeDoc(d = {}) {
     recurringFrom: str(d.recurringFrom, 100),
     sourceId: str(d.sourceId, 100),
     payments: (Array.isArray(d.payments) ? d.payments : []).map(p => ({ id: str(p.id, 100) || uid(), date: isoOr(p.date, todayISO()), amount: Math.max(0, numv(p.amount)), method: str(p.method, 40), note: str(p.note, 500) })),
+    // Issued credit notes for this invoice (kept in step by syncCredits(); never edited by hand).
+    credits: type === "invoice" && Array.isArray(d.credits) ? d.credits.slice(0, 200).map(c => ({ id: str(c.id, 100), no: str(c.no, 60), date: isoOr(c.date, ""), amount: Math.max(0, numv(c.amount)) })) : [],
+    // Payment reminders sent for this invoice: { at: time sent, tone }.
+    reminders: (Array.isArray(d.reminders) ? d.reminders : []).slice(-50).map(r => ({ at: numv(r.at), tone: ["upcoming", "friendly", "firm", "final"].includes(r.tone) ? r.tone : "friendly" })),
     sentAt: numv(d.sentAt), createdAt: numv(d.createdAt) || Date.now(), updatedAt: numv(d.updatedAt) || Date.now(),
     sample: !!d.sample
   };
@@ -134,7 +159,28 @@ function normalizeState(raw) {
   s.products = (Array.isArray(raw.products) ? raw.products : []).map(normalizeProduct);
   s.looks = Array.isArray(raw.looks) ? raw.looks : [];
   s.meta = { ...s.meta, ...(raw.meta || {}) };
+  syncCredits(s);
   return s;
+}
+
+// Every issued credit note reduces the balance of the invoice it was made for (same
+// currency only). The list lives on the invoice so totals() stays a pure function; it is
+// rebuilt after every change, so an editor's older copy of an invoice can never undo it.
+export function syncCredits(s) {
+  const by = new Map(), invoices = new Map();
+  s.docs.forEach(d => { if (d.type === "invoice") invoices.set(d.id, d); });
+  s.docs.forEach(d => {
+    if (d.type !== "creditNote" || d.status !== "issued" || !d.sourceId) return;
+    const inv = invoices.get(d.sourceId);
+    if (!inv || inv.currency !== d.currency) return;
+    const list = by.get(d.sourceId) || [];
+    list.push({ id: d.id, no: d.no, date: d.issued, amount: totals(d).total });
+    by.set(d.sourceId, list);
+  });
+  invoices.forEach((inv, id) => {
+    const next = by.get(id) || [];
+    if (JSON.stringify(next) !== JSON.stringify(inv.credits || [])) inv.credits = next;
+  });
 }
 
 /* ---------------- Store ---------------- */
@@ -192,6 +238,7 @@ export const lastSaveFailed = () => !lastSaveOk;
 // Every change goes through update(): it runs the change, saves and re-renders.
 export function update(mutator, reason = "change", { countsForBackup = true } = {}) {
   const r = mutator(state);
+  if (reason !== "ui") syncCredits(state);
   if (countsForBackup) state.settings.changesSinceBackup = (state.settings.changesSinceBackup || 0) + 1;
   schedule();
   emit(reason);
@@ -221,7 +268,7 @@ export const getDoc = id => state.docs.find(d => d.id === id) || null;
 export function newDoc(type = "invoice", over = {}) {
   const s = state.settings, today = todayISO();
   const { no } = nextNumber(type);
-  const due = type === "receipt" ? "" : addDays(today, type === "estimate" ? s.estimateValidDays : s.termsDays);
+  const due = NO_DUE_TYPES.includes(type) ? "" : addDays(today, QUOTE_TYPES.includes(type) ? s.estimateValidDays : s.termsDays);
   return normalizeDoc({
     type, no, status: type === "receipt" ? "paid" : "draft", issued: today, due,
     termsDays: type === "invoice" ? s.termsDays : "",
@@ -267,13 +314,19 @@ export function duplicateDoc(id, asType) {
   const type = asType || src.type;
   const { no, n } = nextNumber(type);
   const today = todayISO();
-  const span = src.due && src.issued ? Math.max(0, Math.round((new Date(src.due) - new Date(src.issued)) / 864e5)) : (type === "receipt" ? 0 : state.settings.termsDays);
+  const span = src.due && src.issued ? Math.max(0, Math.round((new Date(src.due) - new Date(src.issued)) / 864e5)) : (QUOTE_TYPES.includes(type) ? state.settings.estimateValidDays : state.settings.termsDays);
+  const changesType = type !== src.type;
   return update(s => {
     const copy = normalizeDoc({
       ...structuredClone(src), id: uid(), type, no, status: type === "receipt" ? "paid" : "draft",
-      issued: today, due: type === "receipt" ? "" : addDays(today, span), payments: [], sentAt: 0,
+      issued: today, due: NO_DUE_TYPES.includes(type) ? "" : addDays(today, span), payments: [], sentAt: 0,
       createdAt: Date.now(), updatedAt: Date.now(), sample: false, recurringFrom: "",
-      sourceId: type !== src.type ? src.id : "",
+      sourceId: changesType ? src.id : "", credits: [], reminders: [],
+      termsDays: type === "invoice" ? src.termsDays : "",
+      // Options that only make sense on the original type are switched off.
+      ...(type !== "invoice" ? { lateFee: { ...src.lateFee, on: false }, recurring: { ...src.recurring, on: false } } : {}),
+      ...(["creditNote", "purchaseOrder", "deliveryNote", "receipt"].includes(type) && changesType ? { deposit: { ...src.deposit, on: false } } : {}),
+      ...(changesType && ["creditNote", "deliveryNote"].includes(type) ? { reference: src.no } : {}),
       items: src.items.map(it => ({ ...it, id: uid() }))
     });
     s.docs.unshift(copy);
@@ -291,7 +344,18 @@ export function setDocFields(id, patch) {
   }, "docs");
 }
 
-export function markSent(id) { return setDocFields(id, { status: "sent", sentAt: Date.now() }); }
+export function markSent(id) { const d = getDoc(id); return setDocFields(id, { status: sentStatus(d ? d.type : "invoice"), sentAt: Date.now() }); }
+
+// Records that a payment reminder was sent for an invoice.
+export function logReminder(id, tone) {
+  return update(s => {
+    const d = s.docs.find(x => x.id === id);
+    if (!d) return null;
+    d.reminders = [...(d.reminders || []), { at: Date.now(), tone }].slice(-50);
+    if (d.status === "draft") { d.status = "sent"; d.sentAt = d.sentAt || Date.now(); }
+    return d;
+  }, "docs");
+}
 
 export function recordPayment(id, { amount, date, method = "", note = "" }) {
   return update(s => {
@@ -331,7 +395,21 @@ export function restorePaymentState(id, prev) { setDocFields(id, { status: prev.
 
 export function setEstimateStatus(id, status) { return setDocFields(id, { status }); }
 
-// Turns an estimate into a new draft invoice (the estimate is kept and marked accepted).
+// A credit note for an invoice: a draft copy of its lines (edit them for a part credit).
+// Once issued, its total is taken off the invoice's balance.
+export function createCreditNote(invoiceId) {
+  const inv = getDoc(invoiceId);
+  if (!inv || inv.type !== "invoice") return null;
+  return duplicateDoc(invoiceId, "creditNote");
+}
+// A delivery note (no prices) listing the lines of an invoice, proforma or order.
+export function createDeliveryNote(id) {
+  const src = getDoc(id);
+  if (!src) return null;
+  return duplicateDoc(id, "deliveryNote");
+}
+
+// Turns an estimate or proforma into a new draft invoice (the original is kept and marked accepted).
 export function convertToInvoice(id) {
   const est = getDoc(id);
   if (!est) return null;
@@ -339,6 +417,44 @@ export function convertToInvoice(id) {
   if (inv) setDocFields(inv.id, { due: addDays(todayISO(), state.settings.termsDays), termsDays: state.settings.termsDays, reference: est.no });
   if (est.status !== "accepted") setEstimateStatus(id, "accepted");
   return inv;
+}
+
+/* ---------------- Bulk actions (Documents list) ---------------- */
+// Each returns { count, undo }; undo puts the documents back exactly as they were.
+function withUndo(fn) {
+  const before = structuredClone(state.docs);
+  const count = update(fn, "docs");
+  return { count, undo: () => update(s => { s.docs = before; }, "docs") };
+}
+export function bulkMarkSent(ids) {
+  const set = new Set(ids);
+  return withUndo(s => {
+    let n = 0;
+    s.docs.forEach(d => {
+      if (!set.has(d.id) || d.type === "receipt" || d.status !== "draft") return;
+      d.status = sentStatus(d.type); d.sentAt = Date.now(); d.updatedAt = Date.now(); n++;
+    });
+    return n;
+  });
+}
+export function bulkMarkPaid(ids, today = todayISO()) {
+  const set = new Set(ids);
+  return withUndo(s => {
+    let n = 0;
+    s.docs.forEach(d => {
+      if (!set.has(d.id) || d.type !== "invoice") return;
+      const st = statusOf(d, today);
+      if (!["draft", "sent", "partial", "overdue"].includes(st)) return;
+      const owed = totals(d, today).balance;
+      if (owed > 0) d.payments = [...d.payments, { id: uid(), date: today, amount: owed, method: "", note: "" }];
+      d.status = "paid"; d.updatedAt = Date.now(); n++;
+    });
+    return n;
+  });
+}
+export function bulkDelete(ids) {
+  const set = new Set(ids);
+  return withUndo(s => { const n = s.docs.length; s.docs = s.docs.filter(d => !set.has(d.id)); return n - s.docs.length; });
 }
 
 /* ---------------- Recurring invoices ---------------- */
@@ -515,7 +631,7 @@ export function setSettings(patch, reason = "settings") {
 
 /* ---------------- Whole-data operations ---------------- */
 export function replaceAll(raw) {
-  state = normalizeState(raw);
+  state = normalizeState(raw);   // normalizeState also re-links credit notes
   schedule();
   emit("replace");
 }

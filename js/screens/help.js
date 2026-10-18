@@ -6,7 +6,7 @@ import { icon } from "../icons.js";
 import { t } from "../i18n.js";
 import { APP_VERSION } from "../version.js";
 
-const GUIDES = ["first", "pdf", "send", "payment", "overdue", "recurring", "import", "templates", "backup", "offline", "languages"];
+const GUIDES = ["first", "pdf", "send", "payment", "overdue", "remind", "credit", "types", "recurring", "reports", "bulk", "import", "templates", "backup", "autoBackup", "lock", "offline", "languages"];
 let root = null, ac = null, q = "";
 
 const fold = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();

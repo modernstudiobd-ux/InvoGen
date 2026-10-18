@@ -53,7 +53,9 @@ export function buildReceipt(doc, p = prefs) {
     ${tt.tax2 ? row(`${doc.tax2.name || dl(L, "tax")} ${doc.tax2.rate}%`, money(tt.tax2)) : ""}
     ${tt.shipping ? row(dl(L, "shipping"), money(tt.shipping)) : ""}
     ${row(dl(L, "total"), money(tt.total), "pr-total")}
-    ${type === "invoice" && tt.paid ? row(dl(L, "paid"), money(tt.paid)) + row(dl(L, "balanceRow"), money(tt.balance), "pr-strong") : ""}
+    ${type === "invoice" && tt.paid ? row(dl(L, "paid"), money(tt.paid)) : ""}
+    ${type === "invoice" && tt.credited ? row(dl(L, "credited"), "−" + money(tt.credited)) : ""}
+    ${type === "invoice" && (tt.paid || tt.credited) ? row(dl(L, "balanceRow"), money(tt.balance), "pr-strong") : ""}
     ${doc.payMethod ? row(dl(L, "method"), doc.payMethod) : ""}
     ${line}
     ${p.qr && link ? `<div class="pr-qr">${qrSvg(link)}<div class="pr-c">${esc(dl(L, "scan"))}</div></div>` : ""}

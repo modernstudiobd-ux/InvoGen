@@ -69,6 +69,9 @@ function statsFor(docs, today = todayISO()) {
       add(paid, v.status === "paid" && !v.totals.paid ? v.totals.total : v.totals.paid);
       if (v.status === "overdue") overdue++;
       (d.payments || []).forEach(p => { if (p.date > lastPay) lastPay = p.date; });
+    } else if (d.type === "creditNote" && d.status === "issued") {
+      // Issued credit notes reduce what was billed.
+      billed[d.currency] = (billed[d.currency] || 0) - v.totals.total;
     } else if (d.type === "receipt" && !d.sourceId) {
       // Receipts made from an invoice are already counted with that invoice.
       add(billed, v.totals.total);

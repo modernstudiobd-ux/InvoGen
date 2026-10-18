@@ -1,7 +1,8 @@
 // screens/settings.js — everything that sets up new documents and the app:
 // business details and logo, country presets and tax, languages and currency, date,
 // number and paper formats, numbering, default wording, preferences, installing the
-// app, backups, sample data, help (guides and keyboard shortcuts) and resets.
+// app, backups (manual and automatic to a folder), the app lock (PIN), sample data, help
+// (guides and keyboard shortcuts) and resets.
 // Changes save as you type; nothing here changes documents that already exist.
 
 import { esc } from "../dom.js";
@@ -10,8 +11,10 @@ import { t, LANGS, getLanguage, currencyName } from "../i18n.js";
 import { changeLanguage } from "../layout.js";
 import {
   getState, settings, setSettings, subscribe, nextNumber, defaultSettings, replaceAll, eraseEverything,
-  update, exportSnapshot
+  update, exportSnapshot, DOC_TYPES
 } from "../state.js";
+import { autoBackupSupported, autoBackupInfo, onAutoBackupChange, chooseFolder, resumeAutoBackup, stopAutoBackup, backupNow } from "../autoBackup.js";
+import { lockSupported, isLockSet, setPin, checkPin, removePin, validPin, lockAfter, setLockAfter, LOCK_AFTER, lock, onLockChange } from "../lock.js";
 import { CURRENCIES, COMMON_CURRENCIES } from "../currencies.js";
 import { DATE_FORMATS, NUMBER_FORMATS, formatDate, formatNumber, formatShortDate, todayISO } from "../format.js";
 import { DOC_LANGS } from "../docLabels.js";
@@ -28,15 +31,15 @@ import { resetPdfGuide } from "../pdfExport.js";
 import { storageMode } from "../storage.js";
 import { APP_VERSION } from "../version.js";
 
-const TYPES = ["invoice", "estimate", "receipt"];
-const SECTIONS = ["business", "country", "language", "formats", "numbering", "wording", "prefs", "install", "data", "help", "reset"];
+const TYPES = DOC_TYPES;
+const SECTIONS = ["business", "country", "language", "formats", "numbering", "wording", "prefs", "install", "data", "security", "help", "reset"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-let root = null, ac = null, unsub = null, offInstall = null;
+let root = null, ac = null, unsub = null, offInstall = null, offAuto = null, offLock = null;
 const timers = new Map();
 
 /* ---------------- mount ---------------- */
-export function mount(el) {
+export function mount(el, params = {}) {
   root = el;
   ac = new AbortController();
   const sig = { signal: ac.signal };
@@ -52,14 +55,21 @@ export function mount(el) {
     else if (reason === "ui") syncQuiet();
   });
   offInstall = onInstallChange(() => renderInstall());
+  offAuto = onAutoBackupChange(() => renderAuto());
+  offLock = onLockChange(() => renderSecurity());
+  // #/settings?section=data jumps straight to a section.
+  const jump = params.query && params.query.get("section");
+  if (jump && SECTIONS.includes(jump)) setTimeout(() => { const el = root && root.querySelector(`#set-${jump}`); if (el) { el.scrollIntoView({ block: "start" }); el.focus({ preventScroll: true }); } }, 0);
   return { title: t("nav.settings") };
 }
 export function unmount() {
   timers.forEach(tm => clearTimeout(tm)); timers.clear();
   if (unsub) unsub();
   if (offInstall) offInstall();
+  if (offAuto) offAuto();
+  if (offLock) offLock();
   if (ac) ac.abort();
-  root = ac = unsub = offInstall = null;
+  root = ac = unsub = offInstall = offAuto = offLock = null;
 }
 
 /* ---------------- helpers ---------------- */
@@ -113,7 +123,8 @@ function render() {
         ${wordingSec(s)}
         ${prefsSec(s)}
         ${sec("install", t("set.sec.install"), `<div id="installBox"></div>`)}
-        ${sec("data", t("set.sec.data"), `<div id="dataBox"></div>`)}
+        ${sec("data", t("set.sec.data"), `<div id="dataBox"></div><div id="autoBox" class="set-sub"></div>`)}
+        ${sec("security", t("set.sec.security"), `<div id="securityBox"></div>`)}
         ${helpSec()}
         ${resetSec()}
         <p class="set-version">InvoGen ${esc(APP_VERSION)}</p>
@@ -122,7 +133,105 @@ function render() {
   </div>`;
   renderInstall();
   renderData();
+  renderAuto();
+  renderSecurity();
   updateNumberPreviews();
+}
+
+/* ---------------- automatic backup ---------------- */
+function renderAuto() {
+  const box = root && root.querySelector("#autoBox");
+  if (!box) return;
+  const a = autoBackupInfo();
+  const head = `<h3 class="h3">${esc(t("ab.title"))}</h3>`;
+  if (!autoBackupSupported() || a.status === "unsupported") {
+    box.innerHTML = `${head}<p class="hint">${esc(t("ab.unsupported"))}</p>`;
+    return;
+  }
+  const when = a.lastAt ? t("ab.last", { time: new Date(a.lastAt).toLocaleString(getLanguage(), { dateStyle: "medium", timeStyle: "short" }) }) : "";
+  const folder = `<bdi>${esc(a.folder)}</bdi>`;
+  if (a.status === "off") {
+    box.innerHTML = `${head}<p class="set-intro">${esc(t("ab.intro"))}</p>
+      <div class="ed-actions-row"><button type="button" class="btn btn-outline" data-act="ab-choose">${icon("folder", 18)}${esc(t("ab.choose"))}</button></div>`;
+  } else if (a.status === "permission") {
+    box.innerHTML = `${head}<p class="set-warn">${icon("info", 18)}<span>${tHtmlSafe("ab.paused", { folder })}</span></p>
+      <div class="ed-actions-row"><button type="button" class="btn btn-primary" data-act="ab-resume">${esc(t("ab.resume"))}</button>
+      <button type="button" class="btn btn-ghost" data-act="ab-stop">${esc(t("ab.stop"))}</button></div>`;
+  } else {
+    const err = a.status === "error" ? `<p class="set-warn">${icon("info", 18)}<span>${esc(t("ab.failed"))}</span></p>` : "";
+    box.innerHTML = `${head}<p class="set-ok">${icon("circle-check", 18)}<span>${tHtmlSafe("ab.on", { folder })}${when ? " " + esc(when) : ""}</span></p>${err}
+      <p class="hint">${esc(t("ab.keeps"))}</p>
+      <div class="ed-actions-row"><button type="button" class="btn btn-outline" data-act="ab-now">${icon("refresh-cw", 18)}${esc(t("ab.now"))}</button>
+      <button type="button" class="btn btn-outline" data-act="ab-choose">${icon("folder", 18)}${esc(t("ab.change"))}</button>
+      <button type="button" class="btn btn-ghost" data-act="ab-stop">${esc(t("ab.stop"))}</button></div>`;
+  }
+}
+// t() with one already-escaped HTML value (the folder name).
+function tHtmlSafe(key, html) {
+  const k = Object.keys(html)[0], mark = "\u0001";
+  return esc(t(key, { [k]: mark })).replace(mark, html[k]);
+}
+
+/* ---------------- app lock ---------------- */
+function renderSecurity() {
+  const box = root && root.querySelector("#securityBox");
+  if (!box) return;
+  if (!lockSupported()) { box.innerHTML = `<p class="hint">${esc(t("lock.unsupported"))}</p>`; return; }
+  const on = isLockSet();
+  const afterOpts = LOCK_AFTER.map(m => [m, m === 0 ? t("lock.after0") : t("lock.afterMin", { n: m })]);
+  box.innerHTML = `<p class="set-intro">${esc(t("lock.intro"))}</p>
+    ${on ? `<p class="set-ok">${icon("lock", 18)}<span>${esc(t("lock.isOn"))}</span></p>
+      <div class="field"><label for="setLockAfter">${esc(t("lock.after"))}</label>
+        <select class="select" id="setLockAfter">${optHtml(afterOpts, lockAfter())}</select></div>
+      <div class="ed-actions-row">
+        <button type="button" class="btn btn-outline" data-act="lock-now">${icon("lock", 18)}${esc(t("lock.lockNow"))}</button>
+        <button type="button" class="btn btn-outline" data-act="lock-change">${esc(t("lock.change"))}</button>
+        <button type="button" class="btn btn-ghost danger-text" data-act="lock-off">${esc(t("lock.turnOff"))}</button></div>`
+      : `<div class="ed-actions-row"><button type="button" class="btn btn-primary" data-act="lock-set">${icon("lock", 18)}${esc(t("lock.set"))}</button></div>`}
+    <p class="hint">${esc(t("lock.note"))}</p>`;
+}
+
+// mode: "set" (new PIN), "change" (current + new), "off" (current only).
+function pinSheet(mode) {
+  const needOld = mode !== "set", needNew = mode !== "off";
+  const pinInput = (id, label) => `<div class="field"><label for="${id}">${esc(label)}</label>
+    <input class="input lock-input-sm" id="${id}" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" dir="ltr" aria-describedby="${id}-e">
+    <p class="err" id="${id}-e" hidden></p></div>`;
+  const dlg = openSheet({
+    title: t(mode === "set" ? "lock.set" : mode === "change" ? "lock.change" : "lock.turnOff"),
+    body: `<form id="pinForm" class="pay-form" novalidate>
+      ${needNew ? `<p class="hint">${esc(t("lock.pinRule"))}</p>` : ""}
+      ${needOld ? pinInput("pinOld", t("lock.current")) : ""}
+      ${needNew ? pinInput("pinNew", t("lock.newPin")) + pinInput("pinNew2", t("lock.repeat")) : ""}
+      ${mode === "set" ? `<p class="hint">${esc(t("lock.forgetWarn"))}</p>` : ""}
+    </form>`,
+    foot: `<button type="button" class="btn btn-outline" data-close="">${esc(t("common.cancel"))}</button>
+           <button type="submit" form="pinForm" class="btn ${mode === "off" ? "btn-danger" : "btn-primary"}">${esc(t(mode === "off" ? "lock.turnOff" : "lock.save"))}</button>`,
+    onOpen: d => { const f = d.querySelector("input"); if (f) f.focus(); }
+  });
+  const err = (id, msg) => { const e = dlg.querySelector(`#${id}-e`), i = dlg.querySelector(`#${id}`); e.textContent = msg; e.hidden = !msg; i.setAttribute("aria-invalid", msg ? "true" : "false"); if (msg) i.focus(); return !msg; };
+  dlg.querySelectorAll("input").forEach(i => i.addEventListener("input", () => { i.value = i.value.replace(/\D+/g, "").slice(0, 8); }));
+  dlg.querySelector("#pinForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    dlg.querySelectorAll(".err").forEach(x => { x.hidden = true; });
+    if (needOld) {
+      const old = dlg.querySelector("#pinOld").value;
+      if (!(await checkPin(old))) { err("pinOld", t("lock.wrong")); return; }
+    }
+    if (needNew) {
+      const a = dlg.querySelector("#pinNew").value, b = dlg.querySelector("#pinNew2").value;
+      if (!validPin(a)) { err("pinNew", t("lock.pinRule")); return; }
+      if (a !== b) { err("pinNew2", t("lock.mismatch")); return; }
+      await setPin(a);
+      dlg.close();
+      toast(t(mode === "set" ? "lock.setDone" : "lock.changed"));
+    } else {
+      removePin();
+      dlg.close();
+      toast(t("lock.offDone"));
+    }
+    renderSecurity();
+  });
 }
 
 function businessSec(s) {
@@ -386,6 +495,7 @@ async function onChange(e) {
   if (el.id === "setCountry") return applyCountry(el.value);
   if (el.id === "setLogoFile") return onLogo(el);
   if (el.id === "setBackupFile") return onBackupFile(el);
+  if (el.id === "setLockAfter") { setLockAfter(Number(el.value)); toast(t("lock.afterSaved")); return; }
   if (el.matches("[data-s]") && (el.tagName === "SELECT" || el.type === "checkbox")) save(el);
 }
 
@@ -463,6 +573,14 @@ async function onClick(e) {
     case "backup": downloadBackup(); toast(t("docs.backupDone")); renderData(); break;
     case "sample-add": addSampleData(); toast(t("docs.sampleAdded"), { action: t("set.viewDocs"), onAction: () => { location.hash = "#/documents"; } }); renderData(); break;
     case "sample-remove": { const n = removeSampleData(); toast(t("docs.sampleRemoved", { n })); renderData(); break; }
+    case "ab-choose": { const ok = await chooseFolder(); if (ok) toast(t("ab.started")); renderAuto(); break; }
+    case "ab-resume": { const ok = await resumeAutoBackup(); toast(t(ok ? "ab.resumed" : "ab.denied")); renderAuto(); break; }
+    case "ab-now": { const ok = await backupNow(); toast(t(ok ? "ab.saved" : "ab.failed")); renderAuto(); renderData(); break; }
+    case "ab-stop": await stopAutoBackup(); toast(t("ab.stopped")); renderAuto(); break;
+    case "lock-set": return pinSheet("set");
+    case "lock-change": return pinSheet("change");
+    case "lock-off": return pinSheet("off");
+    case "lock-now": return lock();
     case "reset-settings": return resetSettings();
     case "delete-docs": return deleteAllDocs();
     case "erase": return erase();
