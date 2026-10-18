@@ -1077,5 +1077,6 @@
  "dl.full": "Tam sayfa",
  "dl.fullHint": "Önizlemedeki gibi A4 veya Letter PDF",
  "dl.pos": "POS fişi",
- "dl.posHint": "58 mm veya 80 mm rulo, PDF ya da görsel olarak"
+ "dl.posHint": "58 mm veya 80 mm rulo, PDF ya da görsel olarak",
+ "docs.filters": "Filtreler"
 }

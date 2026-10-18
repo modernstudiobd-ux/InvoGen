@@ -1093,5 +1093,6 @@
  "dl.full": "Página inteira",
  "dl.fullHint": "PDF em A4 ou Carta, como na prévia",
  "dl.pos": "Cupom",
- "dl.posHint": "Rolo de 58 mm ou 80 mm, em PDF ou imagem"
+ "dl.posHint": "Rolo de 58 mm ou 80 mm, em PDF ou imagem",
+ "docs.filters": "Filtros"
 }

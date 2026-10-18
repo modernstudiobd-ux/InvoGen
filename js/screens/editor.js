@@ -324,16 +324,15 @@ function brandBody() {
 
 /* ---------------- shell ---------------- */
 function shell() {
-  const title = `${typeName(doc.type)} · ${doc.client.name || t("ed.newClient")}`;
   return `<div class="ed" data-view="${view}">
     <header class="ed-bar">
       <a class="icon-btn" href="#/documents" aria-label="${esc(t("ed.back"))}">${icon("arrow-left")}</a>
       <div class="ed-titles">
-        <h1 class="ed-title" id="pageTitle" tabindex="-1" dir="auto">${esc(title)}</h1>
+        <h1 class="ed-title" id="pageTitle" tabindex="-1" dir="auto">${titleHtml()}</h1>
         <p class="ed-status" id="edStatus" aria-live="polite"></p>
       </div>
       <div class="ed-tools">
-        <button type="button" class="icon-btn hide-sm" data-act="undo" aria-label="${esc(t("ed.undo"))}" aria-keyshortcuts="Control+Z" disabled>${icon("undo-2")}</button>
+        <button type="button" class="icon-btn hide-xs" data-act="undo" aria-label="${esc(t("ed.undo"))}" aria-keyshortcuts="Control+Z" disabled>${icon("undo-2")}</button>
         <button type="button" class="icon-btn hide-sm flip" data-act="redo" aria-label="${esc(t("ed.redo"))}" aria-keyshortcuts="Control+Shift+Z" disabled>${icon("undo-2")}</button>
         <button type="button" class="btn btn-outline tool-btn" data-act="design" aria-haspopup="dialog">${icon("layout-template", 18)}<span class="tool-label">${esc(t("ed.design"))}</span></button>
         <button type="button" class="btn btn-outline tool-btn" data-act="pdf">${icon("download", 18)}<span class="tool-label">PDF</span></button>
@@ -361,7 +360,7 @@ function sectionHtml(id, title, n) {
   return `<section class="ed-sec${isOpen ? " is-open" : ""}" data-sec="${id}">
     <h2 class="ed-sec-h"><button type="button" class="ed-sec-btn" aria-expanded="${isOpen}" aria-controls="secb-${id}" data-toggle="${id}">
       <span class="ed-num" aria-hidden="true">${n}</span><span class="ed-sec-title">${esc(title)}</span>
-      <span class="ed-sum" data-sum="${id}" dir="auto">${isOpen ? "" : esc(summary(id))}</span>${icon(isOpen ? "chevron-down" : "chevron-right", 18)}</button></h2>
+      <span class="ed-sum" data-sum="${id}" dir="auto">${isOpen ? "" : esc(summary(id))}</span>${icon("chevron-down", 18)}</button></h2>
     <div class="ed-sec-body" id="secb-${id}"${isOpen ? "" : " hidden"}>${isOpen ? body(id) : ""}</div>
   </section>`;
 }
@@ -411,7 +410,11 @@ function refreshSummaries() {
     if (!open.has(id)) el.textContent = summary(id);
   });
   const ttl = root.querySelector("#pageTitle");
-  if (ttl) ttl.textContent = `${typeName(doc.type)} · ${doc.client.name || t("ed.newClient")}`;
+  if (ttl) ttl.innerHTML = titleHtml();
+}
+// "Invoice · Client". Small phones show only the client; the type stays for screen readers.
+function titleHtml() {
+  return `<span class="ed-title-type">${esc(typeName(doc.type))} · </span>${esc(doc.client.name || t("ed.newClient"))}`;
 }
 function refreshAmounts() {
   const d = decimalsOf(doc.currency);
@@ -1133,7 +1136,12 @@ function openDesign() {
 function openMore() {
   flushNow();
   const st = statusOf(doc), ty = doc.type, saved = !isNew;
-  const items = [["pdf", "download", t("ed.downloadPdf")], ["print", "file-text", t("ed.print")]];
+  const items = [];
+  if (matchMedia("(max-width: 599.98px)").matches) {
+    if (past.length) items.push(["undo", "undo-2", t("ed.undo")]);
+    if (future.length) items.push(["redo", "redo-2", t("ed.redo")]);
+  }
+  items.push(["pdf", "download", t("ed.downloadPdf")], ["print", "file-text", t("ed.print")]);
   if (ty !== "deliveryNote" && ty !== "purchaseOrder") items.push(["pos", "receipt", t("ed.posPrint")]);
   if (saved) items.push(["duplicate", "copy", t("docs.act.duplicate")]);
   if (saved && ty !== "receipt" && st === "draft") items.push(["sent", "send", t(ty === "creditNote" ? "docs.act.issue" : "docs.act.markSent")]);
@@ -1157,6 +1165,8 @@ function openMore() {
 function runMore(a) {
   const label = `${typeName(doc.type)} ${doc.no}`;
   switch (a) {
+    case "undo": return undo();
+    case "redo": return redo();
     case "pdf": return exportPdf();
     case "print": return printDocument(doc);
     case "pos": return openPosSheet(doc);

@@ -1093,5 +1093,6 @@
  "dl.full": "Ganze Seite",
  "dl.fullHint": "PDF in A4 oder Letter, wie in der Vorschau",
  "dl.pos": "Kassenbon",
- "dl.posHint": "58-mm- oder 80-mm-Rolle, als PDF oder Bild"
+ "dl.posHint": "58-mm- oder 80-mm-Rolle, als PDF oder Bild",
+ "docs.filters": "Filter"
 }

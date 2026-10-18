@@ -1051,5 +1051,6 @@
  "dl.full": "Halaman penuh",
  "dl.fullHint": "PDF A4 atau Letter, seperti pratinjau",
  "dl.pos": "Struk POS",
- "dl.posHint": "Gulungan 58 mm atau 80 mm, sebagai PDF atau gambar"
+ "dl.posHint": "Gulungan 58 mm atau 80 mm, sebagai PDF atau gambar",
+ "docs.filters": "Filter"
 }

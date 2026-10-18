@@ -1093,5 +1093,6 @@
  "dl.full": "Página completa",
  "dl.fullHint": "PDF en A4 o Carta, como en la vista previa",
  "dl.pos": "Ticket",
- "dl.posHint": "Rollo de 58 mm u 80 mm, en PDF o imagen"
+ "dl.posHint": "Rollo de 58 mm u 80 mm, en PDF o imagen",
+ "docs.filters": "Filtros"
 }

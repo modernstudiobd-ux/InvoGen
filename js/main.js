@@ -8,7 +8,7 @@ import { initState, getState, subscribe, lastSaveFailed, runRecurring, setSettin
 import { migrateLegacy } from "./migrate.js";
 import { setLanguage, detectLanguage, t, onLanguageChange } from "./i18n.js";
 import { renderShell, setActive, openLanguageSheet, setOfflineReady } from "./layout.js";
-import { toast } from "./toast.js";
+import { toast, dismissStaleToast } from "./toast.js";
 import "./install.js";
 import { watchPickers } from "./picker.js";
 import { initLock } from "./lock.js";
@@ -42,6 +42,7 @@ function parseHash() {
 }
 
 async function navigate() {
+  dismissStaleToast();
   const { route, params } = parseHash();
   const main = $("main");
   // The guide hides the menus; switch before anything is drawn so nothing jumps.

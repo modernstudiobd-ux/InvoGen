@@ -1093,5 +1093,6 @@
  "dl.full": "Pagina intera",
  "dl.fullHint": "PDF in A4 o Letter, come nell’anteprima",
  "dl.pos": "Scontrino",
- "dl.posHint": "Rotolo da 58 mm o 80 mm, in PDF o immagine"
+ "dl.posHint": "Rotolo da 58 mm o 80 mm, in PDF o immagine",
+ "docs.filters": "Filtri"
 }

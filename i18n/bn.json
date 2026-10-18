@@ -1093,5 +1093,6 @@
  "dl.full": "পূর্ণ পাতা",
  "dl.fullHint": "A4 বা Letter PDF, প্রিভিউয়ের মতো",
  "dl.pos": "POS রসিদ",
- "dl.posHint": "৫৮ মিমি বা ৮০ মিমি রোল, PDF বা ছবি হিসেবে"
+ "dl.posHint": "৫৮ মিমি বা ৮০ মিমি রোল, PDF বা ছবি হিসেবে",
+ "docs.filters": "ফিল্টার"
 }

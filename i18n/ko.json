@@ -1051,5 +1051,6 @@
  "dl.full": "전체 페이지",
  "dl.fullHint": "미리보기와 같은 A4 또는 Letter PDF",
  "dl.pos": "영수증",
- "dl.posHint": "58mm 또는 80mm 롤, PDF 또는 이미지"
+ "dl.posHint": "58mm 또는 80mm 롤, PDF 또는 이미지",
+ "docs.filters": "필터"
 }

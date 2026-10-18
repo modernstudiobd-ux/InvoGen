@@ -100,6 +100,7 @@ function summary() {
 
 /* ---------------- render ---------------- */
 export function mount(el) {
+  filtersShown = filtersSet();
   root = el;
   limit = PAGE;
   view.q = "";
@@ -134,6 +135,19 @@ function chipsHtml() {
     `<button type="button" class="chip chip-more" data-act="more-types" aria-haspopup="dialog" aria-pressed="${moreOn}">${esc(moreOn ? t(`docs.filter.${view.type}`) : t("docs.filter.more"))}${icon("chevron-down", 16)}</button>`;
 }
 
+// Phones: status and sort sit behind a Filter button next to search, so the list starts higher.
+// It opens by itself when a filter other than the default is already chosen.
+let filtersShown = false;
+const filtersSet = () => view.status !== "any" || view.sort !== SORTS[0];
+const filtersOpen = () => filtersShown;
+function syncFilterBtn() {
+  const b = root && root.querySelector("#docsFilterBtn");
+  if (!b) return;
+  b.setAttribute("aria-expanded", String(filtersOpen()));
+  b.querySelector(".filter-dot").hidden = !filtersSet();
+  root.querySelector("#docsSel").classList.toggle("is-open", filtersOpen());
+}
+
 function shell() {
   const statusOpt = s => `<option value="${s}"${view.status === s ? " selected" : ""}>${esc(s === "any" ? t("docs.anyStatus") : statusName(s))}</option>`;
   const sortOpt = s => `<option value="${s}"${view.sort === s ? " selected" : ""}>${esc(t(`docs.sort.${s}`))}</option>`;
@@ -144,9 +158,9 @@ function shell() {
         <h1 class="h1" id="pageTitle" tabindex="-1">${esc(t("nav.documents"))}</h1>
         <p class="page-sub" id="docsSummary"></p>
       </div>
-      <div class="page-actions">
-        <a class="btn btn-outline" href="#/reports">${icon("chart-column", 18)}${esc(t("nav.reports"))}</a>
-        <button type="button" class="btn btn-outline" data-act="select" id="docsSelectBtn" aria-pressed="false">${icon("square-check", 18)}${esc(t("docs.select"))}</button>
+      <div class="page-actions" id="docsActions">
+        <a class="btn btn-outline tool-btn" href="#/reports">${icon("chart-column", 18)}<span class="tool-label">${esc(t("nav.reports"))}</span></a>
+        <button type="button" class="btn btn-outline tool-btn" data-act="select" id="docsSelectBtn" aria-pressed="false">${icon("square-check", 18)}<span class="tool-label">${esc(t("docs.select"))}</span></button>
       </div>
     </header>
     <div id="docsBanner"></div>
@@ -158,10 +172,13 @@ function shell() {
           <span class="visually-hidden">${esc(t("docs.searchLabel"))}</span>
           <input type="search" class="input" id="docsSearch" autocomplete="off" enterkeyhint="search" placeholder="${esc(t("docs.searchPlaceholder"))}" aria-keyshortcuts="/">
         </label>
-        <label class="visually-hidden" for="docsStatus">${esc(t("docs.statusLabel"))}</label>
-        <select class="select pill-input" id="docsStatus">${STATUSES.map(statusOpt).join("")}</select>
-        <label class="visually-hidden" for="docsSort">${esc(t("docs.sortLabel"))}</label>
-        <select class="select pill-input" id="docsSort">${SORTS.map(sortOpt).join("")}</select>
+        <button type="button" class="icon-btn outline docs-filter-btn" id="docsFilterBtn" aria-expanded="${filtersOpen()}" aria-controls="docsSel" aria-label="${esc(t("docs.filters"))}">${icon("list-filter")}<span class="filter-dot" aria-hidden="true"${filtersSet() ? "" : " hidden"}></span></button>
+        <div class="docs-sel${filtersOpen() ? " is-open" : ""}" id="docsSel">
+          <label class="visually-hidden" for="docsStatus">${esc(t("docs.statusLabel"))}</label>
+          <select class="select pill-input" id="docsStatus">${STATUSES.map(statusOpt).join("")}</select>
+          <label class="visually-hidden" for="docsSort">${esc(t("docs.sortLabel"))}</label>
+          <select class="select pill-input" id="docsSort">${SORTS.map(sortOpt).join("")}</select>
+        </div>
       </div>
     </div>
     <p class="visually-hidden" id="docsCount" aria-live="polite" aria-atomic="true"></p>
@@ -210,6 +227,10 @@ function renderList() {
   if (selected.size) { const ids = new Set(getState().docs.map(d => d.id)); selected.forEach(id => { if (!ids.has(id)) selected.delete(id); }); }
   renderBulkBar(list);
 
+  // With no documents at all, search, filters, Select and Reports have nothing to act on.
+  root.querySelector(".docs-tools").hidden = !total;
+  root.querySelector("#docsActions").hidden = !total;
+  syncFilterBtn();
   if (!total) {
     wrap.innerHTML = `<div class="empty">
       <h2 class="h2">${esc(t("docs.emptyTitle"))}</h2>
@@ -300,6 +321,7 @@ function wire() {
   search.addEventListener("input", run);
   search.addEventListener("keydown", e => { if (e.key === "Escape" && search.value) { e.stopPropagation(); search.value = ""; view.q = ""; renderList(); } });
   root.querySelector("#docsStatus").addEventListener("change", e => { view.status = e.target.value; limit = PAGE; saveView(); renderList(); });
+  // (renderList keeps the Filter button's dot in step with the chosen status and sort.)
   root.querySelector("#docsSort").addEventListener("change", e => { view.sort = e.target.value; saveView(); renderList(); });
   ac = new AbortController();
   root.addEventListener("click", onClick, { signal: ac.signal });
@@ -334,6 +356,12 @@ function onClick(e) {
   if (chip) { setType(chip.dataset.type); root.querySelector(`[data-type="${chip.dataset.type}"]`).focus(); return; }
   const bk = e.target.closest("[data-bulk]");
   if (bk) { runBulk(bk.dataset.bulk); return; }
+  if (e.target.closest("#docsFilterBtn")) {
+    filtersShown = !filtersShown;
+    syncFilterBtn();
+    if (filtersShown) root.querySelector("#docsStatus").focus();
+    return;
+  }
   const b = e.target.closest("[data-act]");
   if (!b) return;
   const act = b.dataset.act;

@@ -1093,5 +1093,6 @@
  "dl.full": "Page entière",
  "dl.fullHint": "PDF A4 ou Letter, comme l’aperçu",
  "dl.pos": "Ticket de caisse",
- "dl.posHint": "Rouleau 58 mm ou 80 mm, en PDF ou en image"
+ "dl.posHint": "Rouleau 58 mm ou 80 mm, en PDF ou en image",
+ "docs.filters": "Filtres"
 }

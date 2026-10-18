@@ -1093,5 +1093,6 @@
  "dl.full": "Hele pagina",
  "dl.fullHint": "PDF op A4 of Letter, zoals in het voorbeeld",
  "dl.pos": "Kassabon",
- "dl.posHint": "Rol van 58 mm of 80 mm, als PDF of afbeelding"
+ "dl.posHint": "Rol van 58 mm of 80 mm, als PDF of afbeelding",
+ "docs.filters": "Filters"
 }

@@ -77,7 +77,7 @@ export function renderDocument(doc, { editable = false, today, placeholders = nu
         ${bizLines.length ? `<div class="doc-small" dir="auto">${bizLines.join("<br>")}</div>` : ""}
       </div>
       <div class="doc-titleblock">
-        <h1 class="doc-title">${esc(dl(L, "noun", type))}</h1>
+        <h2 class="doc-title">${esc(dl(L, "noun", type))}</h2>
         <div class="doc-no"><bdi class="ltr"${editAttr(editable, "no")}>${esc(doc.no)}</bdi></div>
       </div>
     </header>`;

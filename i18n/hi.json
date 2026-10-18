@@ -1093,5 +1093,6 @@
  "dl.full": "पूरा पेज",
  "dl.fullHint": "A4 या Letter PDF, प्रीव्यू जैसा",
  "dl.pos": "POS रसीद",
- "dl.posHint": "58 mm या 80 mm रोल, PDF या इमेज के रूप में"
+ "dl.posHint": "58 mm या 80 mm रोल, PDF या इमेज के रूप में",
+ "docs.filters": "फ़िल्टर"
 }

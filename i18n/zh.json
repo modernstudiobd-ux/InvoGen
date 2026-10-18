@@ -1051,5 +1051,6 @@
  "dl.full": "整页",
  "dl.fullHint": "与预览一致的 A4 或 Letter PDF",
  "dl.pos": "小票",
- "dl.posHint": "58 mm 或 80 mm 卷纸,PDF 或图片"
+ "dl.posHint": "58 mm 或 80 mm 卷纸,PDF 或图片",
+ "docs.filters": "筛选"
 }

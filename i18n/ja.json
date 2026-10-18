@@ -1051,5 +1051,6 @@
  "dl.full": "ページ全体",
  "dl.fullHint": "プレビューどおりの A4 またはレター PDF",
  "dl.pos": "レシート",
- "dl.posHint": "58 mm または 80 mm ロール、PDF または画像"
+ "dl.posHint": "58 mm または 80 mm ロール、PDF または画像",
+ "docs.filters": "絞り込み"
 }

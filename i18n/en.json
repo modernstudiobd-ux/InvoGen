@@ -1093,5 +1093,6 @@
  "dl.full": "Full page",
  "dl.fullHint": "A4 or Letter PDF, as in the preview",
  "dl.pos": "POS receipt",
- "dl.posHint": "58 mm or 80 mm roll, as a PDF or an image"
+ "dl.posHint": "58 mm or 80 mm roll, as a PDF or an image",
+ "docs.filters": "Filters"
 }
