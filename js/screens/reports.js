@@ -49,6 +49,7 @@ export function mount(el) {
   render();
   root.addEventListener("change", onChange, { signal: ac.signal });
   root.addEventListener("click", onClick, { signal: ac.signal });
+  wireTip(ac.signal);
   unsub = subscribe((s, reason) => { if (reason !== "storage" && reason !== "ui") render(); });
   return { title: t("nav.reports") };
 }
@@ -176,6 +177,44 @@ function chartHtml(R, cur) {
     <ol class="chart-bars" style="--n:${months.length};--bw:${barWidth(months)}px">${groups}</ol>
   </div>`;
 }
+// Month label: one floating box on the chart itself, not inside the bars (which scroll
+// sideways and would cut it off). It sits above the month's taller bar and is kept inside
+// the chart's edges. Hover, keyboard focus or a tap shows it.
+function showTip(g) {
+  const chart = g.closest(".chart");
+  if (!chart) return;
+  let tip = chart.querySelector(".chart-tip");
+  if (!tip) {
+    tip = document.createElement("div");
+    tip.className = "chart-tip";
+    tip.setAttribute("aria-hidden", "true");     // the month's own label already says this
+    chart.appendChild(tip);
+  }
+  tip.innerHTML = g.querySelector(".bar-tip").innerHTML;
+  tip.hidden = false;
+  const c = chart.getBoundingClientRect(), r = g.getBoundingClientRect();
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  const left = Math.max(0, Math.min(c.width - w, r.left + r.width / 2 - c.left - w / 2));
+  const barTop = Math.min(...[...g.querySelectorAll(".bar")].map(b => b.getBoundingClientRect().top));
+  tip.style.left = `${left}px`;
+  tip.style.top = `${Math.max(0, barTop - c.top - h - 8)}px`;
+}
+function hideTip() { if (root) root.querySelectorAll(".chart-tip").forEach(x => { x.hidden = true; }); }
+function wireTip(signal) {
+  const opt = { signal };
+  root.addEventListener("mouseover", e => { const g = e.target.closest(".bar-g"); if (g) showTip(g); }, opt);
+  root.addEventListener("mouseout", e => {
+    const to = e.relatedTarget && e.relatedTarget.closest ? e.relatedTarget.closest(".bar-g") : null;
+    if (to || !e.target.closest(".bar-g")) return;
+    const f = document.activeElement && document.activeElement.closest ? document.activeElement.closest(".bar-g") : null;
+    if (f && root.contains(f)) showTip(f); else hideTip();
+  }, opt);
+  root.addEventListener("focusin", e => { const g = e.target.closest(".bar-g"); if (g) showTip(g); }, opt);
+  root.addEventListener("focusout", e => { if (e.target.closest(".bar-g")) hideTip(); }, opt);
+  root.addEventListener("scroll", hideTip, { signal, capture: true });
+  window.addEventListener("resize", hideTip, opt);
+}
+
 // Each month gets room for its own label, so long names (Arabic, Bangla …) never overlap;
 // when that is wider than the card, the chart scrolls sideways.
 function barWidth(months) {
@@ -219,6 +258,8 @@ function onChange(e) {
 }
 
 function onClick(e) {
+  const g = e.target.closest(".bar-g");
+  if (g) { g.focus(); return; }            // a tap on a month shows its numbers
   const b = e.target.closest("[data-act]");
   if (!b) return;
   if (b.dataset.act === "export") openExport();

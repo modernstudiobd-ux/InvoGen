@@ -148,7 +148,21 @@ export function openPosSheet(doc) {
            <button type="button" class="btn btn-outline" data-pos-dl="pdf">${icon("download", 18)}PDF</button>
            <button type="button" class="btn btn-primary" data-close="print">${icon("printer", 18)}${esc(t("pos.print"))}</button>`,
     onOpen: dlg => {
-      const refresh = () => { dlg.querySelector("#posPreview").innerHTML = buildReceipt(doc); };
+      // The preview shrinks to fit its box (never wider than the box, so no sideways scroll);
+      // the printed and downloaded receipt keeps its real 58 mm / 80 mm size.
+      const box = dlg.querySelector(".pos-preview"), inner = dlg.querySelector("#posPreview");
+      const fit = () => {
+        const pr = inner.querySelector(".pr");
+        if (!pr) return;
+        inner.style.zoom = "";
+        const cs = getComputedStyle(box);
+        const avail = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        const z = Math.min(1, avail / pr.offsetWidth);
+        if (z < 1) inner.style.zoom = String(Math.floor(z * 1000) / 1000);
+      };
+      if (typeof ResizeObserver === "function") new ResizeObserver(fit).observe(box);
+      fit();
+      const refresh = () => { inner.innerHTML = buildReceipt(doc); fit(); };
       dlg.addEventListener("click", e => {
         const d = e.target.closest("[data-pos-dl]");
         if (d) { downloadPos(doc, d.dataset.posDl); return; }

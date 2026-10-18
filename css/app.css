@@ -853,7 +853,7 @@ dialog.sheet::backdrop { background: var(--scrim); animation: fade var(--t-base)
 .pos-grid { display: grid; gap: var(--s4); }
 @media (min-width: 640px) { .pos-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .pos-opts { display: flex; flex-direction: column; gap: var(--s2); }
-.pos-preview { background: var(--strong); border-radius: 12px; padding: var(--s4); max-height: 50dvh; overflow: auto; }
+.pos-preview { background: var(--strong); border-radius: 12px; padding: var(--s4); max-height: 50dvh; overflow-x: hidden; overflow-y: auto; }
 .pos-preview .pr { margin: 0 auto; box-shadow: var(--shadow-soft); }
 .imp-table-wrap { max-height: 260px; overflow: auto; border: 1px solid var(--hair); border-radius: 8px; }
 .imp-table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -1085,10 +1085,8 @@ kbd { display: inline-block; padding: 3px 8px; border: 1px solid var(--hair-stro
 .bar { width: min(14px, 40%); min-height: 0; border-radius: 4px 4px 0 0; }
 .bar-x { overflow: hidden; text-overflow: ellipsis; height: 36px; display: flex; flex-direction: column; align-items: center; padding-top: 6px; font-size: 12px; line-height: 1.2; color: var(--muted); white-space: nowrap; }
 .bar-y { font-size: 12px; color: var(--muted); }
-.bar-tip { position: absolute; z-index: 5; bottom: calc(100% - 28px); left: 50%; transform: translateX(-50%); display: none; flex-direction: column; gap: 2px; min-width: 150px; padding: var(--s2) var(--s3); background: var(--ink); color: #fff; border-radius: 10px; font-size: 12px; line-height: 1.4; white-space: nowrap; pointer-events: none; box-shadow: var(--shadow-pop); }
-.bar-g:hover .bar-tip, .bar-g:focus-visible .bar-tip { display: flex; }
-.bar-g:first-child .bar-tip { left: 0; transform: none; }
-.bar-g:last-child .bar-tip { left: auto; right: 0; transform: none; }
+.bar-tip { display: none; }   /* content for the floating .chart-tip */
+.chart-tip { position: absolute; z-index: 5; top: 0; left: 0; display: flex; flex-direction: column; gap: 2px; min-width: 150px; padding: var(--s2) var(--s3); background: var(--ink); color: #fff; border-radius: 10px; font-size: 12px; line-height: 1.4; white-space: nowrap; pointer-events: none; box-shadow: var(--shadow-pop); }
 .aging { display: grid; grid-template-columns: minmax(90px, auto) minmax(60px, 1fr) auto; gap: var(--s2) var(--s3); }
 /* Rows share the list's columns (subgrid), so every bar starts and ends at the same place. */
 .aging-row { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; min-height: 36px; font-size: 14px; }
