@@ -170,12 +170,13 @@ function body(id) {
         </div>
         <div class="ed-grid">
           ${field(t("ed.clientName"), "client.name", { span: true })}
+          ${field(t("ed.email"), "client.email", { type: "email", span: true })}
+        </div>
+        ${details(t("ed.moreClientDetails"), `
           ${field(t("ed.contact"), "client.contact")}
           ${field(t("ed.phone"), "client.phone", { type: "tel" })}
-          ${field(t("ed.email"), "client.email", { type: "email", span: true })}
           ${field(t("ed.billingAddress"), "client.address", { textarea: true, rows: 3, span: true })}
-          ${field(t("ed.taxIdOpt"), "client.taxId", { span: true })}
-        </div>`;
+          ${field(t("ed.taxIdOpt"), "client.taxId", { span: true })}`, !!(doc.client.contact || doc.client.phone || doc.client.address || doc.client.taxId))}`;
     }
     case "items": return itemsBody();
     case "totals":
@@ -241,7 +242,7 @@ function itemsBody() {
     const p = `items.${i}`;
     const box = c => {
       if (c.id === "qty") return itemNum(colName(c), `${p}.qty`, numStr(it.qty), "num");
-      if (c.id === "rate") return itemNum(colName(c), `${p}.rate`, numStr(it.rate), "num");
+      if (c.id === "rate") return itemNum(colName(c), `${p}.rate`, numStr(it.rate), "num", curSymbol());
       if (c.id === "sku" || c.id === "unit") return itemNum(colName(c), `${p}.${c.id}`, it[c.id], "text");
       if (c.id === "disc" || c.id === "tax") return itemNum(colName(c), `${p}.${c.id}`, numStr(it[c.id]), "num");
       return itemNum(colName(c), `${p}.cells.${c.id}`, (it.cells || {})[c.id] ?? "", c.role === "number" ? "cellnum" : "text");
@@ -266,18 +267,22 @@ function itemsBody() {
       <button type="button" class="btn btn-outline" data-act="columns" aria-haspopup="dialog">${icon("columns-3", 18)}${esc(t("ed.columns"))}</button>
       <button type="button" class="btn btn-outline" data-act="pick-item" aria-haspopup="dialog">${icon("files", 18)}${esc(t("ed.savedItems"))}</button>
       <button type="button" class="btn btn-outline" data-act="import-items" aria-haspopup="dialog">${icon("upload", 18)}${esc(t("ed.importItems"))}</button>
-      <button type="button" class="btn btn-outline" data-act="clear-items">${icon("trash-2", 18)}${esc(t("ed.clearItems"))}</button>
-    </div>`;
+    </div>
+    ${doc.items.length > 1 ? `<button type="button" class="link-btn danger-text clear-items" data-act="clear-items">${icon("trash-2", 16)}${esc(t("ed.clearItems"))}</button>` : ""}`;
 }
 // A column's name in the editor: the name typed in Columns, or the standard one.
 function colName(c) {
   if (c.label.trim()) return c.label.trim();
   return { desc: t("ed.descShort"), qty: t("ed.qty"), rate: t("ed.rate"), amount: t("ed.amount"), sku: t("ed.sku"), unit: t("ed.unit"), disc: t("col.disc"), tax: t("col.tax") }[c.id] || t(c.role === "number" ? "col.number" : "col.text");
 }
-function itemNum(label, path, value, kind) {
+function itemNum(label, path, value, kind, affix = "") {
   const num = kind === "num" || kind === "cellnum";
-  return `<div class="field"><label for="${fid(path)}">${esc(label)}</label><input class="input${num ? " num" : ""}" id="${fid(path)}" data-f="${path}" data-k="${kind === "cellnum" ? "text" : kind}" value="${esc(value)}"${num ? ' inputmode="decimal"' : ""} autocomplete="off" dir="${num ? "ltr" : "auto"}"></div>`;
+  const input = `<input class="input${num ? " num" : ""}" id="${fid(path)}" data-f="${path}" data-k="${kind === "cellnum" ? "text" : kind}" value="${esc(value)}"${num ? ' inputmode="decimal"' : ""} autocomplete="off" dir="${num ? "ltr" : "auto"}">`;
+  // The currency symbol sits inside the price box (always on the left, like the number).
+  const box = affix ? `<div class="affix-wrap" dir="ltr" style="--affix:${[...affix].length + 1}ch"><span class="affix" aria-hidden="true">${esc(affix)}</span>${input}</div>` : input;
+  return `<div class="field"><label for="${fid(path)}">${esc(label)}${affix ? `<span class="visually-hidden"> (${esc(doc.currency)})</span>` : ""}</label>${box}</div>`;
 }
+function curSymbol() { const c = CURRENCIES.find(r => r[0] === doc.currency); return c ? c[1] : doc.currency; }
 
 function paymentsList() {
   const tt = totals(doc);
@@ -346,15 +351,49 @@ function shell() {
     </div>
     <div class="ed-body">
       <div class="ed-form-wrap" id="edFormPanel" role="tabpanel" aria-labelledby="tabForm"><form class="ed-form" id="edForm" novalidate autocomplete="off" aria-label="${esc(t("ed.form"))}">
-        ${sections().map(([id, title], i) => sectionHtml(id, title, i + 1)).join("")}
+        ${formHtml()}
       </form></div>
       <div class="ed-preview" id="edPreview" role="tabpanel" aria-labelledby="tabPrev">
         <div class="ed-paper-wrap"><div class="ed-paper" id="docPreview" aria-label="${esc(t("ed.preview"))}"></div></div>
         ${settings().editMode ? `<p class="hint ed-edit-hint">${esc(t("ed.editModeHint"))}</p>` : ""}
       </div>
     </div>
+    <div class="ed-totalbar" id="edTotalBar"${doc.type === "deliveryNote" ? " hidden" : ""}>
+      <span class="tb-text"><span class="tb-label" id="tbLabel"></span><bdi class="tb-amt num ltr" id="tbAmt"></bdi></span>
+      <button type="button" class="btn btn-outline tb-prev" data-act="to-preview">${icon("eye", 18)}${esc(t("ed.preview"))}</button>
+    </div>
   </div>`;
 }
+// Logo, layout and recurring are needed less often: they sit behind "More options",
+// which stays open once opened (or while one of those sections is open).
+const MORE_SECS = ["brand", "layout", "recurring"];
+const MORE_KEY = "invogen.edMoreOpen";
+const moreShown = () => MORE_SECS.some(id => open.has(id)) || safeGet(MORE_KEY) === "1";
+function safeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+function formHtml() {
+  const list = sections();
+  const num = id => list.findIndex(x => x[0] === id) + 1;
+  const main = list.filter(([id]) => !MORE_SECS.includes(id)), extra = list.filter(([id]) => MORE_SECS.includes(id));
+  const shown = moreShown();
+  return main.map(([id, title]) => sectionHtml(id, title, num(id))).join("") + (extra.length ? `
+    <button type="button" class="ed-more-secs" data-act="more-secs" aria-expanded="${shown}" aria-controls="edMoreSecs">
+      <span class="mi-text"><span>${esc(t("ed.moreOptions"))}</span><span class="hint">${esc(extra.map(x => x[1]).join(" · "))}</span></span>${icon("chevron-down", 18)}</button>
+    <div class="ed-more-wrap" id="edMoreSecs"${shown ? "" : " hidden"}>${extra.map(([id, title]) => sectionHtml(id, title, num(id))).join("")}</div>` : "");
+}
+function toggleMoreSecs() {
+  const wrap = root.querySelector("#edMoreSecs"), btn = root.querySelector('[data-act="more-secs"]');
+  if (!wrap || !btn) return;
+  const show = wrap.hidden;
+  wrap.hidden = !show;
+  btn.setAttribute("aria-expanded", String(show));
+  safeSet(MORE_KEY, show ? "1" : "0");
+  if (!show) {                       // closing the group also closes its sections
+    MORE_SECS.forEach(id => { if (open.has(id)) { open.delete(id); renderSection(id); } });
+    saveOpen();
+  }
+}
+
 function sectionHtml(id, title, n) {
   const isOpen = open.has(id);
   return `<section class="ed-sec${isOpen ? " is-open" : ""}" data-sec="${id}">
@@ -383,7 +422,7 @@ function renderSection(id) {
 }
 function renderForm() {
   const form = root.querySelector("#edForm");
-  form.innerHTML = sections().map(([id, title], i) => sectionHtml(id, title, i + 1)).join("");
+  form.innerHTML = formHtml();
   open.forEach(afterSectionRender);
 }
 function afterSectionRender(id) {
@@ -398,6 +437,22 @@ function afterSectionRender(id) {
       renderSection("client"); changed();
     }
   });
+  // Typing an item description suggests matching saved items; picking one fills its price.
+  if (id === "items" && getState().products.length) root.querySelectorAll("[data-desc]").forEach(inp => {
+    const i = +inp.dataset.desc;
+    attachSuggest(inp, {
+      label: t("ed.savedItems"),
+      items: () => getState().products.map(p => ({ id: p.id, label: p.desc, sub: [p.unit, dmoney(p.rate)].filter(Boolean).join(" · ") })),
+      onPick: pid => {
+        const p = getState().products.find(x => x.id === pid), it = doc.items[i];
+        if (!p || !it) return;
+        Object.assign(it, { desc: p.desc, rate: p.rate, unit: p.unit || it.unit, sku: p.sku || it.sku });
+        renderSection("items"); changed();
+        const q = root.querySelector(`#${fid(`items.${i}.qty`)}`) || root.querySelector(`#${fid(`items.${i}.rate`)}`);
+        if (q) q.focus();
+      }
+    });
+  });
   if (id === "brand" && doc.signature.on && doc.signature.mode === "draw") {
     const c = root.querySelector("#sigPad");
     if (pad) pad.destroy();
@@ -411,6 +466,18 @@ function refreshSummaries() {
   });
   const ttl = root.querySelector("#pageTitle");
   if (ttl) ttl.innerHTML = titleHtml();
+  renderTotalBar();
+}
+// Phones and tablets: the total stays in view at the bottom of the form.
+function renderTotalBar() {
+  const bar = root && root.querySelector("#edTotalBar");
+  if (!bar) return;
+  bar.hidden = doc.type === "deliveryNote";
+  if (bar.hidden) return;
+  const tt = totals(doc);
+  const owing = doc.type === "invoice" && (tt.paid || tt.credited);
+  bar.querySelector("#tbLabel").textContent = t(owing ? "ed.bar.balance" : "ed.bar.total");
+  bar.querySelector("#tbAmt").textContent = dmoney(owing ? tt.balance : tt.total);
 }
 // "Invoice · Client". Small phones show only the client; the type stays for screen readers.
 function titleHtml() {
@@ -666,6 +733,8 @@ async function onClick(e) {
     case "columns": return openColumns();
     case "pdf": return pdfButton();
     case "more": return openMore();
+    case "more-secs": return toggleMoreSecs();
+    case "to-preview": setView("preview"); root.querySelector("#tabPrev").focus(); return;
     case "send": return openSend();
     case "add-item": return addItem();
     case "del-item": return delItem(+b.dataset.i);
@@ -1056,7 +1125,42 @@ function openColumns() {
 }
 
 /* ---------------- top-bar actions ---------------- */
-function exportPdf() { flushNow(); makePdf(doc); }
+function exportPdf() { flushNow(); precheck("pdf", () => makePdf(doc)); }
+
+// Before Send, Download PDF and Print: list what looks unfinished, each with a Fix button.
+// "… anyway" carries on. Nothing is shown when everything is filled in.
+function issues() {
+  const out = [], ty = doc.type, tt = totals(doc);
+  if (!doc.business.name.trim()) out.push(["check.biz", "biz", "#f-business-name"]);
+  if (ty !== "receipt" && !doc.client.name.trim()) out.push([ty === "purchaseOrder" ? "check.supplier" : "check.client", "client", "#f-client-name"]);
+  const filled = doc.items.filter(i => i.desc.trim() || Number(i.rate));
+  if (!filled.length) out.push(["check.items", "items", "#f-items-0-desc"]);
+  else if (ty !== "deliveryNote" && !(tt.total > 0)) out.push(["check.zero", "items", `#f-items-${doc.items.indexOf(filled[0])}-rate`]);
+  if (!NO_DUE_TYPES.includes(ty) && doc.due && doc.issued && doc.due < doc.issued) out.push(["check.due", "doc", "#f-due"]);
+  return out;
+}
+function precheck(kind, go) {
+  const list = issues();
+  if (!list.length) return go();
+  openSheet({
+    title: t(`check.title.${kind}`),
+    body: `<p>${esc(t("check.intro"))}</p>
+      <ul class="check-list">${list.map(([key], i) => `<li><span>${esc(t(key, { amount: dmoney(totals(doc).total) }))}</span><button type="button" class="btn btn-outline" data-close="fix${i}">${esc(t("check.fix"))}</button></li>`).join("")}</ul>`,
+    foot: `<button type="button" class="btn btn-outline" data-close="">${esc(t("check.back"))}</button>
+           <button type="button" class="btn btn-primary" data-close="go">${esc(t(`check.anyway.${kind}`))}</button>`,
+    onClose: v => {
+      if (v === "go") setTimeout(go, 60);
+      else if (v.startsWith("fix")) setTimeout(() => fixIssue(list[+v.slice(3)]), 80);
+    }
+  });
+}
+function fixIssue([, sec, sel]) {
+  setView("form");
+  if (MORE_SECS.includes(sec)) { const w = root.querySelector("#edMoreSecs"); if (w && w.hidden) toggleMoreSecs(); }
+  if (!open.has(sec)) { open.add(sec); saveOpen(); renderSection(sec); }
+  const el = root.querySelector(sel) || root.querySelector(`[data-sec="${sec}"] input, [data-sec="${sec}"] [data-toggle]`);
+  if (el) { el.scrollIntoView({ block: "center" }); el.focus({ preventScroll: true }); }
+}
 // Receipts: the PDF button asks which kind — the full page or the POS receipt.
 function pdfButton() {
   if (doc.type !== "receipt") return exportPdf();
@@ -1168,7 +1272,7 @@ function runMore(a) {
     case "undo": return undo();
     case "redo": return redo();
     case "pdf": return exportPdf();
-    case "print": return printDocument(doc);
+    case "print": return precheck("print", () => printDocument(doc));
     case "pos": return openPosSheet(doc);
     case "duplicate": {
       const c = duplicateDoc(doc.id);
@@ -1198,6 +1302,9 @@ function runMore(a) {
 
 function openSend() {
   flushNow();
+  precheck("send", sendSheet);
+}
+function sendSheet() {
   const tt = totals(doc);
   const amount = formatMoney(doc.type === "invoice" ? tt.balance : tt.total, doc.currency, { fmt: doc.numberFormat, lang: doc.lang });
   const subject = `${dl(doc.lang, "noun", doc.type)} ${doc.no}${doc.business.name ? " – " + doc.business.name : ""}`;
@@ -1273,6 +1380,7 @@ export function mount(el, params) {
   document.getElementById("main").classList.add("main--editor");
   root.innerHTML = shell();
   open.forEach(afterSectionRender);
+  renderTotalBar();
   ac = new AbortController();
   const sig = { signal: ac.signal };
   root.addEventListener("input", onInput, sig);
